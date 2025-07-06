@@ -4,8 +4,8 @@ export enum VOROFORCE_MODE {
   intro = 2,
 }
 
-// export const DEFAULT_VOROFORCE_MODE: VOROFORCE_MODE = VOROFORCE_MODE.preview
-export const DEFAULT_VOROFORCE_MODE: VOROFORCE_MODE = VOROFORCE_MODE.select
+export const DEFAULT_VOROFORCE_MODE: VOROFORCE_MODE = VOROFORCE_MODE.preview
+// export const DEFAULT_VOROFORCE_MODE: VOROFORCE_MODE = VOROFORCE_MODE.select
 
 export enum VOROFORCE_PRESET {
   mobile = 'mobile',
@@ -31,14 +31,12 @@ export const PRESET_ITEMS = [
   {
     id: VOROFORCE_PRESET.contours,
     name: 'Contours',
-    // features: ['Special effects'],
     videoSrc: '/tmp.webm',
     recommendedDeviceClass: DEVICE_CLASS.mid,
   },
   {
     id: VOROFORCE_PRESET.depth,
     name: 'Depth',
-    // features: ['Raymarching'],
     videoSrc: '/tmp.webm',
     recommendedDeviceClass: DEVICE_CLASS.high,
   },

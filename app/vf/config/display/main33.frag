@@ -99,7 +99,7 @@ precision highp float;
 #define POST_UNWEIGHTED_EFFECT 1
 //#define POST_UNWEIGHTED_MOD_OPACITY 0.5
 #define POST_UNWEIGHTED_MOD_OPACITY 1.
-#define POST_UNWEIGHTED_MOD_GRAYSCALE 0.
+#define POST_UNWEIGHTED_MOD_GRAYSCALE 0.75
 
 uniform highp sampler2D uCellCoordsTexture;
 uniform highp sampler2D uVoroIndexBufferTexture;

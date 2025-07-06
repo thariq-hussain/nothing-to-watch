@@ -146,8 +146,8 @@ const items = [
           It’s worth noting that this is not a typical Voronoi diagram. The
           seeds are loosely constrained to a grid, which makes the resulting
           cells fairly uniform. The distance metric is biased 1.5x along the
-          y-axis. Depending on the view mode, there are also various distortion
-          effects.
+          y-axis. Depending on the view mode, there is also cell weights and
+          various distortion effects.
         </p>
         <br />
         <p className='hidden md:inline-block'>
