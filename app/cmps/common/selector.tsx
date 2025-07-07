@@ -12,6 +12,7 @@ export type SelectorItem = {
   value: string
   label: ReactNode | string
   hasWarning?: boolean
+  addon?: ReactNode | string
 }
 
 export type SelectorItems = SelectorItem[]
@@ -31,7 +32,7 @@ export function SelectorItemWarning({
       duration={700}
       delay={100}
       className={cn(
-        '-translate-y-1/2 -translate-x-1/2 !text-background !transition-all pointer-events-none absolute top-0 left-1/2 z-10 rounded-2xl bg-amber-200 font-semibold text-xs leading-none will-change-[background-color] dark:bg-amber-800',
+        '-translate-y-1/2 -translate-x-1/2 !text-white !transition-all pointer-events-none absolute top-0 left-1/2 z-10 rounded-2xl bg-amber-200 font-semibold text-xs leading-none will-change-[background-color] dark:bg-amber-800',
         {
           'ease-in-out will-change-[transform,translate,height,width,border-radius,background-color] contain-strict group-hover:translate-y-[calc(-100%-1rem)] group-hover:rounded-md':
             !!children,
@@ -115,8 +116,8 @@ export function Selector({
                 'relative flex size-full cursor-pointer flex-col overflow-hidden rounded-xl border-2 p-4 transition-all',
                 'font-semibold text-lg text-zinc-900 dark:text-white',
                 {
-                  'border-zinc-200 dark:border-zinc-800': !hasWarning,
-                  'hover:border-zinc-400 dark:hover:border-zinc-700':
+                  'border-input dark:border-zinc-800': !hasWarning,
+                  'hover:border-input dark:hover:border-zinc-700':
                     !hasWarning && !isSelected,
                   'border-amber-800 dark:border-amber-800 ': hasWarning,
                   'hover:border-amber-700 dark:hover:border-amber-700':
@@ -181,6 +182,7 @@ export function Selector({
                 {warningMessage}
               </SelectorItemWarning>
             )}
+            {item.addon}
           </div>
         )
       })}

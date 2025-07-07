@@ -42,6 +42,7 @@ export function DeviceClassWidget({
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       <DeviceClassSelector
+        estimatedValue={estimatedDeviceClass}
         value={selectedDeviceClass}
         onValueChange={(value: DEVICE_CLASS) => {
           setSelectedDeviceClass(value)

@@ -49,8 +49,8 @@ const items = [
           materials used remain with their respective owners. I do not claim
           ownership of any third-party content. If you are the rightful owner of
           any material featured here and have concerns about its use, please{' '}
-          <Link href={`mailto:${config.relayEmail}`}>contact</Link> me - I will
-          address the issue promptly.
+          <Link href={`mailto:${config.contactEmail}`}>contact</Link> me - I
+          will address the issue promptly.
         </p>
         <br />
         <p>
@@ -146,14 +146,14 @@ const items = [
           It’s worth noting that this is not a typical Voronoi diagram. The
           seeds are loosely constrained to a grid, which makes the resulting
           cells fairly uniform. The distance metric is biased 1.5x along the
-          y-axis. Depending on the view mode, there is also cell weights and
+          y-axis. Depending on the view mode, there are also cell weights and
           various distortion effects.
         </p>
         <br />
         <p className='hidden md:inline-block'>
           You can <ToggleVoroforceDevMode /> to see the Voronoi cell seeds but
-          these may not be representative of the actual Voronoi diagram, due to
-          distortion.
+          depending on the level of distortion these may not be representative
+          of the actual Voronoi diagram.
         </p>
       </>
     ),
@@ -186,23 +186,22 @@ const items = [
     content: (
       <>
         <p>
-          As mentioned earlier, many of the shader algorithms draw heavy
-          inspiration from - if not directly reinterpret - the work of several
-          brilliant creators on{' '}
+          Many of the shader algorithms draw heavy inspiration from - if not
+          directly reinterpret - the work of several brilliant creators on{' '}
           <Link href='https://shadertoy.com'>Shadertoy</Link>.
         </p>
         <br />
         <p>
-          These shaders do not use the{' '}
+          The{' '}
           <Link href='https://en.wikipedia.org/wiki/Jump_flooding_algorithm'>
             Jump Flooding algorithm
           </Link>
-          . Instead, the Voronoi diagram is generated in a single pass through a
-          two-pronged approach: comparing distances with immediate grid
-          neighbors and with additional neighbors located within a small
-          pixel-radius search area. Although cell propagation can be relatively
-          slow, this can be reasonably masked using simulation speed limits and
-          other visual tricks.
+          is not employed. Instead, the Voronoi diagram is generated in a single
+          pass through a two-pronged approach: comparing distances with
+          immediate grid neighbors and with additional neighbors located within
+          a small pixel-radius search area. Although cell propagation is
+          relatively slow, this can be reasonably masked using simulation speed
+          limits and other visual tricks.
         </p>
       </>
     ),

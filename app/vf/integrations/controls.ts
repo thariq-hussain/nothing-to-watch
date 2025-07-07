@@ -19,7 +19,6 @@ export const handleControls = () => {
   }) as unknown as EventListener)
 
   controls.listen('selected', (async ({ cell }: { cell: VoroforceCell }) => {
-    // if (store.getState().mode !== VOROFORCE_MODES.select) return
     if (cell) {
       setFilm(await getCellFilm(cell, filmBatches))
       controls.pinPointer()

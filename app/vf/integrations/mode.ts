@@ -28,24 +28,10 @@ const handleModeChange = (mode: VOROFORCE_MODE): void => {
   setMode(mode)
 
   updateControlsByMode(controls, mode)
-
-  // if (mode === VOROFORCE_MODE.select) {
-  //   // renderer.resizeScissor({
-  //   //   offset: {
-  //   //     left: 0,
-  //   //     top: 0,
-  //   //   },
-  //   // })
-  //   // controls.disableFocus()
-  //   // controls.freezePointerUntilBlurAndRefocus()
-  // } else if (mode === VOROFORCE_MODE.preview) {
-  //   // controls.enableFocus()
-  // }
-
   updateUniformsByMode(mainUniforms, mode, animatingUniforms)
   updateUniformsByMode(postUniforms, mode, animatingUniforms)
 
-  // when switching modes, need to temporarily up the neighbor searches in the shader to max supported level (voronoi cell propagation speed limits in shader)
+  // when switching modes, temporarily up the neighbor searches in the shader to max supported level (voronoi cell propagation speed limits in shader)
   // updateUniforms(mainUniforms, {
   //   iForcedMaxNeighborLevel: 3,
   // })

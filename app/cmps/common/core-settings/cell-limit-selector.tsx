@@ -3,9 +3,9 @@ import { useMemo } from 'react'
 import { isDefined } from '../../../utils/misc'
 import { cn } from '../../../utils/tw'
 import {
-  type CELL_LIMIT,
+  CELL_LIMIT,
   CELL_LIMIT_ITEMS,
-  type DEVICE_CLASS,
+  DEVICE_CLASS,
 } from '../../../vf/consts.ts'
 import { DeviceClassWarningMessage } from '../device-class/device-class-warning-message'
 import { Selector, type SelectorItems } from '../selector'
@@ -22,7 +22,11 @@ export function CellLimitSelector({
   deviceClass?: DEVICE_CLASS
 }) {
   const cellLimitItems: SelectorItems = useMemo(() => {
-    return CELL_LIMIT_ITEMS.map((cellLimit) => {
+    return CELL_LIMIT_ITEMS.filter(
+      (cellLimit) =>
+        cellLimit.value !== CELL_LIMIT.xxs ||
+        deviceClass === DEVICE_CLASS.mobile,
+    ).map((cellLimit) => {
       const hasWarning =
         isDefined(cellLimit.recommendedDeviceClass) &&
         isDefined(deviceClass) &&
@@ -32,7 +36,7 @@ export function CellLimitSelector({
         label: (
           <span
             className={cn({
-              'text-amber-500 dark:text-amber-500': hasWarning,
+              'text-amber-700 dark:text-amber-500': hasWarning,
             })}
           >
             {cellLimit.label}

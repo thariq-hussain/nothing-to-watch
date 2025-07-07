@@ -58,12 +58,11 @@ export const CELL_LIMIT_ITEMS = [
   {
     value: CELL_LIMIT.xs,
     label: '10,000',
-    recommendedDeviceClass: DEVICE_CLASS.low,
   },
   {
     value: CELL_LIMIT.sm,
     label: '25,000',
-    recommendedDeviceClass: DEVICE_CLASS.mid,
+    recommendedDeviceClass: DEVICE_CLASS.low,
   },
   {
     value: CELL_LIMIT.md,

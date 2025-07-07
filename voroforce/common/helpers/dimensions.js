@@ -60,10 +60,7 @@ export class Dimensions extends CustomEventTarget {
       diagonal,
       aspect,
       pixelRatio,
-      // pixelRatio: 1, // TODO TMP
     }
-
-    console.log('dimensions', this.#state)
   }
 
   setState(s) {

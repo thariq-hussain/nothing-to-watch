@@ -77,7 +77,7 @@ export function CoreSettingsWidget({
         : isDefined(deviceClass)
           ? CELL_LIMIT_ITEMS.findLast((p) =>
               isDefined(p.recommendedDeviceClass)
-                ? p.recommendedDeviceClass < deviceClass
+                ? p.recommendedDeviceClass <= deviceClass
                 : true,
             )?.value
           : undefined),

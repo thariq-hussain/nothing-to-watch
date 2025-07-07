@@ -9,7 +9,6 @@ export * from './theme'
 export * from './ticker'
 
 export const initVoroforceIntegrations = () => {
-  // handleIntro()
   handleControls()
   handleMode()
   handleTheme()

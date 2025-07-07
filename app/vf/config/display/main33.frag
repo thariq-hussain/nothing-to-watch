@@ -81,7 +81,6 @@ precision highp float;
 #define EDGE_SMIN_SCALING_COMPENSATION 0
 #define EDGE_CELL_SCALING 1
 #define EDGE_CELL_SCALING_MODE 0 // mode 1 = media boxes if media enabled
-//#define EDGE_BORDER_THICKNESS_BASE 0.135
 #define EDGE_BORDER_THICKNESS_BASE 0.075
 #define EDGE_CELL_SCALING_BORDER_THICKNESS 0
 //#define EDGE_BORDER_THICKNESS_MIN 0.
@@ -97,7 +96,6 @@ precision highp float;
 //#define EDGE_BORDER_ROUNDNESS_MAX 1.
 
 #define POST_UNWEIGHTED_EFFECT 1
-//#define POST_UNWEIGHTED_MOD_OPACITY 0.5
 #define POST_UNWEIGHTED_MOD_OPACITY 1.
 #define POST_UNWEIGHTED_MOD_GRAYSCALE 0.75
 
@@ -1321,14 +1319,10 @@ void edgesColor(inout vec3 c, inout float a, in Plot plot) {
 
     float step = plot.edgeStep;
 
-    //                float t = clamp((plot.edge.x - edge0) / (edge1 - edge0), 0.0, 1.0);
-    //                float step = t * t * (3.0 - 2.0 * t);
-
     #if TRANSPARENCY == 1
         a = mix(1., 0., step);
     #else
         // vec3 bgColor = !plot.debugFlag ? fBaseColor : vec3(1.,0.,0.);
-        // vec3 bgColor = randomColor(indices.x);
         c = mix(fBaseColor, c, step);
     #endif
 }
@@ -1337,11 +1331,9 @@ void edgesColor(inout vec3 c, inout float a, in Plot plot) {
 void postEffectsColor(inout vec3 c, inout float a, in Plot plot) {
     #if POST_UNWEIGHTED_EFFECT == 1
         if (fUnweightedEffectMod > 0.) {
-            //        if (indices.x != uint(iFocusedIndex)) {
-            //            c = mix(c, fBaseColor, 0.7 * fUnweightedEffectMod);
-            //        }
-            c = mix(c, fBaseColor, (1.-POST_UNWEIGHTED_MOD_OPACITY) * fUnweightedEffectMod * (1.-plot.weight));
-            c = toGrayscale(c,POST_UNWEIGHTED_MOD_GRAYSCALE* fUnweightedEffectMod * (1.-plot.weight));
+            float mod = fUnweightedEffectMod * (1. - plot.weight);
+            c = mix(c, fBaseColor, (1. - POST_UNWEIGHTED_MOD_OPACITY) * mod);
+            c = toGrayscale(c, POST_UNWEIGHTED_MOD_GRAYSCALE * mod);
         }
     #endif
 
@@ -1370,12 +1362,12 @@ void main() {
     float a = 1.;
     #if MEDIA_ENABLED == 1 && MEDIA_HIDDEN == 0
         mediaColor(c, a, plot);
+        postEffectsColor(c, a, plot);
     #else
         randomCellColor(c, a, plot);
     #endif
     #if EDGES_VISIBLE == 1
         edgesColor(c, a, plot);
     #endif
-    postEffectsColor(c, a, plot);
     colorOutput(c, a, plot);
 }

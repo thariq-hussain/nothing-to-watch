@@ -3,14 +3,17 @@ import { useMemo } from 'react'
 import { cn } from '../../../utils/tw'
 import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts.ts'
 import { Selector, type SelectorItems } from '../selector'
+import { Badge } from '../../ui/badge'
 
 export function DeviceClassSelector({
   className = '',
   value,
+  estimatedValue,
   onValueChange,
 }: {
   className?: string
   value?: DEVICE_CLASS
+  estimatedValue?: DEVICE_CLASS
   onValueChange: (value: DEVICE_CLASS) => void
 }) {
   const deviceClassItems: SelectorItems = useMemo(() => {
@@ -18,9 +21,15 @@ export function DeviceClassSelector({
       return {
         label: deviceClass.name,
         value: String(deviceClass.id),
+        addon:
+          estimatedValue === deviceClass.id ? (
+            <Badge className='-translate-x-1/2 -translate-y-1/2 !text-background pointer-events-none absolute top-0 left-1/2 text-xxs'>
+              Estimated
+            </Badge>
+          ) : undefined,
       }
     })
-  }, [])
+  }, [estimatedValue])
 
   return (
     <div className='flex flex-col gap-4'>

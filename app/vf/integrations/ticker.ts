@@ -13,7 +13,6 @@ export const handleTicker = () => {
     performanceMonitor,
   })
 
-  // controls.addEventListener('pointerMove', ({ pointer }) => {})
   voroforce.ticker.listen('tick', (() => {
     handleAnimatingUniforms(animatingUniforms)
     performanceMonitor.onTick()

@@ -332,7 +332,6 @@ export default class Controls extends CustomEventTarget {
         this.shakeCooldownActive = false
       }, this.options.freezeOnShake.cooldown)
 
-      console.log('shook')
       return true
     }
   }

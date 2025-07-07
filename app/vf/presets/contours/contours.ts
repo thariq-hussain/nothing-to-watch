@@ -1,19 +1,9 @@
-import { uncompressedSingleMediaVersionConfig } from '../../config'
-import baseConfig from '../../config/config'
-// import postFrag from './post-mid.frag'
-// import postFrag from './post-mid2.frag'
-import postFrag from './post-mid3.frag'
+import postFrag from './post-contours.frag'
+import { mediaConfigWithUncompressedSingleVersion } from '../../config/media'
 
 export default {
   cells: 50000,
-  media: {
-    versions: [
-      ...baseConfig.media.versions,
-      ...(import.meta.env.VITE_EXPERIMENTAL_MEDIA_VERSION_3_ENABLED
-        ? [uncompressedSingleMediaVersionConfig]
-        : []),
-    ],
-  },
+  media: mediaConfigWithUncompressedSingleVersion,
   display: {
     scene: {
       post: {

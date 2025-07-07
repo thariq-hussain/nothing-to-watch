@@ -48,11 +48,6 @@ export class AutoTicker extends CustomEventTarget {
     const currentTime = performance.now()
     this.delta = currentTime - this.current
 
-    // console.log('this.delta', this.delta)
-    // const elapsedSinceLastFrame = currentTime - this.lastFrameTime
-
-    // console.log('this.elapsed', this.elapsed)
-
     // Only execute if enough time has passed for our target FPS
     // if (elapsedSinceLastFrame >= this.frameInterval) {
     if (this.delta >= this.frameInterval) {

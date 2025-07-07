@@ -1,4 +1,4 @@
-export default {
+const mediaConfig = {
   enabled: true,
   baseUrl: import.meta.env.VITE_TEXTURES_BASE_URL ?? '/media',
   preload: 'first', // 'v0', 'first' or false
@@ -36,6 +36,8 @@ export default {
   ],
 }
 
+export default mediaConfig
+
 export const uncompressedSingleMediaVersionConfig = {
   cols: 1,
   rows: 1,
@@ -51,4 +53,14 @@ export const uncompressedSingleMediaVersionConfig = {
   layerIndexStart: 0,
   layerSrcFormat: '/single/{INDEX}.jpg',
   type: 'uncompressed-single',
+}
+
+export const mediaConfigWithUncompressedSingleVersion = {
+  ...mediaConfig,
+  versions: [
+    ...mediaConfig.versions,
+    ...(import.meta.env.VITE_EXPERIMENTAL_MEDIA_VERSION_3_ENABLED
+      ? [uncompressedSingleMediaVersionConfig]
+      : []),
+  ],
 }

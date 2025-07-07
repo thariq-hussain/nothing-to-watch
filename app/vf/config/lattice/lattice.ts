@@ -1,5 +1,4 @@
 import { mergeConfigs } from '√'
-
 import { VOROFORCE_MODE } from '../../consts'
 
 export const baseLatticeConfig = {
@@ -7,7 +6,6 @@ export const baseLatticeConfig = {
   aspect: 2 / 3,
   // latticeAspect: 1,
   // latticeAspectConstraints: 'min',
-
   modes: {
     [VOROFORCE_MODE.intro]: {},
   },
