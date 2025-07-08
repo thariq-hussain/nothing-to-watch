@@ -49,34 +49,60 @@ export default class ForcesSimulationStep extends BaseSimulationStep {
   }
 
   handleForcesConfig() {
-    this.forces = []
     const forcesConfig = this.config.forces
-      ? Array.isArray(this.config.forces)
-        ? this.config.forces
-        : [this.config.forces]
-      : []
+    this.isReusableSingleForceConfig = !Array.isArray(forcesConfig)
 
-    forcesConfig.forEach((forceConfig, index) => {
-      if ('enabled' in forceConfig && !forceConfig.enabled) return
-
-      const force = forceFunctions[forceConfig.type ?? 'omni']?.({
+    if (this.isReusableSingleForceConfig) {
+      if ('enabled' in forcesConfig && !forcesConfig.enabled) return
+      const props = {
         cells: this.cells,
         links: this.links,
         dimensions: this.dimensions,
         pointer: this.pointer,
         sharedData: this.sharedData,
-        config: forceConfig,
+        config: forcesConfig,
         simulationStepConfig: this.config,
         simulationConfig: this.simulationConfig,
         globalConfig: this.globalConfig,
-        handleEnd:
-          index === forcesConfig.length - 1
-            ? this.handleEnd.bind(this)
-            : undefined,
+        handleEnd: this.handleEnd.bind(this),
+      }
+      if (
+        !this.reusableSingleForceBlueprint ||
+        !this.reusableSingleForceBlueprint.init
+      ) {
+        this.reusableSingleForceBlueprint =
+          forceFunctions[forcesConfig.type ?? 'omni']?.(props)
+      }
+      let force = this.reusableSingleForceBlueprint
+      if (force.init) force = force.init(props)
+      this.forces = [force]
+    } else {
+      this.reusableSingleForceBlueprint = undefined
+      this.forces = []
+      forcesConfig.forEach((forceConfig, index) => {
+        if ('enabled' in forceConfig && !forceConfig.enabled) return
+        const props = {
+          cells: this.cells,
+          links: this.links,
+          dimensions: this.dimensions,
+          pointer: this.pointer,
+          sharedData: this.sharedData,
+          config: forceConfig,
+          simulationStepConfig: this.config,
+          simulationConfig: this.simulationConfig,
+          globalConfig: this.globalConfig,
+          handleEnd:
+            index === forcesConfig.length - 1
+              ? this.handleEnd.bind(this)
+              : undefined,
+        }
+
+        let force = forceFunctions[forceConfig.type ?? 'omni']?.(props)
+        if (!force) return
+        if (force.init) force = force.init(props)
+        this.forces.push(force)
       })
-      if (!force) return
-      this.forces.push(force)
-    })
+    }
   }
 
   refresh() {

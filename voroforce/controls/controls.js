@@ -1,69 +1,27 @@
-import { isTouchDevice } from '../utils'
-import { CustomEventTarget } from '../utils/custom-event-target'
-import {
-  CellFocusedEvent,
-  CellSelectedEvent,
-  PointerFrozenChangeEvent,
-  PointerShakeEvent,
-} from './controls-events'
+import { PointerShakeEvent } from './controls-events'
+import BaseControls from './base-controls'
 
-const { pow, sqrt, random, min, max } = Math
+const { pow, sqrt, max } = Math
 
 const getAverageSpeedTotal = (array) =>
   array.reduce((a, b) => a + b.total, 0) / array.length
 
-export default class Controls extends CustomEventTarget {
+const MAX_SPEED_HISTORY = 10
+
+export default class Controls extends BaseControls {
   pointerFrozen = true
 
-  constructor(store, display, options = {}) {
-    super()
-    this.initGlobals(store, display)
-    this.initProperties()
-    this.initEventListeners()
-    this.handleConfig()
-    this.reset()
-  }
-
   reset() {
-    this.positionHistory = []
-    this.speeds = []
-    this.rawSpeeds = []
+    super.reset()
+
+    this.speedHistory = []
     this.position = null
-    this.rawPosition = null
     this.lastPosition = null
     this.lastRawPosition = null
     this.speed = { x: 0, y: 0, total: 0 }
     this.rawSpeed = { x: 0, y: 0, total: 0 }
-    this.lastSpeed = { x: 0, y: 0, total: 0 }
-    this.lastRawSpeed = { x: 0, y: 0, total: 0 }
     this.avgRawSpeedTotal = 0
     this.avgSpeedTotal = 0
-    this.acceleration = { x: 0, y: 0, total: 0 }
-    this.direction = 0
-    this.lastTimestamp = null
-  }
-
-  initGlobals(store, display) {
-    this.store = store
-    this.store.set('controls', this)
-    this.globalConfig = this.store.get('config')
-    this.config = this.globalConfig.controls
-    if (
-      this.config.autoFocusCenter?.enabled &&
-      (this.config.autoFocusCenter.enabled !== 'touch' || isTouchDevice)
-    )
-      this.update = this.handleAutoFocusUpdate
-
-    this.display = display
-  }
-
-  initProperties() {
-    this.container = this.store.get('container')
-    this.dimensions = this.store.get('dimensions')
-    this.pointer = this.store.get('sharedPointer')
-    this.cells = this.store.get('cells')
-
-    this.maxHistory = 10 // Number of prev items to store for calculations
   }
 
   handleConfig() {
@@ -71,19 +29,16 @@ export default class Controls extends CustomEventTarget {
       raw: this.config.raw || false,
 
       maxSpeed: this.config.maxSpeed || 10,
-      minSpeed: this.config.minSpeed || 2,
       ease: this.config.ease || 0.15,
+
+      unfreezePointerSpeedLimit: this.config.unfreezePointerSpeedLimit || 5,
+      selectSpeedLimit: this.config.selectSpeedLimit || 2,
 
       freezeOnJolt: {
         enabled: this.config.freezeOnJolt?.enabled || false,
         factor: this.config.freezeOnJolt?.factor || 10,
         minSpeedValue: this.config.freezeOnJolt?.minSpeedValue || 2,
       },
-
-      unfreezePointerSpeedLimit: this.config.unfreezePointerSpeedLimit || 5,
-
-      selectSpeedLimit: this.config.selectSpeedLimit || 2,
-
       freezeOnShake: {
         enabled: this.config.freezeOnShake?.enabled || false,
         minSpeed: this.config.freezeOnShake?.minSpeed || 2, // Minimum velocity to count as a shake
@@ -92,12 +47,6 @@ export default class Controls extends CustomEventTarget {
         cooldown: this.config.freezeOnShake?.cooldown || 2000, // Minimum time between shake events
       },
     }
-  }
-
-  updateConfig(config) {
-    this.config = config
-    this.globalConfig.controls = config
-    this.handleConfig()
   }
 
   handleUpdate() {
@@ -131,7 +80,6 @@ export default class Controls extends CustomEventTarget {
 
       this.getCellIndices(this.position, (primaryIndex, indices) => {
         if (this.pointerPinned && this.cells.focusedIndex !== primaryIndex) {
-          // this.assignPointer(this.pinnedPointer)
           this.freezePointer()
         } else {
           this.assignPointer({
@@ -154,35 +102,18 @@ export default class Controls extends CustomEventTarget {
     // Process the position with capping if needed
     this.position = this.processPosition(this.rawPosition)
 
-    this.positionHistory.push(this.position)
-    // Keep array at max size
-    if (this.positionHistory.length > this.maxHistory) {
-      this.positionHistory.shift()
-    }
-
-    this.speeds.push({
+    this.speedHistory.push({
       ...this.speed,
     })
     // Keep array at max size
-    if (this.speeds.length > this.maxHistory) {
-      this.speeds.shift()
-      this.avgSpeedTotal = getAverageSpeedTotal(this.speeds)
-    }
-
-    this.rawSpeeds.push({
-      ...this.rawSpeed,
-    })
-    // Keep array at max size
-    if (this.rawSpeeds.length > this.maxHistory) {
-      this.rawSpeeds.shift()
-      this.avgRawSpeedTotal = getAverageSpeedTotal(this.rawSpeeds)
+    if (this.speedHistory.length > MAX_SPEED_HISTORY) {
+      this.speedHistory.shift()
+      this.avgSpeedTotal = getAverageSpeedTotal(this.speedHistory)
     }
 
     // Save last processed values for next calculation
     this.lastPosition = { ...this.position }
     this.lastRawPosition = { ...this.rawPosition }
-    this.lastSpeed = { ...this.speed }
-    this.lastRawSpeed = { ...this.rawSpeed }
   }
 
   processPosition(rawPosition) {
@@ -227,11 +158,6 @@ export default class Controls extends CustomEventTarget {
       return rawPosition
     }
 
-    // Consistent interpolation with minimum speed
-    // const easeAmount = Math.max(
-    //   this.options.ease,
-    //   this.options.minSpeed / distance,
-    // )
     const easeAmount = this.options.ease
 
     // Calculate the movement for this frame
@@ -354,213 +280,5 @@ export default class Controls extends CustomEventTarget {
     this.shakeDirChangeTimeout = setTimeout(() => {
       this.resetShake()
     }, this.options.freezeOnShake.dirChangeTimeout)
-  }
-
-  focusCell(cellOrCellIndex) {
-    const cellIndex =
-      typeof cellOrCellIndex === 'number'
-        ? cellOrCellIndex
-        : cellOrCellIndex.index
-    if (this.cells.focusedIndex !== cellIndex) {
-      this.cells.focusedIndex = cellIndex
-      this.dispatchEvent(new CellFocusedEvent(this.cells.focused, this.cells))
-    }
-  }
-
-  getCellIndices(position, cb) {
-    this.display.getPositionCellIndices(position).then((indices) => {
-      const primaryIndex = indices?.[0]
-      if (primaryIndex === undefined) {
-        this.onPointerOut()
-        return false
-      }
-      cb(primaryIndex, indices)
-    })
-  }
-
-  getAutoFocusCenter(randomized = false) {
-    const { width, height } = this.dimensions.get()
-    return {
-      x: width / 2 + (randomized ? (0.5 - random()) * 0.05 * width : 0),
-      y: height / 2 + (randomized ? (0.5 - random()) * 0.05 * height : 0),
-    }
-  }
-
-  handleAutoFocusUpdate() {
-    if (this.cells.focused) {
-      this.update = this.handleUpdate
-    } else {
-      this.assignPointer(
-        this.getAutoFocusCenter(this.config.autoFocusCenter?.random),
-      )
-    }
-
-    this.handleUpdate()
-  }
-
-  assignPointer(data) {
-    Object.assign(this.pointer, data)
-  }
-
-  savePointer() {
-    return {
-      indices: this.pointer.indices,
-      x: this.pointer.x,
-      y: this.pointer.y,
-      speedScale: 0,
-    }
-  }
-
-  freezePointer(frozenPointer) {
-    if (this.pointerPinned) {
-      this.unpinPointer()
-    }
-    this.pointerFrozen = true
-    this.pointer.speedScale = 0
-    this.frozenPointer ??= frozenPointer ?? this.savePointer()
-
-    this.dispatchEvent(
-      new PointerFrozenChangeEvent({
-        pointer: this.pointer,
-        frozen: this.pointerFrozen,
-      }),
-    )
-  }
-
-  unfreezePointer() {
-    this.pointerFrozen = false
-    if (this.frozenPointer) {
-      this.lastPosition = {
-        x: this.frozenPointer.x,
-        y: this.frozenPointer.y,
-      }
-    }
-    this.frozenPointer = null
-
-    this.dispatchEvent(
-      new PointerFrozenChangeEvent({
-        pointer: this.pointer,
-        frozen: this.pointerFrozen,
-      }),
-    )
-  }
-
-  pinPointer() {
-    this.speed.total = 0
-    this.pointerPinned = true
-    this.pinnedPointer ??= this.savePointer()
-  }
-
-  unpinPointer() {
-    this.pointerPinned = false
-    this.pinnedPointer = undefined
-  }
-
-  onPointerDown(e) {
-    this.pointer.down = true
-  }
-
-  onPointerUp(e) {
-    this.assignPointer({
-      down: false,
-    })
-    this.handlePointerClick()
-  }
-
-  onPointerMove(e) {
-    this.rawPosition = {
-      x: e.x,
-      y: e.y,
-    }
-  }
-
-  onPointerOut(event) {
-    this.handlePointerOut()
-  }
-
-  handlePointerOut() {
-    if (this.cells.focused) {
-      this.freezePointer()
-    }
-    this.reset()
-  }
-
-  handlePointerClick() {
-    if (this.pointerFrozen) {
-      // Object.assign(this.pointer, this.frozenPointer)
-      this.unfreezePointer()
-    } else {
-      // if (this.speed.total < this.options.selectSpeedLimit) {
-      this.cells.selectedIndex =
-        this.cells.selectedIndex !== this.cells.focusedIndex
-          ? this.cells.focusedIndex
-          : undefined
-
-      this.dispatchEvent(new CellSelectedEvent(this.cells.selected))
-      // }
-    }
-  }
-
-  deselect() {
-    this.cells.selectedIndex = undefined
-    this.dispatchEvent(new CellSelectedEvent(undefined))
-  }
-
-  initEventListeners() {
-    window.addEventListener('blur', this.onPointerOut.bind(this))
-
-    this.container.addEventListener(
-      'pointerdown',
-      this.onPointerDown.bind(this),
-    )
-    this.container.addEventListener('pointerup', this.onPointerUp.bind(this))
-
-    if (isTouchDevice) {
-    } else {
-      this.container.addEventListener(
-        'pointermove',
-        this.onPointerMove.bind(this),
-      )
-      this.container.addEventListener(
-        'pointerout',
-        this.onPointerOut.bind(this),
-      )
-    }
-  }
-
-  removeEventListeners() {
-    window.removeEventListener('blur', this.onPointerOut)
-
-    if (isTouchDevice) {
-    } else {
-      this.container.removeEventListener('pointermove', this.onPointerMove)
-      this.container.removeEventListener('pointerout', this.onPointerOut)
-    }
-
-    this.container.removeEventListener('pointerdown', this.onPointerDown)
-    this.container.removeEventListener('pointerup', this.onPointerUp)
-  }
-
-  startResize(dimensions) {
-    if (!this.cells.focused) return
-    this.freezePointer()
-  }
-
-  endResize(dimensions) {
-    if (!this.cells.focused) return
-    this.assignPointer({
-      x: this.cells.focused.x,
-      y: this.cells.focused.y,
-    })
-    this.dispatchEvent(new CellFocusedEvent(this.cells.focused, this.cells))
-  }
-
-  resize(dimensions) {
-    this.startResize()
-    this.endResize()
-  }
-
-  dispose() {
-    this.removeEventListeners()
   }
 }
