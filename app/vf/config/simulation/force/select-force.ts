@@ -164,7 +164,8 @@ export const selectForceSimulationStepConfig = {
   //   // },
   // ],
   forces: {
-    manageWeights: false,
+    manageWeights: true,
+    primaryCellWeightPushFactorEnabled: false,
     requestMediaVersions: {
       enabled: true,
       v3ColLevelAdjacencyThreshold: 1,

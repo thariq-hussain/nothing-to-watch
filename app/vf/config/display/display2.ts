@@ -94,7 +94,7 @@ export default {
               // value: 0,
             },
             [VOROFORCE_MODE.select]: {
-              value: 1.5,
+              value: 1,
             },
           },
         },
@@ -113,7 +113,7 @@ export default {
             },
             [VOROFORCE_MODE.select]: {
               // value: 1,
-              value: 2,
+              value: 2.5,
             },
           },
         },

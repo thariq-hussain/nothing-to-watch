@@ -20,7 +20,7 @@ export const controlModeConfigs: {
   [K in VOROFORCE_MODE]?: VoroforceInstance['controls']['config']
 } = {
   [VOROFORCE_MODE.select]: {
-    maxSpeed: 2,
+    maxSpeed: 3,
     ease: 0.01,
     freezeOnShake: {
       enabled: false,

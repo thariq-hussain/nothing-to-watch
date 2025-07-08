@@ -11,6 +11,7 @@ export const previewForceSimulationStepConfig = {
   },
   forces: {
     manageWeights: true,
+    primaryCellWeightPushFactorEnabled: true,
     smoothPrimaryCell: true,
     requestMediaVersions: {
       enabled: true,

@@ -117,6 +117,7 @@ export const omniForce = () => {
       primarySelector = 'focused',
       defaultLerpFactor = LERP_FACTOR_DEFAULT,
       manageWeights = false,
+      primaryCellWeightPushFactorEnabled = false,
       smoothPrimaryCell = false,
       handlePointerSpeedScale = true,
       breathing: {
@@ -299,77 +300,12 @@ export const omniForce = () => {
 
     pointerX = undefined
     pointerY = undefined
-    // pointerSpeedScale = 0
-    // complementPointerSpeedScale = 1
-    // verySlowPointerMod = 0
-    // nextVerySlowPointerMod = 0
-    // lastVerySlowPointerMod = 0
-    // slowPointerMod = 0
-    // easedIdlePointerMod = 1
-    // easedActivePointerMod = 0
-    // prevCenterX = undefined
-    // prevCenterY = undefined
     centerX = undefined
     centerY = undefined
     targetCenterX = undefined
     targetCenterY = undefined
-    // latticeCenterX = 0
-    // latticeCenterY = 0
-    // centerLerp = LERP_FACTOR_DEFAULT
-    // primaryCell = undefined
+    primaryCell = undefined
     primaryCellIndex = undefined
-    // primaryCellCol = undefined
-    // primaryCellRow = undefined
-    // nextPrimaryCell = undefined
-    // nextPrimaryCellIndex = undefined
-    // prevPrimaryCell = undefined
-    // // slowIdlePrimaryCellMod = 1
-    // slowIdlePrimaryCellMod = 0
-    // // easedSlowIdlePrimaryCellModComplement = 0
-    // easedSlowIdlePrimaryCellModComplement = 1
-    // // idlePrimaryCellMod = 1
-    // idlePrimaryCellMod = 0
-
-    // primaryCellX,
-    // primaryCellY,
-    // prevPrimaryCellX,
-    // prevPrimaryCellY,
-    // secondaryCell,
-    // secondaryCellX,
-    // secondaryCellY,
-    // basePushDistMod = 1,
-    // commonPushDistMod = 1,
-    // commonPushXMod = 1,
-    // commonPushYMod = 1,
-    // commonOriginMod = 1,
-    // primaryCellPushFactor = 0,
-    // primaryCellPushFactorX = 0,
-    // primaryCellPushFactorY = 0,
-    // primaryDist,
-    // secondaryDist,
-    // centerDistRatio = 0,
-    // alignmentPushYModMod = 0,
-    // breathingStartTime,
-    // breathingTimestamp,
-    // breathingPushMod = 1,
-    // minLatticeRow,
-    // maxLatticeRow,
-    // minLatticeCol,
-    // maxLatticeCol,
-    // latticeRow,
-    // latticeCol,
-    // latticeStrengthMod,
-    // isPrimaryCell = false,
-    // primaryCellWeight = 0,
-    // primaryCellWeightPushFactor = 1,
-    // pushSpeedFactor = 1,
-    // cell,
-    // i,
-    // x,
-    // y,
-    // vx,
-    // vy,
-    // l
 
     function initLocalCellProperties(cell) {
       cell.localWeight = cell.weight
@@ -662,14 +598,16 @@ export const omniForce = () => {
                 : defaultLerpFactor * 3,
             )
 
-        // primaryCellWeightPushFactor =
-        //   1 + clamp(0, 0.125, mapRange(0.25, 1, 0, 0.25, primaryCellWeight))
+        if (primaryCellWeightPushFactorEnabled) {
+          // primaryCellWeightPushFactor =
+          //   1 + clamp(0, 0.125, mapRange(0.25, 1, 0, 0.25, primaryCellWeight))
 
-        primaryCellWeightPushFactor = minLerp(
-          primaryCellWeightPushFactor,
-          1 + clamp(0, 0.125, mapRange(0.25, 1, 0, 0.25, primaryCellWeight)),
-          defaultLerpFactor,
-        )
+          primaryCellWeightPushFactor = minLerp(
+            primaryCellWeightPushFactor,
+            1 + clamp(0, 0.125, mapRange(0.25, 1, 0, 0.25, primaryCellWeight)),
+            defaultLerpFactor,
+          )
+        }
       }
 
       if (
