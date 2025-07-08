@@ -234,10 +234,14 @@ export default class BaseControls extends CustomEventTarget {
     this.reset()
   }
 
-  handlePointerClick() {
+  handlePointerClick(e) {
     if (this.pointerFrozen) {
       // Object.assign(this.pointer, this.frozenPointer)
       this.unfreezePointer()
+      // this.assignPointer({
+      //   speedScale: 1,
+      // })
+      // this.onPointerMove(e)
     } else {
       // if (this.speed.total < this.options.selectSpeedLimit) {
       this.cells.selectedIndex =
@@ -297,13 +301,26 @@ export default class BaseControls extends CustomEventTarget {
     this.reset()
   }
 
+  postResizeTimeout
   endResize(dimensions) {
     if (!this.cells.focused) return
     this.assignPointer({
       x: this.cells.focused.x,
       y: this.cells.focused.y,
       speedScale: 1,
+      // speedScale: 0,
     })
+
+    // todo
+    if (this.postResizeTimeout) {
+      clearTimeout(this.postResizeTimeout)
+    }
+    this.postResizeTimeout = setTimeout(() => {
+      if (this.pointerFrozen) {
+        this.pointer.speedScale = 0
+      }
+    }, 1500)
+
     this.dispatchEvent(new CellFocusedEvent(this.cells.focused, this.cells))
   }
 
