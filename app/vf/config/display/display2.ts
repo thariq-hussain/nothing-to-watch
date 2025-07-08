@@ -94,7 +94,7 @@ export default {
               // value: 0,
             },
             [VOROFORCE_MODE.select]: {
-              value: 1,
+              value: 1.5,
             },
           },
         },
@@ -113,7 +113,7 @@ export default {
             },
             [VOROFORCE_MODE.select]: {
               // value: 1,
-              value: 2.5,
+              value: 2,
             },
           },
         },
@@ -132,7 +132,17 @@ export default {
         },
         fUnweightedEffectMod: {
           animatable: true,
-          value: 1,
+          initial: {
+            value: 0,
+          },
+          modes: {
+            [VOROFORCE_MODE.preview]: {
+              value: 1,
+            },
+            [VOROFORCE_MODE.select]: {
+              value: 1,
+            },
+          },
         },
         fBaseXDistScale: {
           animatable: true,

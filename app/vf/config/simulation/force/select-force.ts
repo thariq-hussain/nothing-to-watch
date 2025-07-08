@@ -166,8 +166,11 @@ export const selectForceSimulationStepConfig = {
   forces: {
     manageWeights: true,
     primaryCellWeightPushFactorEnabled: false,
+    // handlePointerSpeedScale: false,
+    smoothPrimaryCell: false,
     requestMediaVersions: {
       enabled: true,
+      handleMediaSpeedLimits: false,
       v3ColLevelAdjacencyThreshold: 1,
       v3RowLevelAdjacencyThreshold: 1,
       v2ColLevelAdjacencyThreshold: 18,
@@ -189,7 +192,7 @@ export const selectForceSimulationStepConfig = {
       // centerXStretchMod: 0.4,
     },
     lattice: {
-      strength: 0.8,
+      strength: 1,
       yFactor: 1.5,
       xFactor: 1,
       maxLevelsFromPrimary: 50,

@@ -120,7 +120,7 @@ export default class BaseControls extends CustomEventTarget {
     this.display.getPositionCellIndices(position).then((indices) => {
       const primaryIndex = indices?.[0]
       if (primaryIndex === undefined) {
-        this.onPointerOut()
+        this.handlePointerOut()
         return false
       }
       cb(primaryIndex, indices)
@@ -133,10 +133,10 @@ export default class BaseControls extends CustomEventTarget {
     return {
       x:
         width / 2 +
-        (randomOffset ? (0.5 - getRandomNumberOnce()) * 0.05 * width : 0),
+        (randomOffset ? (0.5 - getRandomNumberOnce()) * 0.1 * width : 0),
       y:
         height / 2 +
-        (randomOffset ? (0.5 - getRandomNumberOnce()) * 0.05 * height : 0),
+        (randomOffset ? (0.5 - getRandomNumberOnce()) * 0.1 * height : 0),
     }
   }
 

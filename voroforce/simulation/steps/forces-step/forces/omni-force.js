@@ -127,6 +127,7 @@ export const omniForce = () => {
       } = {},
       requestMediaVersions: {
         enabled: _requestMediaVersions = true,
+        handleMediaSpeedLimits = handlePointerSpeedScale,
         requestMediaVersions = globalConfig.media?.enabled &&
           _requestMediaVersions,
         versionCount: mediaVersionCount = globalConfig.media?.versions
@@ -216,29 +217,28 @@ export const omniForce = () => {
         // hardcoded but more performant fn
         handleCellMediaVersions = (
           cell,
-          handlePointerSpeedScale,
           speedScale,
           colLevelAdjacency,
           rowLevelAdjacency,
         ) => {
-          if (handlePointerSpeedScale && speedScale > mediaHighestSpeedLimit)
+          if (handleMediaSpeedLimits && speedScale > mediaHighestSpeedLimit)
             return
 
           if (
             maxTargetMediaVersion >= 3 &&
-            (!handlePointerSpeedScale || speedScale < mediaV3SpeedLimit) &&
+            (!handleMediaSpeedLimits || speedScale < mediaV3SpeedLimit) &&
             colLevelAdjacency <= mediaV3ColLevelAdjacencyThreshold &&
             rowLevelAdjacency <= mediaV3RowLevelAdjacencyThreshold
           ) {
             cell.targetMediaVersion = 3
           } else if (
-            (!handlePointerSpeedScale || speedScale < mediaV2SpeedLimit) &&
+            (!handleMediaSpeedLimits || speedScale < mediaV2SpeedLimit) &&
             colLevelAdjacency <= mediaV2ColLevelAdjacencyThreshold &&
             rowLevelAdjacency <= mediaV2RowLevelAdjacencyThreshold
           ) {
             cell.targetMediaVersion = max(cell.targetMediaVersion, 2)
           } else if (
-            (!handlePointerSpeedScale || speedScale < mediaV1SpeedLimit) &&
+            (!handleMediaSpeedLimits || speedScale < mediaV1SpeedLimit) &&
             colLevelAdjacency <= mediaV1ColLevelAdjacencyThreshold &&
             rowLevelAdjacency <= mediaV1RowLevelAdjacencyThreshold
           ) {
@@ -675,7 +675,6 @@ export const omniForce = () => {
               if (!isPrimaryCell) {
                 handleCellMediaVersions(
                   cell,
-                  handlePointerSpeedScale,
                   pointerSpeedScale,
                   cell.colLevelAdjacency,
                   cell.rowLevelAdjacency,
