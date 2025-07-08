@@ -15,6 +15,7 @@ export default class Controls extends BaseControls {
     super.reset()
 
     this.speedHistory = []
+    this.rawSpeedHistory = []
     this.position = null
     this.lastPosition = null
     this.lastRawPosition = null
@@ -109,6 +110,15 @@ export default class Controls extends BaseControls {
     if (this.speedHistory.length > MAX_SPEED_HISTORY) {
       this.speedHistory.shift()
       this.avgSpeedTotal = getAverageSpeedTotal(this.speedHistory)
+    }
+
+    this.rawSpeedHistory.push({
+      ...this.rawSpeed,
+    })
+    // Keep array at max size
+    if (this.rawSpeedHistory.length > MAX_SPEED_HISTORY) {
+      this.rawSpeedHistory.shift()
+      this.avgRawSpeedTotal = getAverageSpeedTotal(this.rawSpeedHistory)
     }
 
     // Save last processed values for next calculation

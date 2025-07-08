@@ -525,7 +525,9 @@ vec2 normalizeCoords(in vec2 screenCoords) {
 }
 
 vec2 aspectCoords(in vec2 screenCoords) {
-    return (screenCoords*2.0-iResolution.xy) / iResolution.y;
+    // todo?
+    float cappedResolutionY = max(iResolution.y, iResolution.x * 0.5);
+    return (screenCoords*2.0-iResolution.xy) / cappedResolutionY;
 }
 
 vec2 fetchRawCellCoords(uint i) {
