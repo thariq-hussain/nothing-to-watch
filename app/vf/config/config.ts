@@ -23,8 +23,8 @@ export default {
     },
   },
   handleVisibilityChange: {
-    // enabled: true,
-    enabled: false,
+    enabled: true,
+    // enabled: false,
     hiddenDelay: 5000,
   },
   lattice: baseLatticeConfig,

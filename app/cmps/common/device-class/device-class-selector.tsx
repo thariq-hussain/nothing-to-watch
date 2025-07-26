@@ -2,8 +2,8 @@ import { TabletSmartphone } from 'lucide-react'
 import { useMemo } from 'react'
 import { cn } from '../../../utils/tw'
 import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts.ts'
-import { Selector, type SelectorItems } from '../selector'
 import { Badge } from '../../ui/badge'
+import { Selector, type SelectorItems } from '../selector'
 
 export function DeviceClassSelector({
   className = '',

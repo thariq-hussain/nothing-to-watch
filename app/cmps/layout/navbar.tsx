@@ -3,6 +3,7 @@ import { GithubIcon, Heart, Info, Settings } from 'lucide-react'
 import { useShallowState } from '@/store'
 import config from '../../config'
 import { cn } from '../../utils/tw'
+import { VOROFORCE_PRESET } from '../../vf'
 import { Button } from '../ui/button'
 import { ThemeToggle } from './theme'
 
@@ -15,6 +16,7 @@ export const Navbar = () => {
     favoritesOpen,
     toggleFavoritesOpen,
     hasFavorites,
+    presetIsMinimal,
   } = useShallowState((state) => ({
     settingsOpen: state.settingsOpen,
     toggleSettingsOpen: state.toggleSettingsOpen,
@@ -25,6 +27,7 @@ export const Navbar = () => {
     hasFavorites:
       state.userConfig.favorites &&
       Object.keys(state.userConfig.favorites).length > 0,
+    presetIsMinimal: state.preset === VOROFORCE_PRESET.minimal,
   }))
 
   const buttonClassnames =
@@ -86,7 +89,9 @@ export const Navbar = () => {
       </div>
 
       <ThemeToggle
-        className={cn(buttonClassnames, 'hidden lg:inline-flex')}
+        className={cn(buttonClassnames, 'hidden lg:inline-flex', {
+          'lg:hidden': !presetIsMinimal,
+        })}
         onPointerDown={(event) => {
           event.preventDefault()
           event.stopPropagation()

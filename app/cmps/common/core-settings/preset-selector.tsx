@@ -7,6 +7,43 @@ import { type DEVICE_CLASS, PRESET_ITEMS } from '../../../vf/consts.ts'
 import { DeviceClassWarningMessage } from '../device-class/device-class-warning-message'
 import { Selector, type SelectorItems } from '../selector'
 
+type NoArray<T> = T extends Array<unknown> ? never : T
+
+const processPresetItem = (
+  presetItem: NoArray<(typeof PRESET_ITEMS)[number]>,
+  deviceClass?: DEVICE_CLASS,
+) => ({
+  label: (
+    <>
+      {presetItem.videoSrc && (
+        <video
+          className='absolute inset-0 h-full w-full object-cover object-center'
+          playsInline
+          autoPlay
+          muted
+          controls={false}
+          loop
+        >
+          <source src={presetItem.videoSrc} type='video/webm' />
+        </video>
+      )}
+      {presetItem.imgSrc && (
+        <img
+          className='absolute inset-0 h-full w-full object-cover object-center'
+          src={presetItem.imgSrc}
+          alt={presetItem.name}
+        />
+      )}
+      <div className='relative z-2'>{presetItem.name}</div>
+    </>
+  ),
+  value: presetItem.id,
+  hasWarning:
+    isDefined(presetItem.recommendedDeviceClass) &&
+    isDefined(deviceClass) &&
+    presetItem.recommendedDeviceClass > deviceClass,
+})
+
 export function PresetSelector({
   className = '',
   value,
@@ -19,29 +56,12 @@ export function PresetSelector({
   deviceClass?: DEVICE_CLASS
 }) {
   const presetItems: SelectorItems = useMemo(() => {
-    return PRESET_ITEMS.map((preset) => {
-      return {
-        label: (
-          <>
-            <video
-              className='absolute inset-0 h-full w-full object-cover object-center'
-              playsInline
-              autoPlay
-              muted
-              controls={false}
-              loop
-            >
-              <source src={preset.videoSrc} type='video/webm' />
-            </video>
-            <div className='relative z-2'>{preset.name}</div>
-          </>
-        ),
-        value: preset.id,
-        hasWarning:
-          isDefined(preset.recommendedDeviceClass) &&
-          isDefined(deviceClass) &&
-          preset.recommendedDeviceClass > deviceClass,
-      }
+    return PRESET_ITEMS.map((presetItem) => {
+      return Array.isArray(presetItem)
+        ? presetItem.map((subPresetItem) =>
+            processPresetItem(subPresetItem, deviceClass),
+          )
+        : processPresetItem(presetItem, deviceClass)
     })
   }, [deviceClass])
 
@@ -57,7 +77,7 @@ export function PresetSelector({
         {/*</p>*/}
       </div>
       <Selector
-        itemClassName='aspect-video text-white'
+        itemClassName='text-white light:bg-foreground'
         itemBgClassName='z-1'
         defaultValue={value}
         onValueChange={(value) => {

@@ -6,6 +6,7 @@ import { CompressedMediaGridArrayTexture } from './utils/compressed-media-grid-a
 import { copyRenderTargetToCanvas } from './utils/copy-render-target-to-canvas'
 import { NoDepthMultiRenderTarget } from './utils/no-depth-multi-render-target'
 import { readPixelsAsync } from './utils/read-pixels-async'
+import { setShaderDefines } from './utils/shader-defines'
 import { VirtualMediaGridArrayTexture } from './utils/virtual-media-grid-array-texture'
 
 export default class BaseScene {
@@ -261,9 +262,11 @@ export default class BaseScene {
   }
 
   initProgram(config, uniforms) {
+    let fragment = config.fragmentShader
+    if (config.defines) fragment = setShaderDefines(fragment, config.defines)
     return new Program(this.gl, {
       vertex: config.vertexShader,
-      fragment: config.fragmentShader,
+      fragment,
       uniforms,
     })
   }
@@ -508,6 +511,8 @@ export default class BaseScene {
           value: new Texture(this.gl, {
             width: v.width,
             height: v.height,
+            wrapS: this.gl.MIRRORED_REPEAT,
+            wrapT: this.gl.MIRRORED_REPEAT,
           }),
         }
         const u = uniforms[k]

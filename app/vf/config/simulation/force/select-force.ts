@@ -1,6 +1,6 @@
 export const selectForceSimulationStepConfig = {
   parameters: {
-    // animatable: true,
+    // transition: true,
 
     // alpha: 0.2,
     // velocityDecay: 0.5,

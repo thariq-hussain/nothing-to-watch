@@ -69,7 +69,7 @@ export type StoreState = {
   configUniforms: {
     main: ConfigUniforms
     post: ConfigUniforms
-    animating: ConfigUniforms
+    transitioning: ConfigUniforms
   }
   performanceMonitor?: PerformanceMonitorApi
   setPerformanceMonitor: (performanceMonitor: PerformanceMonitorApi) => void

@@ -18,7 +18,7 @@ export default {
         iForcedMaxNeighborLevel: { value: 0 },
         bPixelSearch: { value: true },
         fPixelSearchRadiusMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1,
@@ -29,8 +29,9 @@ export default {
           },
         },
         bMediaDistortion: { value: false },
+        fMediaBboxScale: { value: 1 },
         fBaseColor: {
-          animatable: true,
+          transition: true,
           themes: {
             default: {
               value: [0, 0, 0],
@@ -44,7 +45,7 @@ export default {
           },
         },
         fBorderRoundnessMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               // value: 1,
@@ -57,7 +58,7 @@ export default {
           },
         },
         fBorderThicknessMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1,
@@ -68,7 +69,7 @@ export default {
           },
         },
         fBorderSmoothnessMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1,
@@ -79,7 +80,7 @@ export default {
           },
         },
         fCenterForceBulgeStrength: {
-          animatable: true,
+          transition: true,
           targetFactor: 0.0125,
           initial: {
             value: 0.25,
@@ -99,7 +100,7 @@ export default {
           },
         },
         fCenterForceBulgeRadius: {
-          animatable: true,
+          transition: true,
           targetFactor: 0.0125,
           initial: {
             value: 0.25,
@@ -118,7 +119,7 @@ export default {
           },
         },
         fWeightOffsetScaleMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 0.25,
@@ -130,8 +131,11 @@ export default {
             },
           },
         },
+        fWeightOffsetScaleMediaMod: {
+          value: 1,
+        },
         fUnweightedEffectMod: {
-          animatable: true,
+          transition: true,
           initial: {
             value: 0,
           },
@@ -145,7 +149,7 @@ export default {
           },
         },
         fBaseXDistScale: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1.5, // 0 = undefined, will use fallback
@@ -157,7 +161,7 @@ export default {
           },
         },
         fWeightedXDistScale: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1.5, // 0 = undefined, will use fallback
@@ -169,7 +173,7 @@ export default {
           },
         },
         fRippleMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1,
@@ -180,7 +184,7 @@ export default {
           },
         },
         fNoiseOctaveMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1,
@@ -191,7 +195,7 @@ export default {
           },
         },
         fNoiseCenterOffsetMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1,

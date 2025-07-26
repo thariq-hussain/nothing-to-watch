@@ -10,7 +10,7 @@ export default {
           bPixelSearch: { value: false },
           fBorderRoundnessMod: {
             value: 1,
-            animatable: true,
+            transition: true,
             modes: {
               default: {
                 value: 1,

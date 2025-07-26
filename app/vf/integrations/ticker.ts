@@ -1,11 +1,11 @@
 import type { VisibilityChangeEvent } from '√'
 import { store } from '../../store'
-import { handleAnimatingUniforms, initPerformanceMonitor } from '../utils'
+import { handleTransitioningUniforms, initPerformanceMonitor } from '../utils'
 
 export const handleTicker = () => {
   const {
     voroforce,
-    configUniforms: { animating: animatingUniforms },
+    configUniforms: { transitioning: transitioningUniforms },
   } = store.getState()
 
   const performanceMonitor = initPerformanceMonitor()
@@ -14,7 +14,7 @@ export const handleTicker = () => {
   })
 
   voroforce.ticker.listen('tick', (() => {
-    handleAnimatingUniforms(animatingUniforms)
+    handleTransitioningUniforms(transitioningUniforms)
     performanceMonitor.onTick()
   }) as unknown as EventListener)
 

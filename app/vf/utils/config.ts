@@ -164,7 +164,7 @@ export const getConfig = async (state: StoreState) => {
 
 const processVoroforceStageConfigUniforms = (
   stageConfigUniforms: Record<string, ConfigUniform>,
-  animating: Map<string, ConfigUniform>,
+  transitioning: Map<string, ConfigUniform>,
   mode: VOROFORCE_MODE,
   theme: THEME,
 ) => {
@@ -180,15 +180,15 @@ const processVoroforceStageConfigUniforms = (
             : (uniform.themes?.default?.value ?? 0)
 
         if (
-          uniform.animatable &&
+          uniform.transition &&
           typeof uniform.initial?.value === 'number' &&
           typeof uniformValue === 'number'
         ) {
           uniform.value = uniform.initial.value
 
           uniform.targetValue = uniformValue
-          if (!animating.has(key)) {
-            animating.set(key, uniform)
+          if (!transitioning.has(key)) {
+            transitioning.set(key, uniform)
           }
         } else {
           uniform.value = uniformValue as number
@@ -213,22 +213,22 @@ const getVoroforceConfigUniforms = (
     },
   } = config
 
-  const animating = new Map<string, ConfigUniform>()
+  const transitioning = new Map<string, ConfigUniform>()
 
   return {
     main: processVoroforceStageConfigUniforms(
       mainConfigUniforms,
-      animating,
+      transitioning,
       mode,
       theme,
     ),
     post: processVoroforceStageConfigUniforms(
       postConfigUniforms,
-      animating,
+      transitioning,
       mode,
       theme,
     ),
-    animating,
+    transitioning,
   }
 }
 

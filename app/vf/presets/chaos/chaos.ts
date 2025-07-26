@@ -1,21 +1,19 @@
 import { mediaConfigWithUncompressedSingleVersion } from '../../config/media'
 import { DEFAULT_VOROFORCE_MODE, VOROFORCE_MODE } from '../../consts'
-// import postFrag from './post-contours.frag'
-// import postFrag from './post-contours2.frag'
-import postFrag from './post-contours3.frag'
+import postFrag from './post-chaos.frag'
 
 const forceSimulationStepConfigs = {
   [VOROFORCE_MODE.preview]: {
     parameters: {
       alpha: 0.1,
-      velocityDecay: 0.3,
-      velocityDecayBase: 0.3,
-      velocityDecayTransitionEnterMode: 0.9,
+      velocityDecay: 0.4,
+      velocityDecayBase: 0.4,
+      velocityDecayTransitionEnterMode: 0.7,
     },
     forces: {
       push: {
         // strength: 0.05,
-        strength: 0.15,
+        strength: 0.1,
         // centerXStretchMod: 0.8,
         // centerXStretchMod: 0.4,
         centerXStretchMod: 3.2,
@@ -31,14 +29,21 @@ const forceSimulationStepConfigs = {
         yFactor: 1.5,
         xFactor: 1,
         maxLevelsFromPrimary: 100,
-        cellSizeMod: 10,
+        cellSizeMod: 20,
       },
       origin: {
         // strength: 0.8,
         strength: 0.2,
         // yFactor: 1.5,
-        latticeScale: 3,
+        latticeScale: 8,
         // latticeScale: 3.5,
+      },
+      requestMediaVersions: {
+        enabled: true,
+        v3ColLevelAdjacencyThreshold: 1,
+        v3RowLevelAdjacencyThreshold: 1,
+        v2ColLevelAdjacencyThreshold: 18,
+        v2RowLevelAdjacencyThreshold: 18,
       },
     },
   },
@@ -47,21 +52,35 @@ const forceSimulationStepConfigs = {
       alpha: 0.15,
       velocityDecay: 0.7,
       velocityDecayBase: 0.7,
-      velocityDecayTransitionEnterMode: 0.9,
+      velocityDecayTransitionEnterMode: 0.7,
     },
     forces: {
+      push: {
+        // strength: 0.05,
+        strength: 0.175,
+        // centerXStretchMod: 0.8,
+        // centerXStretchMod: 0.4,
+        centerXStretchMod: 3.2,
+        // centerXStretchMod: 0.4,
+        yFactor: 2.25,
+      },
+      breathing: {
+        // enabled: false,
+        enabled: true,
+      },
       lattice: {
-        strength: 0.1,
+        strength: 0.8,
         yFactor: 1.5,
         xFactor: 1,
-        // maxLevelsFromPrimary: 50,
-        cellSizeMod: 10,
+        maxLevelsFromPrimary: 100,
+        cellSizeMod: 20,
       },
       origin: {
-        strength: 0.1,
+        // strength: 0.8,
+        strength: 0.2,
         // yFactor: 1.5,
-        latticeScale: 10,
-        // latticeScale: 1,
+        latticeScale: 8,
+        // latticeScale: 3.5,
       },
     },
   },
@@ -71,6 +90,14 @@ const forceSimulationStepConfigs = {
 export default {
   cells: 50000,
   media: mediaConfigWithUncompressedSingleVersion,
+  filmPreview: {
+    neighborOriginMod: 0.4,
+    scaleMod: 1.5,
+  },
+  controls: {
+    maxSpeed: 2,
+    ease: 0.45,
+  },
   display: {
     scene: {
       main: {
@@ -85,23 +112,40 @@ export default {
           RIPPLE: 0,
           NOISE: 0,
           // MEDIA_ROTATE: 1,
+          // MEDIA_LOCKED_ASPECT: 0,
           EDGES_VISIBLE: 0,
           WEIGHTED_DIST: 1,
           X_DIST_SCALING: 1,
           // DIST_METRIC: 'customHybridDist2',
-          DIST_METRIC: 'customMinkowskiDist3',
+          // DIST_METRIC: 'customMinkowskiDist3',
+          DIST_METRIC: 'customMinkowskiDist4',
+          // DIST_METRIC: 'expManhattanDist',
           // DIST_METRIC: 'euclideanDist',
+          POST_UNWEIGHTED_MOD_GRAYSCALE: '0.',
+          POST_UNWEIGHTED_MOD_OPACITY: '0.5',
+          // MEDIA_GRAYSCALE: 100,
         },
         uniforms: {
           fMediaBboxScale: { value: 0.8 },
+          fPixelSearchRadiusMod: {
+            transition: true,
+            modes: {
+              default: {
+                value: 1,
+              },
+              [VOROFORCE_MODE.select]: {
+                value: 1,
+              },
+            },
+          },
           fBorderRoundnessMod: {
             transition: true,
             modes: {
               default: {
-                value: 0.75,
+                value: 1.5,
               },
               [VOROFORCE_MODE.select]: {
-                value: 0.25,
+                value: 1.5,
               },
             },
           },
@@ -109,7 +153,7 @@ export default {
             transition: false,
             targetFactor: 0,
             initial: {
-              value: 0.25,
+              value: 0,
             },
             modes: {
               default: {
@@ -148,7 +192,7 @@ export default {
                 value: 3.5,
               },
               [VOROFORCE_MODE.select]: {
-                value: 1.5,
+                value: 3.5,
               },
             },
           },
@@ -205,33 +249,22 @@ export default {
         enabled: true,
         fragmentShader: postFrag,
         uniforms: {
-          // fEdge0: { value: 0.2 },
           fEdge0: { value: 0.25 },
-          // fEdge0: { value: 0.4 },
-          // fEdgeScale: { value: 2 },
-          fEdgeScale: { value: 1 },
-          fBaseColor: {
-            transition: true,
-            themes: {
-              default: {
-                // value: [0.005, 0.005, 0.005],
-                // value: [0.01, 0.01, 0.01],
-                value: [0.02, 0.02, 0.02],
-              },
-              light: {
-                value: [0.995, 0.995, 0.995],
-              },
-            },
-          },
-          iChannel0: {
-            src: '/assets/rust.jpg',
-            width: 512,
-            height: 512,
-          },
           iChannel1: {
             src: '/assets/noise.png',
             width: 256,
             height: 256,
+          },
+          fGrayscaleMod: {
+            transition: true,
+            modes: {
+              default: {
+                value: 1,
+              },
+              [VOROFORCE_MODE.select]: {
+                value: 0,
+              },
+            },
           },
         },
       },

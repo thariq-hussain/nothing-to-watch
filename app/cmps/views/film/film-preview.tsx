@@ -4,7 +4,7 @@ import useMeasure from 'react-use-measure'
 import { store, useShallowState } from '@/store'
 import { MIN_LERP_EASING_TYPES, type VoroforceCell, easedMinLerp } from '@/vf'
 import { useMediaQuery } from '../../../hooks/use-media-query'
-import { clamp } from '../../../utils/math'
+import { clamp, lerp } from '../../../utils/math'
 import { down } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
 import { Badge } from '../../ui/badge'
@@ -18,10 +18,17 @@ export const FilmPreview = ({ poster = false }) => {
 
   const [measureRef, bounds] = useMeasure()
 
-  const { film, isPreviewMode } = useShallowState((state) => ({
+  const { film, isPreviewMode, config } = useShallowState((state) => ({
     film: state.film,
     isPreviewMode: state.isPreviewMode,
+    config: state.config.filmPreview,
   }))
+
+  if (config && 'enabled' in config && !config.enabled) return null
+  const neighborOriginMod = useRef(
+    config && 'neighborOriginMod' in config ? config.neighborOriginMod : 1,
+  )
+  const scaleMod = useRef(config && 'scaleMod' in config ? config.scaleMod : 1)
 
   const [reverseX, setReverseX] = useState(false)
   const [reverseY, setReverseY] = useState(false)
@@ -97,11 +104,29 @@ export const FilmPreview = ({ poster = false }) => {
       const neighborCell = reverseY
         ? bottomNeighborCellRef.current
         : topNeighborCellRef.current
+
+      const origin =
+        neighborOriginMod.current === 1
+          ? neighborCell
+          : {
+              x: lerp(
+                primaryCellRef.current.x,
+                neighborCell.x,
+                neighborOriginMod.current,
+              ),
+              y: lerp(
+                primaryCellRef.current.y,
+                neighborCell.y,
+                neighborOriginMod.current,
+              ),
+            }
+
       const targetPosition = {
         x:
-          neighborCell.x -
-          (reverseX ? bounds.width * 0.5 : bounds.width * 0.25),
-        y: neighborCell.y - (reverseY ? 0 : bounds.height),
+          origin.x -
+          (reverseX ? bounds.width * 0.5 : bounds.width * 0.25) *
+            scaleMod.current,
+        y: origin.y - (reverseY ? 0 : bounds.height),
       }
 
       if (!positionRef.current) {
@@ -124,12 +149,10 @@ export const FilmPreview = ({ poster = false }) => {
         )
       }
 
-      // customSpeedScale = 1.2 - Math.max(pointer.speedScale, 0.2)
-      // customSpeedScale = 1 - pointer.speedScale * 4
       customSpeedScale = 1.25 - clamp(0.25, 1.25, pointer.speedScale * 4)
       scaleRef.current = easedMinLerp(
         scaleRef.current,
-        customSpeedScale,
+        customSpeedScale * scaleMod.current,
         0.05,
         MIN_LERP_EASING_TYPES.easeInOutQuad,
       )
@@ -141,20 +164,33 @@ export const FilmPreview = ({ poster = false }) => {
       applyStyles()
 
       if (frameRef.current % 60 === 0) {
-        if (topNeighborCellRef.current.y - bounds.height < 0) {
+        const topOrigin =
+          neighborOriginMod.current === 1
+            ? topNeighborCellRef.current
+            : {
+                x: lerp(
+                  primaryCellRef.current.x,
+                  topNeighborCellRef.current.x,
+                  neighborOriginMod.current,
+                ),
+                y: lerp(
+                  primaryCellRef.current.y,
+                  topNeighborCellRef.current.y,
+                  neighborOriginMod.current,
+                ),
+              }
+
+        if (topOrigin.y - bounds.height < 0) {
           setReverseY(true)
-        } else if (
-          reverseY &&
-          topNeighborCellRef.current.y - bounds.height > bounds.height
-        ) {
+        } else if (reverseY && topOrigin.y - bounds.height > bounds.height) {
           setReverseY(false)
         }
 
         const width = bounds.width * 0.25
 
-        if (neighborCell.x - width < 0) {
+        if (origin.x - width < 0) {
           setReverseX(true)
-        } else if (reverseX && neighborCell.x - width > width) {
+        } else if (reverseX && origin.x - width > width) {
           setReverseX(false)
         }
       }

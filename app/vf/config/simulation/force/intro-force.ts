@@ -1,6 +1,6 @@
 export const introForceSimulationStepConfig = {
   parameters: {
-    animatable: true,
+    transition: true,
     alpha: 0.8,
     velocityDecay: 0.8,
     velocityDecayBase: 0.8,

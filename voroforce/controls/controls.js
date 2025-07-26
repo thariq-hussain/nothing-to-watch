@@ -1,5 +1,5 @@
-import { PointerShakeEvent } from './controls-events'
 import BaseControls from './base-controls'
+import { PointerShakeEvent } from './controls-events'
 
 const { pow, sqrt, max } = Math
 

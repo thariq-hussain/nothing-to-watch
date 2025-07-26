@@ -13,6 +13,7 @@ export enum VOROFORCE_PRESET {
   minimalPrototyping = 'minimalPrototyping',
   contours = 'contours',
   depth = 'depth',
+  chaos = 'chaos',
 }
 
 export enum DEVICE_CLASS {
@@ -22,17 +23,21 @@ export enum DEVICE_CLASS {
   high = 3,
 }
 
-export const PRESET_ITEMS = [
+export type PresetItem = {
+  id: VOROFORCE_PRESET
+  name: string
+  videoSrc?: string
+  imgSrc?: string
+  recommendedDeviceClass?: DEVICE_CLASS
+}
+
+export type PresetItems = Array<PresetItem | Array<PresetItem>>
+
+export const PRESET_ITEMS: PresetItems = [
   {
     id: VOROFORCE_PRESET.minimal,
     name: 'Minimal',
     videoSrc: '/tmp.webm',
-  },
-  {
-    id: VOROFORCE_PRESET.contours,
-    name: 'Contours',
-    videoSrc: '/tmp.webm',
-    recommendedDeviceClass: DEVICE_CLASS.mid,
   },
   {
     id: VOROFORCE_PRESET.depth,
@@ -40,6 +45,18 @@ export const PRESET_ITEMS = [
     videoSrc: '/tmp.webm',
     recommendedDeviceClass: DEVICE_CLASS.high,
   },
+  [
+    {
+      id: VOROFORCE_PRESET.chaos,
+      name: 'Chaos',
+      recommendedDeviceClass: DEVICE_CLASS.mid,
+    },
+    {
+      id: VOROFORCE_PRESET.contours,
+      name: 'Contours',
+      recommendedDeviceClass: DEVICE_CLASS.mid,
+    },
+  ],
 ]
 
 export enum CELL_LIMIT {

@@ -10,7 +10,10 @@ export const handleControls = () => {
     setFilm,
     voroforce: { controls },
     filmBatches,
-    configUniforms: { main: mainUniforms, animating: animatingUniforms },
+    configUniforms: {
+      main: mainUniforms,
+      transitioning: transitioningUniforms,
+    },
     mode,
   } = store.getState()
 
@@ -37,11 +40,11 @@ export const handleControls = () => {
       [VOROFORCE_MODE.preview, VOROFORCE_MODE.select].includes(mode) && frozen
         ? 1
         : 0
-    if (animatingUniforms && uniform.animatable) {
+    if (transitioningUniforms && uniform.transition) {
       if (uniform.value !== value) {
         uniform.targetValue = value
-        if (!animatingUniforms.has(uniformKey)) {
-          animatingUniforms.set(uniformKey, uniform)
+        if (!transitioningUniforms.has(uniformKey)) {
+          transitioningUniforms.set(uniformKey, uniform)
         }
       }
     } else {

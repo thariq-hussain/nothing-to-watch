@@ -1,6 +1,8 @@
 import { useShallowState } from '@/store'
+import { useState } from 'react'
 import { THEME } from '../../../consts'
 import { reload } from '../../../utils/misc'
+import { VOROFORCE_PRESET } from '../../../vf'
 import { CoreSettingsWidget } from '../../common/core-settings/core-settings-widget'
 import { Modal } from '../../common/modal'
 import { SmallScreenWarning } from '../../common/small-screen-warning'
@@ -20,6 +22,7 @@ export const Settings = () => {
     setPlayedIntro,
     voroforceDevSceneEnabled,
     setVoroforceDevSceneEnabled,
+    presetIsMinimal,
   } = useShallowState((state) => ({
     open: state.settingsOpen,
     setOpen: state.setSettingsOpen,
@@ -29,9 +32,12 @@ export const Settings = () => {
     setPlayedIntro: state.setPlayedIntro,
     voroforceDevSceneEnabled: state.voroforceDevSceneEnabled,
     setVoroforceDevSceneEnabled: state.setVoroforceDevSceneEnabled,
+    presetIsMinimal: state.preset === VOROFORCE_PRESET.minimal,
   }))
 
   const { theme, setTheme } = useTheme()
+
+  const [fullscreen, setFullscreen] = useState(false)
 
   return (
     <Modal
@@ -65,16 +71,18 @@ export const Settings = () => {
           <SmallScreenWarning />
           <CoreSettingsWidget onSubmit={() => window.location.reload()} />
           <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-            <div className='flex flex-row items-center gap-2'>
-              <Switch
-                id='light-mode'
-                checked={theme === THEME.light}
-                onCheckedChange={(checked) => {
-                  setTheme(checked ? THEME.light : THEME.dark)
-                }}
-              />
-              <Label htmlFor='light-mode'>Bright mode</Label>
-            </div>
+            {presetIsMinimal && (
+              <div className='flex flex-row items-center gap-2'>
+                <Switch
+                  id='light-mode'
+                  checked={theme === THEME.light}
+                  onCheckedChange={(checked) => {
+                    setTheme(checked ? THEME.light : THEME.dark)
+                  }}
+                />
+                <Label htmlFor='light-mode'>Bright mode</Label>
+              </div>
+            )}
             <div className='flex flex-row items-center gap-2'>
               <Switch
                 id='dev-tools'
@@ -100,6 +108,50 @@ export const Settings = () => {
                 }}
               />
               <Label htmlFor='show-cell-seeds'>Cell seeds</Label>
+            </div>
+            <div className='flex flex-row items-center gap-2'>
+              <Switch
+                id='fullscreen'
+                checked={fullscreen}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    const elem = document.documentElement
+                    const onFullscreenChange = () => {
+                      if (!document.fullscreenElement) {
+                        setFullscreen(false)
+                      }
+                      document.documentElement.removeEventListener(
+                        'fullscreenchange',
+                        onFullscreenChange,
+                      )
+                    }
+                    elem
+                      .requestFullscreen({ navigationUI: 'show' })
+                      .then(() => {
+                        setFullscreen(true)
+
+                        document.documentElement.addEventListener(
+                          'fullscreenchange',
+                          onFullscreenChange,
+                        )
+                      })
+                      .catch((err) => {
+                        alert(
+                          `An error occurred while trying to switch into fullscreen mode: ${err.message} (${err.name})`,
+                        )
+                      })
+                  } else {
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen().then(() => {
+                        setFullscreen(false)
+                      })
+                    } else {
+                      setFullscreen(false)
+                    }
+                  }
+                }}
+              />
+              <Label htmlFor='fullscreen'>Fullscreen</Label>
             </div>
           </div>
         </div>

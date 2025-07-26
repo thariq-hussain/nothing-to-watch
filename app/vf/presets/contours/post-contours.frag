@@ -17,7 +17,7 @@ uniform vec3 fBaseColor;
 in vec2 vUv;
 out vec4 fragColor;
 
-float objID; // The rounded web lattice, or the individual Voronoi cells.
+float objID = 0.; // 0. = frame, 1. = media
 
 
 // Standard 2D rotation formula.

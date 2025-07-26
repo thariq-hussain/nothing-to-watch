@@ -23,9 +23,9 @@ export default class ForcesSimulationStep extends BaseSimulationStep {
     this.updateParameters(this.config.parameters)
   }
 
-  updateParameters(parameters, config = { forceAnimatable: false }) {
+  updateParameters(parameters, config = { forcetransition: false }) {
     if (!parameters) return
-    if (this.parameters && (config?.forceAnimatable || parameters.animatable)) {
+    if (this.parameters && (config?.forcetransition || parameters.transition)) {
       this.targetParameters = {
         alpha: parameters.alpha,
         velocityDecay: parameters.velocityDecay,

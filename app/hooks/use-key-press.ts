@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 export type KeyCode = string | Array<string>
 type Keys = Array<string>

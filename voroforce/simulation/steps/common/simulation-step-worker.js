@@ -26,7 +26,7 @@ export default function simulationStepWorker(SimulationStepClass) {
       }
       case 'updateParameters': {
         const parameters = event.data
-        step.updateParameters(parameters, { forceAnimatable: true })
+        step.updateParameters(parameters, { forcetransition: true })
         break
       }
       case 'resize':

@@ -7,12 +7,12 @@ const handleThemeChange = (theme: THEME): void => {
     configUniforms: {
       main: mainUniforms,
       post: postUniforms,
-      animating: animatingUniforms,
+      transitioning: transitioningUniforms,
     },
   } = store.getState()
 
-  updateUniformsByTheme(mainUniforms, theme, animatingUniforms)
-  updateUniformsByTheme(postUniforms, theme, animatingUniforms)
+  updateUniformsByTheme(mainUniforms, theme, transitioningUniforms)
+  updateUniformsByTheme(postUniforms, theme, transitioningUniforms)
 }
 
 export const handleTheme = () => {

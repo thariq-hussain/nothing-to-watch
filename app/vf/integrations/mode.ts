@@ -18,7 +18,7 @@ const handleModeChange = (mode: VOROFORCE_MODE): void => {
     configUniforms: {
       main: mainUniforms,
       post: postUniforms,
-      animating: animatingUniforms,
+      transitioning: transitioningUniforms,
     },
     config: {
       simulation: { forceStepModeConfigs },
@@ -28,8 +28,8 @@ const handleModeChange = (mode: VOROFORCE_MODE): void => {
   setMode(mode)
 
   updateControlsByMode(controls, mode)
-  updateUniformsByMode(mainUniforms, mode, animatingUniforms)
-  updateUniformsByMode(postUniforms, mode, animatingUniforms)
+  updateUniformsByMode(mainUniforms, mode, transitioningUniforms)
+  updateUniformsByMode(postUniforms, mode, transitioningUniforms)
 
   // when switching modes, temporarily up the neighbor searches in the shader to max supported level (voronoi cell propagation speed limits in shader)
   // updateUniforms(mainUniforms, {

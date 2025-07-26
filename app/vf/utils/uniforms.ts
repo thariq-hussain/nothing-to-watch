@@ -5,14 +5,14 @@ import { MIN_LERP_EASING_TYPES, easedMinLerp } from './math'
 export type BaseConfigUniform =
   | {
       value?: boolean
-      animatable: never
+      transition: never
       targetValue: never
       targetFactor: never
       targetEasing: never
     }
   | {
       value?: number
-      animatable?: boolean
+      transition?: boolean
       targetValue?: number
       targetFactor?: number
       targetEasing?: MIN_LERP_EASING_TYPES
@@ -26,7 +26,7 @@ export type ConfigUniform = BaseConfigUniform & {
 
 export type ConfigUniforms = Map<string, ConfigUniform>
 
-export const handleAnimatingUniforms = (uniforms: ConfigUniforms) => {
+export const handleTransitioningUniforms = (uniforms: ConfigUniforms) => {
   uniforms.forEach((uniform, key) => {
     if (
       typeof uniform.value === 'number' &&
@@ -51,20 +51,20 @@ export const handleAnimatingUniforms = (uniforms: ConfigUniforms) => {
 export const updateUniforms = (
   uniforms: ConfigUniforms,
   updates: Record<string, number | boolean>,
-  animatingUniforms?: ConfigUniforms,
+  transitioningUniforms?: ConfigUniforms,
 ) => {
   Object.entries(updates).forEach(([key, value]) => {
     const uniform = uniforms.get(key)
     if (uniform) {
       if (
-        animatingUniforms &&
+        transitioningUniforms &&
         typeof value === 'number' &&
-        uniform.animatable
+        uniform.transition
       ) {
         if (uniform.value !== value) {
           uniform.targetValue = value
-          if (!animatingUniforms.has(key)) {
-            animatingUniforms.set(key, uniform)
+          if (!transitioningUniforms.has(key)) {
+            transitioningUniforms.set(key, uniform)
           }
         }
       } else {
@@ -77,21 +77,21 @@ export const updateUniforms = (
 export const updateUniformsByMode = (
   uniforms: ConfigUniforms,
   mode: VOROFORCE_MODE,
-  animatingUniforms?: ConfigUniforms,
+  transitioningUniforms?: ConfigUniforms,
 ) => {
   uniforms.forEach((uniform, key) => {
     const uniformMode = uniform.modes?.[mode] ?? uniform.modes?.default
     if (uniformMode) {
       const value = uniformMode.value
       if (
-        animatingUniforms &&
+        transitioningUniforms &&
         typeof value === 'number' &&
-        uniform.animatable
+        uniform.transition
       ) {
         if (uniform.value !== value) {
           uniform.targetValue = value
-          if (!animatingUniforms.has(key)) {
-            animatingUniforms.set(key, uniform)
+          if (!transitioningUniforms.has(key)) {
+            transitioningUniforms.set(key, uniform)
           }
         }
       } else {
@@ -104,21 +104,21 @@ export const updateUniformsByMode = (
 export const updateUniformsByTheme = (
   uniforms: ConfigUniforms,
   theme: THEME,
-  animatingUniforms?: ConfigUniforms,
+  transitioningUniforms?: ConfigUniforms,
 ) => {
   uniforms.forEach((uniform, key) => {
     const uniformTheme = uniform.themes?.[theme] ?? uniform.themes?.default
     if (uniformTheme) {
       const value = uniformTheme.value
       if (
-        animatingUniforms &&
+        transitioningUniforms &&
         typeof value === 'number' &&
-        uniform.animatable
+        uniform.transition
       ) {
         if (uniform.value !== value) {
           uniform.targetValue = value
-          if (!animatingUniforms.has(key)) {
-            animatingUniforms.set(key, uniform)
+          if (!transitioningUniforms.has(key)) {
+            transitioningUniforms.set(key, uniform)
           }
         }
       } else {

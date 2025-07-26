@@ -15,7 +15,7 @@ export type SelectorItem = {
   addon?: ReactNode | string
 }
 
-export type SelectorItems = SelectorItem[]
+export type SelectorItems = Array<SelectorItem | Array<SelectorItem>>
 
 export function SelectorItemWarning({
   children,
@@ -70,6 +70,100 @@ export function SelectorItemWarning({
     </AnimateDimensionsChange>
   )
 }
+function SelectorItem({
+  value,
+  item,
+  className = '',
+  bgClassName = '',
+  warningClassName = '',
+  warningIconClassName = '',
+  warningMessage,
+}: {
+  value: string | undefined
+  item: SelectorItem
+  className?: string
+  bgClassName?: string
+  warningClassName?: string
+  warningIconClassName?: string
+  defaultValue?: string
+  onValueChange?: (value: string) => void
+  warningMessage?: ReactNode
+}) {
+  const hasWarning = item.hasWarning
+  const itemValue = String(item.value)
+  const isSelected = value === itemValue
+
+  return (
+    <div className='group relative flex-1'>
+      <Label
+        htmlFor={itemValue}
+        className={cn(
+          'relative flex size-full cursor-pointer flex-col overflow-hidden rounded-xl border-2 p-4 transition-all',
+          'font-semibold text-lg text-zinc-900 dark:text-white',
+          {
+            'border-input dark:border-zinc-800': !hasWarning,
+            'hover:border-input dark:hover:border-zinc-700':
+              !hasWarning && !isSelected,
+            'border-amber-800 dark:border-amber-800 ': hasWarning,
+            'hover:border-amber-700 dark:hover:border-amber-700':
+              hasWarning && !isSelected,
+            'border-zinc-900 dark:border-white ': isSelected && !hasWarning,
+            'border-amber-500 dark:border-amber-500 ': isSelected && hasWarning,
+          },
+          className,
+        )}
+      >
+        <div
+          className={cn(
+            '-z-1 absolute inset-0 h-full w-full',
+            {
+              'bg-zinc-50/25 dark:bg-zinc-800/50': isSelected && !hasWarning,
+              'bg-amber-800/50 dark:bg-amber-800/50': isSelected && hasWarning,
+            },
+            bgClassName,
+          )}
+        />
+        <RadioGroupPrimitiveItem
+          id={itemValue}
+          value={itemValue}
+          className='sr-only'
+        />
+        {item.label}
+      </Label>
+      <div
+        className={cn(
+          '-top-2.5 -right-2.5 absolute z-10 transition-opacity duration-300',
+          {
+            'opacity-0': !isSelected,
+          },
+        )}
+      >
+        <span
+          className={cn(
+            'flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 dark:bg-white',
+            {
+              'bg-amber-500 dark:bg-amber-500': hasWarning,
+            },
+          )}
+        >
+          <Check
+            className={cn('h-3.5 w-3.5 text-white dark:text-zinc-900', {})}
+          />
+        </span>
+      </div>
+      {hasWarning && (
+        <SelectorItemWarning
+          isSelected={isSelected}
+          className={warningClassName}
+          iconClassName={warningIconClassName}
+        >
+          {warningMessage}
+        </SelectorItemWarning>
+      )}
+      {item.addon}
+    </div>
+  )
+}
 
 export function Selector({
   className = '',
@@ -104,86 +198,35 @@ export function Selector({
       className={cn('flex flex-col gap-4 md:flex-row', className)}
     >
       {items.map((item) => {
-        const hasWarning = item.hasWarning
-        const itemValue = String(item.value)
-        const isSelected = value === itemValue
-
-        return (
-          <div key={itemValue} className='group relative flex-1'>
-            <Label
-              htmlFor={itemValue}
-              className={cn(
-                'relative flex size-full cursor-pointer flex-col overflow-hidden rounded-xl border-2 p-4 transition-all',
-                'font-semibold text-lg text-zinc-900 dark:text-white',
-                {
-                  'border-input dark:border-zinc-800': !hasWarning,
-                  'hover:border-input dark:hover:border-zinc-700':
-                    !hasWarning && !isSelected,
-                  'border-amber-800 dark:border-amber-800 ': hasWarning,
-                  'hover:border-amber-700 dark:hover:border-amber-700':
-                    hasWarning && !isSelected,
-                  'border-zinc-900 dark:border-white ':
-                    isSelected && !hasWarning,
-                  'border-amber-500 dark:border-amber-500 ':
-                    isSelected && hasWarning,
-                },
-                itemClassName,
-              )}
-            >
-              <div
-                className={cn(
-                  '-z-1 absolute inset-0 h-full w-full',
-                  {
-                    'bg-zinc-50/25 dark:bg-zinc-800/50':
-                      isSelected && !hasWarning,
-                    'bg-amber-800/50 dark:bg-amber-800/50':
-                      isSelected && hasWarning,
-                  },
-                  itemBgClassName,
-                )}
-              />
-              <RadioGroupPrimitiveItem
-                id={itemValue}
-                value={itemValue}
-                className='sr-only'
-              />
-              {item.label}
-            </Label>
-            <div
-              className={cn(
-                '-top-2.5 -right-2.5 absolute z-10 transition-opacity duration-300',
-                {
-                  'opacity-0': !isSelected,
-                },
-              )}
-            >
-              <span
-                className={cn(
-                  'flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 dark:bg-white',
-                  {
-                    'bg-amber-500 dark:bg-amber-500': hasWarning,
-                  },
-                )}
-              >
-                <Check
-                  className={cn(
-                    'h-3.5 w-3.5 text-white dark:text-zinc-900',
-                    {},
-                  )}
+        if (Array.isArray(item)) {
+          return (
+            <div className='flex flex-1 flex-row gap-4 md:flex-col'>
+              {item.map((item) => (
+                <SelectorItem
+                  key={String(item.value)}
+                  value={value}
+                  item={item}
+                  className={itemClassName}
+                  bgClassName={itemBgClassName}
+                  warningClassName={warningClassName}
+                  warningIconClassName={warningIconClassName}
+                  warningMessage={warningMessage}
                 />
-              </span>
+              ))}
             </div>
-            {hasWarning && (
-              <SelectorItemWarning
-                isSelected={isSelected}
-                className={warningClassName}
-                iconClassName={warningIconClassName}
-              >
-                {warningMessage}
-              </SelectorItemWarning>
-            )}
-            {item.addon}
-          </div>
+          )
+        }
+        return (
+          <SelectorItem
+            key={String(item.value)}
+            value={value}
+            item={item}
+            className={itemClassName}
+            bgClassName={itemBgClassName}
+            warningClassName={warningClassName}
+            warningIconClassName={warningIconClassName}
+            warningMessage={warningMessage}
+          />
         )
       })}
     </RadioGroupPrimitiveRoot>

@@ -1,6 +1,6 @@
 export const previewForceSimulationStepConfig = {
   parameters: {
-    // animatable: true,
+    // transition: true,
     // alpha: 0.2,
     alpha: 0.15,
     // velocityDecay: 0.6,

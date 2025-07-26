@@ -38,7 +38,7 @@ export const Favorites = () => {
                 setUserConfig(userConfig)
               }}
             >
-              Reset
+              Clear favorites
             </Button>
           )}
         </div>

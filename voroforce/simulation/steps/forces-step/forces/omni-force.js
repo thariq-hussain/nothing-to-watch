@@ -93,7 +93,6 @@ export const omniForce = () => {
     maxLatticeCol,
     latticeRow,
     latticeCol,
-    latticeStrengthMod,
     isPrimaryCell = false,
     primaryCellWeight = 0,
     primaryCellWeightPushFactor = 1,
@@ -306,6 +305,11 @@ export const omniForce = () => {
     targetCenterY = undefined
     primaryCell = undefined
     primaryCellIndex = undefined
+
+    if (typeof latticeCenterX === 'undefined') {
+      latticeCenterX = originLatticeX
+      latticeCenterY = originLatticeY
+    }
 
     function initLocalCellProperties(cell) {
       cell.localWeight = cell.weight
@@ -740,18 +744,11 @@ export const omniForce = () => {
             cell = cells[i]
 
             if (cell.primaryCellIndex !== primaryCellIndex) {
-              // isPrimaryCell = i === primaryCellIndex
               updatePrimaryCellDependentTransientCellProperties(cell)
             }
 
             // left
-            latticeLinkForce(
-              cell,
-              cells[i - 1],
-              alpha,
-              latticeCellSizeX,
-              latticeStrengthMod,
-            )
+            latticeLinkForce(cell, cells[i - 1], alpha, latticeCellSizeX)
 
             // top
             latticeLinkForce(
@@ -759,7 +756,6 @@ export const omniForce = () => {
               cells[i - latticeCols],
               alpha,
               latticeCellSizeY,
-              latticeStrengthMod,
             )
           }
         }

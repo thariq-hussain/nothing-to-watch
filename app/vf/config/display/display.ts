@@ -15,7 +15,7 @@ export default {
         bPixelSearch: { value: true },
         bMediaDistortion: { value: false },
         fBaseColor: {
-          animatable: true,
+          transition: true,
           themes: {
             default: {
               value: [0, 0, 0],
@@ -26,7 +26,7 @@ export default {
           },
         },
         fBorderRoundnessMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1,
@@ -38,7 +38,7 @@ export default {
           },
         },
         fBorderSmoothnessMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1,
@@ -49,7 +49,7 @@ export default {
           },
         },
         fBorderThicknessMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 1.5,
@@ -60,7 +60,7 @@ export default {
           },
         },
         fCenterForceBulgeStrength: {
-          animatable: true,
+          transition: true,
           initial: {
             value: 0,
           },
@@ -79,7 +79,7 @@ export default {
           },
         },
         fCenterForceBulgeRadius: {
-          animatable: true,
+          transition: true,
           initial: {
             value: 0,
           },
@@ -97,7 +97,7 @@ export default {
           },
         },
         fWeightOffsetScaleMod: {
-          animatable: true,
+          transition: true,
           modes: {
             default: {
               value: 0.25,
@@ -110,15 +110,15 @@ export default {
           },
         },
         fUnweightedEffectMod: {
-          animatable: true,
+          transition: true,
           value: 1,
         },
         fBaseXDistScale: {
-          animatable: true,
+          transition: true,
           value: 1.5, // 0 = undefined, will use fallback
         },
         fWeightedXDistScale: {
-          animatable: true,
+          transition: true,
           value: 1.5, // 0 = undefined, will use fallback
         },
       },

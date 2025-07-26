@@ -1,5 +1,6 @@
 import { type ReactNode, useState } from 'react'
 
+import { THEME } from '../../../consts'
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { useShallowState } from '../../../store'
 import { isDefined } from '../../../utils/misc'
@@ -11,6 +12,7 @@ import {
   CELL_LIMIT_ITEMS,
   DEVICE_CLASS,
   PRESET_ITEMS,
+  type PresetItem,
 } from '../../../vf/consts.ts'
 import { Button, type ButtonProps } from '../../ui/button'
 import { AnimateDimensionsChange } from '../animate-dimensions-change'
@@ -38,6 +40,8 @@ export function CoreSettingsWidget({
     storePreset,
     setStoreCellLimit,
     storeCellLimit,
+    theme,
+    setTheme,
   } = useShallowState((state) => ({
     setStorePreset: state.setPreset,
     storePreset: state.preset,
@@ -45,6 +49,8 @@ export function CoreSettingsWidget({
     storeCellLimit: state.cellLimit,
     storeDeviceClass: state.deviceClass,
     estimatedDeviceClass: state.estimatedDeviceClass,
+    theme: state.theme,
+    setTheme: state.setTheme,
   }))
 
   const deviceClass = isDefined(storeDeviceClass)
@@ -60,7 +66,9 @@ export function CoreSettingsWidget({
           ? VOROFORCE_PRESET.mobile
           : VOROFORCE_PRESET.minimal
         : isDefined(deviceClass)
-          ? PRESET_ITEMS.find((p) =>
+          ? (
+              PRESET_ITEMS.filter((p) => !Array.isArray(p)) as PresetItem[]
+            ).find((p) =>
               isDefined(p.recommendedDeviceClass)
                 ? p.recommendedDeviceClass < deviceClass
                 : true,
@@ -121,9 +129,16 @@ export function CoreSettingsWidget({
           onClick={() => {
             if (isSubmitted) return
             setIsSubmitted(true)
-            setStorePreset(
-              isDefined(preset) ? preset : VOROFORCE_PRESET.minimal,
-            )
+            const newPreset = isDefined(preset)
+              ? preset
+              : VOROFORCE_PRESET.minimal
+            if (
+              theme === THEME.light &&
+              newPreset !== VOROFORCE_PRESET.minimal
+            ) {
+              setTheme(THEME.dark)
+            }
+            setStorePreset(newPreset)
             setStoreCellLimit(isDefined(cellLimit) ? cellLimit : CELL_LIMIT.sm)
             onSubmit?.()
           }}
