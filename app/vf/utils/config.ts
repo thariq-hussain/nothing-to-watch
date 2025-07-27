@@ -1,15 +1,13 @@
 import { getGPUTier } from 'detect-gpu'
 import { mergeConfigs } from '√'
-import baseConfig, { introModeLatticeConfig } from '../config'
-import { introForceSimulationStepConfig } from '../config/simulation/force/intro-force'
+import baseConfig from '../config'
 import presets from '../presets'
 
 import { down, matchMediaQuery } from '../../utils/mq'
 
 import type { THEME } from '../../consts'
 import type { StoreState } from '../../store'
-import { controlModeConfigs } from '../config/controls/controls'
-import { DEVICE_CLASS, VOROFORCE_MODE, VOROFORCE_PRESET } from '../consts'
+import { DEVICE_CLASS, type VOROFORCE_MODE, VOROFORCE_PRESET } from '../consts'
 import type { VoroforceInstance } from '../types'
 import type { Film } from './films'
 import type { ConfigUniform } from './uniforms'
@@ -35,25 +33,6 @@ export type UserConfig = {
       poster?: Film['poster']
     }
   }
-}
-
-const modeConfigs: {
-  [K in VOROFORCE_MODE]?: Partial<VoroforceInstance['config']>
-} = {
-  [VOROFORCE_MODE.intro]: {
-    lattice: introModeLatticeConfig,
-    simulation: {
-      steps: {
-        force: introForceSimulationStepConfig,
-      },
-    },
-    media: {
-      preload: 'v0', // default is "first" but "high" and "mid" media versions are loaded via "intro" lattice setup
-    },
-  },
-  [VOROFORCE_MODE.select]: {
-    controls: controlModeConfigs[VOROFORCE_MODE.select],
-  },
 }
 
 const handleCustomLinkParam = (
@@ -123,11 +102,7 @@ export const getConfig = async (state: StoreState) => {
       }
     }
 
-    if (isSmallScreen) {
-      setDeviceClass(estimatedDeviceClass)
-      // setPreset(isMobile ? VOROFORCE_PRESET.mobile : VOROFORCE_PRESET.minimal)
-      // setCellLimit(isMobile ? CELL_LIMIT.xxs : CELL_LIMIT.xs)
-    }
+    if (isSmallScreen) setDeviceClass(estimatedDeviceClass)
     setEstimatedDeviceClass(estimatedDeviceClass)
   }
 
@@ -135,17 +110,18 @@ export const getConfig = async (state: StoreState) => {
     preset = presetOverrideParam
   }
 
-  const config = mergeConfigs(
-    baseConfig,
-    preset
-      ? (presets as unknown as Record<VOROFORCE_PRESET, typeof baseConfig>)[
-          preset
-        ]
-      : {},
-    {
-      ...(modeConfigs[mode] ?? {}),
-    },
-  )
+  let config = baseConfig
+  if (preset) {
+    config = mergeConfigs(
+      config,
+      (presets as unknown as Record<VOROFORCE_PRESET, typeof baseConfig>)[
+        preset
+      ],
+    )
+  }
+  if (config.modes?.[mode]) {
+    config = mergeConfigs(config, config.modes?.[mode])
+  }
 
   if (customLinkBase64Param) {
     handleCustomLinkParam(customLinkBase64Param, state)
@@ -156,7 +132,7 @@ export const getConfig = async (state: StoreState) => {
     : (initialCellLimit ?? config.cells)
 
   if ('devTools' in userConfig) {
-    config.devTools.enabled = userConfig.devTools
+    config.devTools.enabled = !!userConfig.devTools
   }
 
   return config

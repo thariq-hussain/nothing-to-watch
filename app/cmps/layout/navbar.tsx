@@ -16,7 +16,7 @@ export const Navbar = () => {
     favoritesOpen,
     toggleFavoritesOpen,
     hasFavorites,
-    presetIsMinimal,
+    canChangeTheme,
   } = useShallowState((state) => ({
     settingsOpen: state.settingsOpen,
     toggleSettingsOpen: state.toggleSettingsOpen,
@@ -27,7 +27,9 @@ export const Navbar = () => {
     hasFavorites:
       state.userConfig.favorites &&
       Object.keys(state.userConfig.favorites).length > 0,
-    presetIsMinimal: state.preset === VOROFORCE_PRESET.minimal,
+    canChangeTheme:
+      state.preset === VOROFORCE_PRESET.minimal ||
+      state.preset === VOROFORCE_PRESET.mobile,
   }))
 
   const buttonClassnames =
@@ -90,7 +92,7 @@ export const Navbar = () => {
 
       <ThemeToggle
         className={cn(buttonClassnames, 'hidden lg:inline-flex', {
-          'lg:hidden': !presetIsMinimal,
+          'lg:hidden': !canChangeTheme,
         })}
         onPointerDown={(event) => {
           event.preventDefault()

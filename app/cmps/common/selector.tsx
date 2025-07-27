@@ -197,15 +197,18 @@ export function Selector({
       }}
       className={cn('flex flex-col gap-4 md:flex-row', className)}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         if (Array.isArray(item)) {
           return (
-            <div className='flex flex-1 flex-row gap-4 md:flex-col'>
-              {item.map((item) => (
+            <div
+              key={`item-group-${String(index)}`}
+              className='flex flex-1 flex-row gap-4 md:flex-col'
+            >
+              {item.map((i) => (
                 <SelectorItem
-                  key={String(item.value)}
+                  key={String(i.value)}
                   value={value}
-                  item={item}
+                  item={i}
                   className={itemClassName}
                   bgClassName={itemBgClassName}
                   warningClassName={warningClassName}

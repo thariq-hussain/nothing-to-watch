@@ -22,12 +22,13 @@ const handleModeChange = (mode: VOROFORCE_MODE): void => {
     },
     config: {
       simulation: { forceStepModeConfigs },
+      controls: controlsConfig,
     },
   } = store.getState()
 
   setMode(mode)
 
-  updateControlsByMode(controls, mode)
+  updateControlsByMode(controls, mode, controlsConfig)
   updateUniformsByMode(mainUniforms, mode, transitioningUniforms)
   updateUniformsByMode(postUniforms, mode, transitioningUniforms)
 

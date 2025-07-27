@@ -35,8 +35,16 @@ export const Intro = () => {
       }}
     >
       <div className='flex h-full flex-col items-stretch'>
-        <div className='h-1/3' />
-        <div className='flex h-1/3 flex-col items-center justify-center'>
+        <div
+          className={cn('h-1/3', {
+            'max-lg:landscape:hidden': !preset,
+          })}
+        />
+        <div
+          className={cn('flex h-1/3 flex-col items-center justify-center', {
+            'justify-start pt-12 max-lg:landscape:h-1/2': !preset,
+          })}
+        >
           <h1 className='font-black text-4xl leading-none md:text-5xl md:leading-none'>
             <span className='inline-flex'>
               <span className='max-md:hidden'>"</span>
@@ -49,7 +57,14 @@ export const Intro = () => {
             </span>
           </h1>
         </div>
-        <div className='relative flex h-1/3 flex-col items-stretch justify-end gap-4 pb-12'>
+        <div
+          className={cn(
+            'relative flex h-1/3 flex-col items-stretch justify-end gap-4 pb-12',
+            {
+              'max-lg:landscape:h-1/2': !preset,
+            },
+          )}
+        >
           <FadeTransition
             visible={!isSmallScreen && !hasDeviceClass}
             className='absolute inset-x-0 bottom-12 w-full duration-1000'
@@ -61,7 +76,7 @@ export const Intro = () => {
             <MoviesDatasetLicenseInfo />
           </FadeTransition>
           <FadeTransition
-            visible={hasDeviceClass && !preset}
+            visible={(hasDeviceClass || isSmallScreen) && !preset}
             className='absolute inset-x-0 bottom-12 w-full duration-1000'
             transitionOptions={{
               timeout: 500,
@@ -93,27 +108,28 @@ const MoviesDatasetLicenseInfo = () => (
 )
 
 const DEFAULT_REVEAL_SCREEN_DELAY = 1200
-const PREVIEW_MODE_REVEAL_SCREEN_DELAY = 300
+const DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY = 300
 let hideScreen = OBSCURE_VISUAL_DEFECTS
 function useIntroVisible() {
-  const { introRequired, isPreviewMode } = useShallowState((state) => ({
+  const { introRequired, revealScreenDelay } = useShallowState((state) => ({
     introRequired: !state.playedIntro || !state.preset,
     isPreviewMode: state.mode === VOROFORCE_MODE.preview,
+    revealScreenDelay: state.config?.revealScreenDelay
+      ? (state.config.revealScreenDelay.modes?.[state.mode] ??
+        state.config.revealScreenDelay.default)
+      : state.mode === VOROFORCE_MODE.preview
+        ? DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY
+        : DEFAULT_REVEAL_SCREEN_DELAY,
   }))
 
   if (OBSCURE_VISUAL_DEFECTS) {
     const [, forceUpdate] = useReducer((x) => x + 1, 0)
     // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
     useEffect(() => {
-      setTimeout(
-        () => {
-          hideScreen = false
-          forceUpdate()
-        },
-        isPreviewMode
-          ? PREVIEW_MODE_REVEAL_SCREEN_DELAY
-          : DEFAULT_REVEAL_SCREEN_DELAY,
-      )
+      setTimeout(() => {
+        hideScreen = false
+        forceUpdate()
+      }, revealScreenDelay)
     }, [])
 
     useEffect(() => {
@@ -122,21 +138,16 @@ function useIntroVisible() {
         hideScreen = true
         forceUpdate()
         clearTimeout(timeout)
-        timeout = setTimeout(
-          () => {
-            hideScreen = false
-            forceUpdate()
-          },
-          isPreviewMode
-            ? PREVIEW_MODE_REVEAL_SCREEN_DELAY
-            : DEFAULT_REVEAL_SCREEN_DELAY,
-        )
+        timeout = setTimeout(() => {
+          hideScreen = false
+          forceUpdate()
+        }, revealScreenDelay)
       }
       window.addEventListener('resize', onResize)
       return () => {
         window.removeEventListener('resize', onResize)
       }
-    }, [isPreviewMode])
+    }, [revealScreenDelay])
   }
 
   return introRequired || hideScreen

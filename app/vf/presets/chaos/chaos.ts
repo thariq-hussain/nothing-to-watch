@@ -87,6 +87,19 @@ const forceSimulationStepConfigs = {
   [VOROFORCE_MODE.intro]: {},
 }
 
+const controlsConfig = {
+  default: {
+    maxSpeed: 2,
+    ease: 0.45,
+  },
+  modes: {
+    [VOROFORCE_MODE.select]: {
+      maxSpeed: 1,
+      ease: 0.15,
+    },
+  },
+}
+
 export default {
   cells: 50000,
   media: mediaConfigWithUncompressedSingleVersion,
@@ -94,9 +107,12 @@ export default {
     neighborOriginMod: 0.4,
     scaleMod: 1.5,
   },
+  revealScreenDelay: {
+    default: 1400,
+  },
   controls: {
-    maxSpeed: 2,
-    ease: 0.45,
+    ...controlsConfig.default,
+    ...controlsConfig,
   },
   display: {
     scene: {

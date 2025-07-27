@@ -22,7 +22,7 @@ export const Settings = () => {
     setPlayedIntro,
     voroforceDevSceneEnabled,
     setVoroforceDevSceneEnabled,
-    presetIsMinimal,
+    canChangeTheme,
   } = useShallowState((state) => ({
     open: state.settingsOpen,
     setOpen: state.setSettingsOpen,
@@ -32,7 +32,9 @@ export const Settings = () => {
     setPlayedIntro: state.setPlayedIntro,
     voroforceDevSceneEnabled: state.voroforceDevSceneEnabled,
     setVoroforceDevSceneEnabled: state.setVoroforceDevSceneEnabled,
-    presetIsMinimal: state.preset === VOROFORCE_PRESET.minimal,
+    canChangeTheme:
+      state.preset === VOROFORCE_PRESET.minimal ||
+      state.preset === VOROFORCE_PRESET.mobile,
   }))
 
   const { theme, setTheme } = useTheme()
@@ -70,8 +72,8 @@ export const Settings = () => {
         <div className='flex w-full flex-col gap-4 p-4 pb-18 md:gap-6 md:p-6 md:pr-10 md:pb-24 lg:pt-12 lg:pb-24'>
           <SmallScreenWarning />
           <CoreSettingsWidget onSubmit={() => window.location.reload()} />
-          <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-            {presetIsMinimal && (
+          <div className='flex flex-row flex-wrap gap-6'>
+            {canChangeTheme && (
               <div className='flex flex-row items-center gap-2'>
                 <Switch
                   id='light-mode'
@@ -83,7 +85,7 @@ export const Settings = () => {
                 <Label htmlFor='light-mode'>Bright mode</Label>
               </div>
             )}
-            <div className='flex flex-row items-center gap-2'>
+            <div className='flex flex-row items-center gap-2 max-md:hidden'>
               <Switch
                 id='dev-tools'
                 checked={Boolean(userConfig.devTools)}
@@ -109,28 +111,26 @@ export const Settings = () => {
               />
               <Label htmlFor='show-cell-seeds'>Cell seeds</Label>
             </div>
-            <div className='flex flex-row items-center gap-2'>
+            <div className='flex flex-row items-center gap-2 max-md:hidden'>
               <Switch
                 id='fullscreen'
                 checked={fullscreen}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    const elem = document.documentElement
+                    const el = document.documentElement
                     const onFullscreenChange = () => {
                       if (!document.fullscreenElement) {
                         setFullscreen(false)
                       }
-                      document.documentElement.removeEventListener(
+                      el.removeEventListener(
                         'fullscreenchange',
                         onFullscreenChange,
                       )
                     }
-                    elem
-                      .requestFullscreen({ navigationUI: 'show' })
+                    el.requestFullscreen({ navigationUI: 'show' })
                       .then(() => {
                         setFullscreen(true)
-
-                        document.documentElement.addEventListener(
+                        el.addEventListener(
                           'fullscreenchange',
                           onFullscreenChange,
                         )

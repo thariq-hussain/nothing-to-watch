@@ -84,11 +84,8 @@ export class Loader extends CustomEventTarget {
     let bytes
     const type = config.type ?? 'compressed-grid'
 
-    // const ext = src.split('.').pop().split('?')[0].toLowerCase()
-
     const isDds = ext === 'dds'
     const isKtx = ext === 'ktx'
-    const isEtc = ext === 'etc'
 
     if (isDds) {
       // DDS File format constants
@@ -130,37 +127,6 @@ export class Loader extends CustomEventTarget {
         (((Math.max(4, width) / 4) * Math.max(4, height)) / 4) * blockSize
 
       bytes = new Uint8Array(arrayBuffer, 128, size) // 128 is size of DDS header
-    } else if (isEtc) {
-      // TODO incomplete
-      // const response = await fetch(src)
-      // const arrayBuffer = await response.arrayBuffer()
-      //
-      // const dataView = new DataView(arrayBuffer)
-      // let offset = 0
-      //
-      // const magic = dataView.getUint32(offset, true)
-      // offset += 4
-      //
-      // // Validate magic bytes (replace with your format's identifier)
-      // // const expectedMagic = 0x31435445 // "ETC1" in ASCII as uint32
-      // // const expectedMagic = 0x3511010 // 55727696
-      // const expectedMagic = 55727696 // 55727696
-      //
-      // if (magic !== expectedMagic) {
-      //   throw new Error('Invalid ETC file format')
-      // }
-      //
-      // const width = dataView.getUint16(offset, true)
-      // offset += 2
-      //
-      // const height = dataView.getUint16(offset, true)
-      // offset += 2
-      //
-      // // Calculate data size for ETC1 (4 bits per pixel)
-      // const dataSize = Math.ceil(width / 4) * Math.ceil(height / 4) * 8
-      //
-      // // Extract the compressed texture data
-      // bytes = new Uint8Array(arrayBuffer, offset, dataSize)
     } else if (isKtx) {
       const response = await fetch(src)
       const arrayBuffer = await response.arrayBuffer()
@@ -216,7 +182,6 @@ export class Loader extends CustomEventTarget {
         })
       }
       bytes = await loadImage(URL.createObjectURL(blob))
-      // bytes = await loadImage(src)
     }
 
     this.loadedIndex++
@@ -240,10 +205,6 @@ export class Loader extends CustomEventTarget {
   }
 
   checkFinish() {
-    // if (this.loadedIndex === this.mediaLayersLen) {
-    //   this.dispatchEvent(new LoaderEvent())
-    // }
-
     if (this.loadingMediaLayers === 0) {
       this.dispatchEvent(new LoaderEvent('idle'))
     }

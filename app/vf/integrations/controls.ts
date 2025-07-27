@@ -1,6 +1,5 @@
 import { mergeConfigs } from '√'
 import { store } from '../../store'
-import controlsConfig, { controlModeConfigs } from '../config/controls/controls'
 import { VOROFORCE_MODE } from '../consts'
 import type { VoroforceInstance } from '../types'
 import { type VoroforceCell, getCellFilm } from '../utils'
@@ -56,11 +55,9 @@ export const handleControls = () => {
 export const updateControlsByMode = (
   controls: VoroforceInstance['controls'],
   mode: VOROFORCE_MODE,
+  controlsConfig: VoroforceInstance['config']['controls'],
 ) => {
   controls.updateConfig(
-    mergeConfigs(
-      controlsConfig,
-      controlModeConfigs[mode] ? controlModeConfigs[mode] : {},
-    ),
+    mergeConfigs(controlsConfig.default, controlsConfig.modes?.[mode]),
   )
 }
