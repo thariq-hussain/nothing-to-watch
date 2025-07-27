@@ -12,11 +12,15 @@ import { Selector, type SelectorItems } from '../selector'
 
 export function CellLimitSelector({
   className = '',
+  selectorClassName = '',
+  selectorItemClassName = '',
   value,
   onValueChange,
   deviceClass,
 }: {
   className?: string
+  selectorClassName?: string
+  selectorItemClassName?: string
   value?: CELL_LIMIT
   onValueChange: (value: CELL_LIMIT) => void
   deviceClass?: DEVICE_CLASS
@@ -55,7 +59,11 @@ export function CellLimitSelector({
         Films
       </div>
       <Selector
-        itemClassName='py-1 text-center text-sm md:text-xs xl:text-sm leading-none rounded-lg flex items-center justify-center'
+        className={cn('md:grow', selectorClassName)}
+        itemClassName={cn(
+          'flex items-center justify-center rounded-lg py-1 text-center text-sm leading-none md:text-xs xl:text-sm',
+          selectorItemClassName,
+        )}
         defaultValue={String(value)}
         onValueChange={(value) => {
           onValueChange(Number.parseInt(value) as CELL_LIMIT)

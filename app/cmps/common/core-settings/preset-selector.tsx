@@ -6,43 +6,66 @@ import type { VOROFORCE_PRESET } from '../../../vf'
 import { type DEVICE_CLASS, PRESET_ITEMS } from '../../../vf/consts.ts'
 import { DeviceClassWarningMessage } from '../device-class/device-class-warning-message'
 import { Selector, type SelectorItems } from '../selector'
+import { Badge } from '../../ui/badge'
 
 type NoArray<T> = T extends Array<unknown> ? never : T
 
 const processPresetItem = (
   presetItem: NoArray<(typeof PRESET_ITEMS)[number]>,
   deviceClass?: DEVICE_CLASS,
-) => ({
-  label: (
-    <>
-      {presetItem.videoSrc && (
-        <video
-          className='absolute inset-0 h-full w-full object-cover object-center'
-          playsInline
-          autoPlay
-          muted
-          controls={false}
-          loop
-        >
-          <source src={presetItem.videoSrc} type='video/webm' />
-        </video>
-      )}
-      {presetItem.imgSrc && (
-        <img
-          className='absolute inset-0 h-full w-full object-cover object-center'
-          src={presetItem.imgSrc}
-          alt={presetItem.name}
-        />
-      )}
-      <div className='relative z-2'>{presetItem.name}</div>
-    </>
-  ),
-  value: presetItem.id,
-  hasWarning:
+) => {
+  const hasWarning =
     isDefined(presetItem.recommendedDeviceClass) &&
     isDefined(deviceClass) &&
-    presetItem.recommendedDeviceClass > deviceClass,
-})
+    presetItem.recommendedDeviceClass > deviceClass
+  return {
+    label: (
+      <>
+        {presetItem.videoSrc && (
+          <video
+            className='absolute inset-0 h-full w-full object-cover object-center'
+            playsInline
+            autoPlay
+            muted
+            controls={false}
+            loop
+          >
+            <source src={presetItem.videoSrc} type='video/webm' />
+          </video>
+        )}
+        {presetItem.imgSrc && (
+          <img
+            className='absolute inset-0 h-full w-full object-cover object-center'
+            src={presetItem.imgSrc}
+            alt={presetItem.name}
+          />
+        )}
+        <div
+          className={cn('relative z-2', {
+            'text-amber-500': hasWarning,
+          })}
+        >
+          {presetItem.name}
+        </div>
+      </>
+    ),
+    value: presetItem.id,
+    hasWarning,
+    addon: presetItem.wip ? (
+      <Badge
+        title='Work in progress'
+        className={cn(
+          '-translate-x-1/2 -translate-y-1/2 !text-background -rotate-90 absolute top-1/2 left-0 z-5 cursor-pointer px-1 text-xxs',
+          {
+            // 'left-1/4': hasWarning,
+          },
+        )}
+      >
+        WIP
+      </Badge>
+    ) : undefined,
+  }
+}
 
 export function PresetSelector({
   className = '',

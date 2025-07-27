@@ -5,7 +5,6 @@ export enum VOROFORCE_MODE {
 }
 
 export const DEFAULT_VOROFORCE_MODE: VOROFORCE_MODE = VOROFORCE_MODE.preview
-// export const DEFAULT_VOROFORCE_MODE: VOROFORCE_MODE = VOROFORCE_MODE.select
 
 export enum VOROFORCE_PRESET {
   mobile = 'mobile',
@@ -29,6 +28,7 @@ export type PresetItem = {
   videoSrc?: string
   imgSrc?: string
   recommendedDeviceClass?: DEVICE_CLASS
+  wip?: boolean
 }
 
 export type PresetItems = Array<PresetItem | Array<PresetItem>>
@@ -50,11 +50,13 @@ export const PRESET_ITEMS: PresetItems = [
       id: VOROFORCE_PRESET.chaos,
       name: 'Chaos',
       recommendedDeviceClass: DEVICE_CLASS.mid,
+      wip: true,
     },
     {
       id: VOROFORCE_PRESET.contours,
       name: 'Contours',
       recommendedDeviceClass: DEVICE_CLASS.mid,
+      wip: true,
     },
   ],
 ]
@@ -90,6 +92,7 @@ export const CELL_LIMIT_ITEMS = [
     value: CELL_LIMIT.lg,
     label: '100,000',
     recommendedDeviceClass: DEVICE_CLASS.high,
+    doNotRecommend: true,
   },
 ]
 

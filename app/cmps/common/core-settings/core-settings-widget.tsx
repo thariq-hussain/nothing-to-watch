@@ -83,10 +83,12 @@ export function CoreSettingsWidget({
           ? CELL_LIMIT.xxs
           : CELL_LIMIT.xs
         : isDefined(deviceClass)
-          ? CELL_LIMIT_ITEMS.findLast((p) =>
-              isDefined(p.recommendedDeviceClass)
-                ? p.recommendedDeviceClass <= deviceClass
-                : true,
+          ? CELL_LIMIT_ITEMS.findLast(
+              (p) =>
+                !p.doNotRecommend &&
+                (isDefined(p.recommendedDeviceClass)
+                  ? p.recommendedDeviceClass <= deviceClass
+                  : true),
             )?.value
           : undefined),
   )
@@ -143,7 +145,9 @@ export function CoreSettingsWidget({
             onSubmit?.()
           }}
           size='lg'
-          disabled={!isSmallScreen && !isDefined(preset)}
+          disabled={
+            !isSmallScreen && (!isDefined(preset) || !isDefined(cellLimit))
+          }
           {...submitProps}
           className={cn(
             'w-full cursor-pointer text-lg',

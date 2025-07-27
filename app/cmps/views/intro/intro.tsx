@@ -42,7 +42,8 @@ export const Intro = () => {
         />
         <div
           className={cn('flex h-1/3 flex-col items-center justify-center', {
-            'justify-start pt-12 max-lg:landscape:h-1/2': !preset,
+            'max-lg:landscape:h-1/2 max-lg:landscape:justify-start max-lg:landscape:pt-12':
+              !preset,
           })}
         >
           <h1 className='font-black text-4xl leading-none md:text-5xl md:leading-none'>
