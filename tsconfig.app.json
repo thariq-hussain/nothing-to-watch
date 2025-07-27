@@ -36,5 +36,5 @@
     "app",
     "voroforce"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "_ref", "**/_ref"]
 }
