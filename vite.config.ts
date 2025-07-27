@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react-swc'
 import { defineConfig, loadEnv } from 'vite'
 import analyzer from 'vite-bundle-analyzer'
 import glsl from 'vite-plugin-glsl'
+// import viteBasicSslPlugin from "@vitejs/plugin-basic-ssl";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
@@ -15,6 +16,7 @@ export default defineConfig(({ mode }) => {
         minify: Boolean(env.VITE_COMPRESS_GLSL),
       }),
       ...(env.VITE_ANALYZE_BUNDLE ? [analyzer()] : []),
+      // viteBasicSslPlugin()
     ],
     build: {
       rollupOptions: {
@@ -30,7 +32,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      host: 'localhost',
+      host: '0.0.0.0',
       port: 3000,
       headers: {
         'Cross-Origin-Embedder-Policy': 'credentialless', // should be 'require-corp' but 'credentialless' allows for img hotlinking

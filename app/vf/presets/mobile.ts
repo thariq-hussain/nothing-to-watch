@@ -1,5 +1,9 @@
 export default {
   cells: 5000,
+  multiThreading: {
+    enabled: false, // TODO headers seem to be in order (SharedArrayBuffer exists) but black screen, used to work, needs triage (it works in local network though?!?)
+    renderInParallel: true,
+  },
   media: {
     compressionFormat: 'ktx',
   },
