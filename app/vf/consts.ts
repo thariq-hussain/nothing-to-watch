@@ -29,6 +29,7 @@ export type PresetItem = {
   imgSrc?: string
   recommendedDeviceClass?: DEVICE_CLASS
   wip?: boolean
+  disabled?: boolean
 }
 
 export type PresetItems = Array<PresetItem | Array<PresetItem>>
@@ -57,6 +58,7 @@ export const PRESET_ITEMS: PresetItems = [
       name: 'Contours',
       recommendedDeviceClass: DEVICE_CLASS.mid,
       wip: true,
+      disabled: true,
     },
   ],
 ]

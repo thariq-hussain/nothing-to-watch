@@ -12,6 +12,7 @@ export type SelectorItem = {
   value: string
   label: ReactNode | string
   hasWarning?: boolean
+  disabled?: boolean
   addon?: ReactNode | string
 }
 
@@ -94,7 +95,11 @@ function SelectorItem({
   const isSelected = value === itemValue
 
   return (
-    <div className='group relative flex-1'>
+    <div
+      className={cn('group relative flex-1', {
+        'pointer-events-none opacity-30': item.disabled,
+      })}
+    >
       <Label
         htmlFor={itemValue}
         className={cn(
@@ -127,6 +132,7 @@ function SelectorItem({
           id={itemValue}
           value={itemValue}
           className='sr-only'
+          disabled={item.disabled}
         />
         {item.label}
       </Label>

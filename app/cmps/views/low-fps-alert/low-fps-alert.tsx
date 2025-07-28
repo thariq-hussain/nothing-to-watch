@@ -27,7 +27,7 @@ export const LowFpsAlert = () => {
   } = useShallowState((state) => ({
     performanceMonitor: state.performanceMonitor,
     preset: state.preset,
-    ticker: state.voroforce.ticker,
+    ticker: state.voroforce?.ticker,
     isSelectMode: state.isSelectMode,
     estimatedDeviceClass: state.estimatedDeviceClass,
     setEstimatedDeviceClass: state.setEstimatedDeviceClass,
@@ -50,6 +50,7 @@ export const LowFpsAlert = () => {
   const cooldownTimeoutRef = useRef<NodeJS.Timeout>(null)
 
   const open = useCallback(() => {
+    if (!ticker) return
     if (cooldown) {
       if (!cooldownTimeoutRef.current) {
         setTimeout(() => {
@@ -90,6 +91,7 @@ export const LowFpsAlert = () => {
 
   const close = useCallback(() => {
     setIsOpen(false)
+    if (!ticker) return
     ticker.unfreeze()
   }, [ticker])
 

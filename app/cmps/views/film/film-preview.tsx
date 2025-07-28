@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import useMeasure from 'react-use-measure'
 
-import { store, useShallowState } from '@/store'
-import { MIN_LERP_EASING_TYPES, type VoroforceCell, easedMinLerp } from '@/vf'
+import { useShallowState } from '@/store'
+import {
+  MIN_LERP_EASING_TYPES,
+  type VoroforceCell,
+  easedMinLerp,
+  type VoroforceInstance,
+} from '@/vf'
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { clamp, lerp } from '../../../utils/math'
 import { down } from '../../../utils/mq'
@@ -18,11 +23,14 @@ export const FilmPreview = ({ poster = false }) => {
 
   const [measureRef, bounds] = useMeasure()
 
-  const { film, isPreviewMode, config } = useShallowState((state) => ({
-    film: state.film,
-    isPreviewMode: state.isPreviewMode,
-    config: state.config.filmPreview,
-  }))
+  const { film, isPreviewMode, config, voroforce } = useShallowState(
+    (state) => ({
+      film: state.film,
+      isPreviewMode: state.isPreviewMode,
+      config: state.config?.filmPreview,
+      voroforce: state.voroforce,
+    }),
+  )
 
   if (config && 'enabled' in config && !config.enabled) return null
   const neighborOriginMod = useRef(
@@ -35,7 +43,6 @@ export const FilmPreview = ({ poster = false }) => {
 
   const cellsRef = useRef<VoroforceCell[]>(null)
   const primaryCellRef = useRef<VoroforceCell>(null)
-  const voroforceRef = useRef(store.getState().voroforce)
   const topNeighborCellRef = useRef<{ x: number; y: number }>(undefined)
   const bottomNeighborCellRef = useRef<{ x: number; y: number }>(undefined)
   const positionRef = useRef<{ x: number; y: number }>(undefined)
@@ -43,8 +50,12 @@ export const FilmPreview = ({ poster = false }) => {
   const opacityRef = useRef<number>(0)
   const frameRef = useRef<number>(0)
 
+  const voroforceRef = useRef<VoroforceInstance | undefined>(undefined)
+  if (voroforce && !voroforceRef.current) voroforceRef.current = voroforce
+
   const onCellFocused = useCallback(
     ({ cell }: { cell?: VoroforceCell } = {}) => {
+      if (!voroforceRef.current) return
       if (isSmallScreen) return
       if (cell) primaryCellRef.current = cell
       if (!primaryCellRef.current || !cellsRef.current) return
@@ -83,6 +94,7 @@ export const FilmPreview = ({ poster = false }) => {
   }, [])
 
   useEffect(() => {
+    if (!voroforceRef.current) return
     if (isSmallScreen) {
       resetStyles()
       return
@@ -206,6 +218,7 @@ export const FilmPreview = ({ poster = false }) => {
   }, [isSmallScreen, bounds, reverseY, reverseX, applyStyles, resetStyles])
 
   useEffect(() => {
+    if (!voroforceRef.current) return
     if (isSmallScreen) return
     const { controls, cells } = voroforceRef.current
     if (!cellsRef.current) cellsRef.current = cells as VoroforceCell[]

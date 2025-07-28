@@ -19,6 +19,7 @@ const processPresetItem = (
     isDefined(deviceClass) &&
     presetItem.recommendedDeviceClass > deviceClass
   return {
+    disabled: presetItem.disabled,
     label: (
       <>
         {presetItem.videoSrc && (
