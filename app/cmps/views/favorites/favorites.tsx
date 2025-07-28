@@ -1,20 +1,36 @@
 import { useShallowState } from '@/store'
 import { Trash } from 'lucide-react'
-import { CustomLinks } from '../../common/custom-links'
 import { Modal } from '../../common/modal'
 import { Button } from '../../ui/button'
 import { ScrollArea } from '../../ui/scroll-area'
 import { FilmPoster } from '../film/shared/film-poster'
+import { lazy } from 'react'
+import { cn } from '../../../utils/tw'
+import { StdLinks } from '../../common/standard-links'
+
+const CustomLinks = lazy(() =>
+  import('../../common/custom-links').then((module) => ({
+    default: module.CustomLinks,
+  })),
+)
 
 export const Favorites = () => {
-  const { open, setOpen, userConfig, setUserConfig, favorites } =
-    useShallowState((state) => ({
-      open: state.favoritesOpen,
-      setOpen: state.setFavoritesOpen,
-      userConfig: state.userConfig,
-      setUserConfig: state.setUserConfig,
-      favorites: state.userConfig.favorites,
-    }))
+  const {
+    open,
+    setOpen,
+    userConfig,
+    setUserConfig,
+    favorites,
+    hasCustomLinks,
+  } = useShallowState((state) => ({
+    open: state.favoritesOpen,
+    setOpen: state.setFavoritesOpen,
+    userConfig: state.userConfig,
+    setUserConfig: state.setUserConfig,
+    favorites: state.userConfig.favorites,
+    hasCustomLinks:
+      state.userConfig.customLinks && state.userConfig.customLinks.length > 0,
+  }))
 
   const hasFavorites = favorites && Object.keys(favorites).length > 0
 
@@ -61,12 +77,23 @@ export const Favorites = () => {
                     <h6 className='pr-3 font-black text-2xl leading-none'>
                       {film.title}
                     </h6>
-                    <CustomLinks
-                      film={film}
-                      addNewDisabled
-                      buttonClassName='text-xxs !py-1 !px-2 !h-auto'
-                      className='flex-wrap gap-1.5'
-                    />
+                    <div
+                      className={cn(
+                        'pointer-events-auto flex flex-row flex-wrap gap-1.5',
+                      )}
+                    >
+                      <StdLinks
+                        film={film}
+                        buttonClassName='text-xxs !py-1 !px-2 !h-auto'
+                      />
+                      {hasCustomLinks && (
+                        <CustomLinks
+                          film={film}
+                          addNewDisabled
+                          buttonClassName='text-xxs !py-1 !px-2 !h-auto'
+                        />
+                      )}
+                    </div>
                   </div>
                   <Button
                     variant='ghost'

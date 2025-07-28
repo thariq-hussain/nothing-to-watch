@@ -1,28 +1,27 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import * as v from 'valibot'
-import { DialogFooter } from '../../../ui/dialog'
+import { DialogFooter } from '../../../../ui/dialog'
 
 import { useForm } from 'react-hook-form'
-import { useShallowState } from '../../../../store'
-import { Modal } from '../../../common/modal'
-import { Button } from '../../../ui/button'
+import { useShallowState } from '../../../../../store'
+import { Modal } from '../../../../common/modal'
+import { Button } from '../../../../ui/button'
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-} from '../../../ui/form'
-import { Input } from '../../../ui/input'
+} from '../../../../ui/form'
+import { Input } from '../../../../ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../ui/select'
-import { Switch } from '../../../ui/switch'
-import {} from '../../../ui/tooltip'
+} from '../../../../ui/select'
+import { Switch } from '../../../../ui/switch'
 
 enum Property {
   Title = 'title',

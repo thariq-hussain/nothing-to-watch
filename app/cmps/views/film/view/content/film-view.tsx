@@ -1,10 +1,10 @@
-import config from '@/config'
-import { store } from '@/store'
-import type { Film } from '@/vf'
+import config from '../../../../../config'
+import { store } from '../../../../../store'
+import type { Film } from '../../../../../vf'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { cn } from '../../../../utils/tw'
-import { Badge } from '../../../ui/badge'
-import { FilmRatingGauge } from '../shared/film-rating-gauge'
+import { cn } from '../../../../../utils/tw'
+import { Badge } from '../../../../ui/badge'
+import { FilmRatingGauge } from '../../shared/film-rating-gauge'
 
 export const FilmView = ({
   film,
@@ -50,7 +50,6 @@ export const FilmView = ({
         />
       )}
       <div className='relative z-1 flex h-full w-full flex-col'>
-        {/*<div className={cn('max-h-64 w-full md:max-h-auto', {})}>*/}
         <div
           className={cn(
             'h-64 w-full group-hover:h-auto group-hover:min-h-64 md:not-landscape:h-48 group-hover:md:not-landscape:min-h-48 max-md:landscape:h-full',

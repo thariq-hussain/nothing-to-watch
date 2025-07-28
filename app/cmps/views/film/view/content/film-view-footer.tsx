@@ -1,27 +1,34 @@
-import { useShallowState } from '@/store'
-import type { Film } from '@/vf'
-import { HeartOff, HeartPlus } from 'lucide-react'
-import { cn } from '../../../../utils/tw'
-import { CustomLinks } from '../../../common/custom-links'
-import { Button } from '../../../ui/button'
+import { useShallowState } from '../../../../../store'
+import type { Film } from '../../../../../vf'
+import { HeartOff, HeartPlus, Plus } from 'lucide-react'
+import { cn } from '../../../../../utils/tw'
+import { CustomLinks } from '../../../../common/custom-links'
+import { Button } from '../../../../ui/button'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../../../ui/tooltip'
+} from '../../../../ui/tooltip'
+import { StdLinks } from '../../../../common/standard-links'
 
 export const FilmViewFooter = ({
   film,
   className = '',
 }: { film?: Film; className?: string }) => {
-  const { userConfig, setUserConfig, exitVoroforceSelectMode, isFavorite } =
-    useShallowState((state) => ({
-      userConfig: state.userConfig,
-      setUserConfig: state.setUserConfig,
-      exitVoroforceSelectMode: state.exitSelectMode,
-      isFavorite: film && state.userConfig?.favorites?.[film.tmdbId],
-    }))
+  const {
+    userConfig,
+    setUserConfig,
+    exitVoroforceSelectMode,
+    isFavorite,
+    toggleNewLinkTypeOpen,
+  } = useShallowState((state) => ({
+    userConfig: state.userConfig,
+    setUserConfig: state.setUserConfig,
+    exitVoroforceSelectMode: state.exitSelectMode,
+    isFavorite: film && state.userConfig?.favorites?.[film.tmdbId],
+    toggleNewLinkTypeOpen: state.toggleNewLinkTypeOpen,
+  }))
 
   if (!film) return
   return (
@@ -32,7 +39,29 @@ export const FilmViewFooter = ({
         {},
       )}
     >
-      <CustomLinks film={film} />
+      <div className={cn('pointer-events-auto flex flex-row gap-3')}>
+        <StdLinks film={film} />
+        <CustomLinks film={film} />
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size='icon'
+                className={cn(
+                  'hidden cursor-pointer rounded-lg border-foreground md:inline-flex md:backdrop-blur-lg',
+                )}
+                variant='outline'
+                onClick={toggleNewLinkTypeOpen}
+              >
+                <Plus />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add new link type</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
       <div className='pointer-events-auto flex flex-row gap-3'>
         <TooltipProvider delayDuration={0}>
           <Tooltip>
