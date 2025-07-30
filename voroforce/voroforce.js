@@ -235,7 +235,11 @@ export class Voroforce extends CustomEventTarget {
   async initDevTools(force = false) {
     if (this.devTools) return
     this.config.devTools.enabled =
-      force || this.config.devTools.enabled || window.location.hash === '#dev'
+      this.config.devTools.enabled || window.location.hash === '#dev'
+    if (force) {
+      this.config.devTools.enabled = true
+      this.config.devTools.expanded = true
+    }
 
     if (!this.config.devTools.enabled) return
     this.devTools = new (await import('./common/dev-tools')).default(

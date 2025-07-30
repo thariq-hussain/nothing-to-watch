@@ -38,10 +38,10 @@ export default {
   },
   devTools: {
     enabled: false,
-    expanded: true,
+    expanded: false,
     expandedFolders: {
-      simulation: true,
-      display: true,
+      simulation: false,
+      display: false,
     },
   },
   handleVisibilityChange: {

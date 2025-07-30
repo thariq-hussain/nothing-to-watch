@@ -124,6 +124,7 @@
   }
 
   html, body {
+    @apply h-full;
     color-scheme: light dark;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
