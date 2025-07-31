@@ -109,7 +109,7 @@ const MoviesDatasetLicenseInfo = () => (
 )
 
 const DEFAULT_REVEAL_SCREEN_DELAY = 1200
-const DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY = 300
+const DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY = 600
 let hideScreen = OBSCURE_VISUAL_DEFECTS
 function useIntroVisible() {
   const { introRequired, revealScreenDelay } = useShallowState((state) => ({

@@ -226,10 +226,22 @@ export default class BaseControls extends CustomEventTarget {
     if (this.pointerFrozen) {
       this.unfreezePointer()
     } else {
-      this.cells.selectedIndex =
-        this.cells.selectedIndex !== this.cells.focusedIndex
-          ? this.cells.focusedIndex
-          : undefined
+      if (!this.cells.selectedIndex) {
+        if (
+          this.pointer.speedScale < 0.5 &&
+          this.pointer.index === this.cells.focusedIndex
+        ) {
+          this.cells.selectedIndex = this.cells.focusedIndex
+        } else {
+          this.onPointerMove(e)
+        }
+      } else {
+        if (this.cells.selectedIndex !== this.cells.focusedIndex) {
+          this.cells.selectedIndex = this.pointer.index
+        } else {
+          this.cells.selectedIndex = undefined
+        }
+      }
 
       this.dispatchEvent(new CellSelectedEvent(this.cells.selected))
     }
@@ -243,11 +255,12 @@ export default class BaseControls extends CustomEventTarget {
   initEventListeners() {
     window.addEventListener('blur', this.onPointerOut.bind(this))
 
-    this.container.addEventListener(
-      'pointerdown',
-      this.onPointerDown.bind(this),
-    )
-    this.container.addEventListener('pointerup', this.onPointerUp.bind(this))
+    // this.container.addEventListener(
+    //   'pointerdown',
+    //   this.onPointerDown.bind(this),
+    // )
+    // this.container.addEventListener('pointerup', this.onPointerUp.bind(this))
+    this.container.addEventListener('click', this.handlePointerClick.bind(this))
 
     // if (isTouchDevice) {
     // } else {
@@ -268,8 +281,9 @@ export default class BaseControls extends CustomEventTarget {
     this.container.removeEventListener('pointerout', this.onPointerOut)
     // }
 
-    this.container.removeEventListener('pointerdown', this.onPointerDown)
-    this.container.removeEventListener('pointerup', this.onPointerUp)
+    // this.container.removeEventListener('pointerdown', this.onPointerDown)
+    // this.container.removeEventListener('pointerup', this.onPointerUp)
+    this.container.removeEventListener('click', this.handlePointerClick)
   }
 
   startResize(dimensions) {
