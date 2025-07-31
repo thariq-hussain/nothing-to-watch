@@ -291,10 +291,15 @@ export class Voroforce extends CustomEventTarget {
     if (this.tickerMode === 'manual') this.ticker.next()
   }
 
+  displayUpdates = 0
   updateDisplay() {
     if (this.simulationWarmedUp) {
       this.display.update()
-      this.displayWarmedUp = true
+      if (this.displayUpdates < 1) {
+        this.displayUpdates++
+      } else {
+        this.displayWarmedUp = true
+      }
     }
     if (this.tickerMode === 'manual') this.ticker.next()
   }

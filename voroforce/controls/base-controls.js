@@ -6,18 +6,10 @@ import {
   PointerFrozenChangeEvent,
 } from './controls-events'
 
-const { pow, sqrt, random, min, max } = Math
-
-let randomNumber
-const getRandomNumberOnce = () => {
-  if (randomNumber === undefined) {
-    randomNumber = random()
-  }
-  return randomNumber
-}
-
 export default class BaseControls extends CustomEventTarget {
   pointerFrozen = true
+  rawPosition = null
+  pointerPinned = false
 
   constructor(store, display) {
     super()
@@ -25,14 +17,11 @@ export default class BaseControls extends CustomEventTarget {
     this.initProperties()
     this.initEventListeners()
     this.handleConfig()
-    this.reset()
   }
 
   reset() {
-    this.pointerFrozen = true
+    this.freezePointer()
     this.rawPosition = null
-    this.frozenPointer = null
-    this.pointerPinned = false
   }
 
   initGlobals(store, display) {
@@ -53,7 +42,8 @@ export default class BaseControls extends CustomEventTarget {
       this.config.autoFocusCenter?.enabled &&
       (this.config.autoFocusCenter.enabled !== 'touch' || isTouchDevice)
     )
-      this.update = this.handleAutoFocusUpdate
+      this.assignPointer(this.getAutoFocusCenter())
+    this.update = this.handleAutoFocusUpdate
   }
 
   handleConfig() {}
@@ -86,7 +76,6 @@ export default class BaseControls extends CustomEventTarget {
       this.assignPointer({
         x: this.rawPosition.x,
         y: this.rawPosition.y,
-        // speedScale: this.avgSpeedTotal / this.options.maxSpeed,
       })
 
       this.getCellIndices(this.rawPosition, (primaryIndex, indices) => {
@@ -114,12 +103,13 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   getCellIndices(position, cb) {
-    // if (!position?.x && !position?.y) {
-    //   cb(undefined, undefined)
-    // }
     this.display.getPositionCellIndices(position).then((indices) => {
       const primaryIndex = indices?.[0]
       if (primaryIndex === undefined) {
+        console.warn('No cell found at position', {
+          x: position.x,
+          y: position.y,
+        })
         this.handlePointerOut()
         return false
       }
@@ -131,20 +121,19 @@ export default class BaseControls extends CustomEventTarget {
     const { width, height } = this.dimensions.get()
     const randomOffset = this.config.autoFocusCenter?.random
     return {
-      x:
-        width / 2 +
-        (randomOffset ? (0.5 - getRandomNumberOnce()) * 0.1 * width : 0),
-      y:
-        height / 2 +
-        (randomOffset ? (0.5 - getRandomNumberOnce()) * 0.1 * height : 0),
+      x: Math.floor(
+        width / 2 + (randomOffset ? (0.5 - Math.random()) * 0.1 * width : 0),
+      ),
+      y: Math.floor(
+        height / 2 + (randomOffset ? (0.5 - Math.random()) * 0.1 * height : 0),
+      ),
     }
   }
 
   handleAutoFocusUpdate() {
     if (this.cells.focused) {
+      this.reset()
       this.update = this.handleUpdate
-    } else {
-      this.assignPointer(this.getAutoFocusCenter())
     }
 
     this.handleUpdate()
@@ -169,7 +158,8 @@ export default class BaseControls extends CustomEventTarget {
     }
     this.pointerFrozen = true
     this.pointer.speedScale = 0
-    this.frozenPointer ??= frozenPointer ?? this.savePointer()
+    this.frozenPointer =
+      frozenPointer ?? this.frozenPointer ?? this.savePointer()
 
     this.dispatchEvent(
       new PointerFrozenChangeEvent({
@@ -180,14 +170,16 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   unfreezePointer() {
-    this.pointerFrozen = false
-    if (this.frozenPointer) {
-      this.lastPosition = {
-        x: this.frozenPointer.x,
-        y: this.frozenPointer.y,
+    if (this.pointerFrozen) {
+      if (this.frozenPointer) {
+        this.lastPosition = {
+          x: this.frozenPointer.x,
+          y: this.frozenPointer.y,
+        }
+        this.frozenPointer = null
       }
+      this.pointerFrozen = false
     }
-    this.frozenPointer = null
 
     this.dispatchEvent(
       new PointerFrozenChangeEvent({
@@ -227,30 +219,19 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   handlePointerOut() {
-    console.log('handlePointerOut')
-    if (this.cells.focused) {
-      this.freezePointer()
-    }
     this.reset()
   }
 
   handlePointerClick(e) {
     if (this.pointerFrozen) {
-      // Object.assign(this.pointer, this.frozenPointer)
       this.unfreezePointer()
-      // this.assignPointer({
-      //   speedScale: 1,
-      // })
-      // this.onPointerMove(e)
     } else {
-      // if (this.speed.total < this.options.selectSpeedLimit) {
       this.cells.selectedIndex =
         this.cells.selectedIndex !== this.cells.focusedIndex
           ? this.cells.focusedIndex
           : undefined
 
       this.dispatchEvent(new CellSelectedEvent(this.cells.selected))
-      // }
     }
   }
 
@@ -304,22 +285,25 @@ export default class BaseControls extends CustomEventTarget {
   postResizeTimeout
   endResize(dimensions) {
     if (!this.cells.focused) return
-    this.assignPointer({
+    const newPointer = {
       x: this.cells.focused.x,
       y: this.cells.focused.y,
-      speedScale: 1,
-      // speedScale: 0,
-    })
-
-    // todo
-    if (this.postResizeTimeout) {
-      clearTimeout(this.postResizeTimeout)
+      // speedScale: 1,
+      speedScale: 0,
     }
-    this.postResizeTimeout = setTimeout(() => {
-      if (this.pointerFrozen) {
-        this.pointer.speedScale = 0
-      }
-    }, 1500)
+    this.assignPointer(newPointer)
+    this.freezePointer(newPointer)
+    // this.pointer.speedScale = 1
+    //
+    // // todo
+    // if (this.postResizeTimeout) {
+    //   clearTimeout(this.postResizeTimeout)
+    // }
+    // this.postResizeTimeout = setTimeout(() => {
+    //   if (this.pointerFrozen) {
+    //     this.pointer.speedScale = 0
+    //   }
+    // }, 1500)
 
     this.dispatchEvent(new CellFocusedEvent(this.cells.focused, this.cells))
   }

@@ -19,7 +19,7 @@ export const controlModeConfigs: {
 const defaultControlsConfig = {
   autoFocusCenter: {
     enabled: true,
-    random: false,
+    random: true,
   },
   maxSpeed: 10,
   ease: 0.15,

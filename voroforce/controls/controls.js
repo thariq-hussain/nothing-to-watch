@@ -9,7 +9,15 @@ const getAverageSpeedTotal = (array) =>
 const MAX_SPEED_HISTORY = 10
 
 export default class Controls extends BaseControls {
-  pointerFrozen = true
+  speedHistory = []
+  rawSpeedHistory = []
+  position = null
+  lastPosition = null
+  lastRawPosition = null
+  speed = { x: 0, y: 0, total: 0 }
+  rawSpeed = { x: 0, y: 0, total: 0 }
+  avgRawSpeedTotal = 0
+  avgSpeedTotal = 0
 
   reset() {
     super.reset()
