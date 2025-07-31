@@ -23,26 +23,27 @@ export const Intro = () => {
   return (
     <FadeTransition
       className={cn(
-        'fixed inset-x-0 top-0 z-60 flex h-dvh w-full justify-center bg-background px-12',
+        'fixed inset-x-0 top-0 z-60 flex h-dvh w-full justify-center bg-background px-12 duration-700',
         {
-          'duration-150': visible,
+          '!duration-150': visible,
         },
       )}
       visible={visible}
       transitionOptions={{
         initialEntered: visible,
-        timeout: visible ? 0 : 1000,
+        timeout: visible ? 0 : 700,
       }}
     >
       <div className='flex h-full flex-col items-stretch'>
         <div
           className={cn('h-1/3', {
-            'max-lg:landscape:hidden': !preset,
+            'max-lg:landscape:hidden [@media(min-aspect-ratio:2.5)]:hidden':
+              !preset,
           })}
         />
         <div
           className={cn('flex h-1/3 flex-col items-center justify-center', {
-            'max-lg:landscape:h-1/2 max-lg:landscape:justify-start max-lg:landscape:pt-12':
+            'max-lg:landscape:h-1/2 max-lg:landscape:justify-start max-lg:landscape:pt-12 [@media(min-aspect-ratio:2.5)]:h-1/2 [@media(min-aspect-ratio:2.5)]:justify-start [@media(min-aspect-ratio:2.5)]:pt-12':
               !preset,
           })}
         >
@@ -62,7 +63,8 @@ export const Intro = () => {
           className={cn(
             'relative flex h-1/3 flex-col items-stretch justify-end gap-4 pb-12',
             {
-              'max-lg:landscape:h-1/2': !preset,
+              'max-lg:landscape:h-1/2 [@media(min-aspect-ratio:2.5)]:h-1/2':
+                !preset,
             },
           )}
         >

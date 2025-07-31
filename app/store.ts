@@ -83,7 +83,7 @@ const ESTIMATED_DEVICE_CLASS_STORAGE_KEY = 'estimatedDeviceClass'
 const USER_CONFIG_STORAGE_KEY = 'userConfig'
 
 const playedIntro = Boolean(localStorage.getItem(PLAYED_INTRO_STORAGE_KEY))
-// const playedIntro = false
+const initialMode = playedIntro ? DEFAULT_VOROFORCE_MODE : VOROFORCE_MODE.intro
 
 export const store = create(
   subscribeWithSelector<StoreState>(
@@ -101,9 +101,9 @@ export const store = create(
         setContainer: (container: HTMLElement) => set({ container }),
         setFilm: (film?: Film) => set({ film }),
         filmBatches: new Map<number, FilmBatch>(),
-        mode: playedIntro ? DEFAULT_VOROFORCE_MODE : VOROFORCE_MODE.intro,
-        isPreviewMode: DEFAULT_VOROFORCE_MODE === VOROFORCE_MODE.preview,
-        isSelectMode: DEFAULT_VOROFORCE_MODE === VOROFORCE_MODE.select,
+        mode: initialMode,
+        isPreviewMode: initialMode === VOROFORCE_MODE.preview,
+        isSelectMode: initialMode === VOROFORCE_MODE.select,
         setMode: (mode: VOROFORCE_MODE) =>
           set({
             mode,

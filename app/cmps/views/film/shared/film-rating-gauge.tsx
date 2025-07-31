@@ -38,7 +38,12 @@ export const FilmRatingGauge = ({
   }
 
   return (
-    <div className={cn('relative size-14 shrink-0 text-lg', className)}>
+    <div
+      className={cn(
+        'relative size-10 shrink-0 text-sm leading-none md:size-14 md:text-lg',
+        className,
+      )}
+    >
       <svg
         viewBox={`0 0 ${size} ${size}`}
         className='size-full'

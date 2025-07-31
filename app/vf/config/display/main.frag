@@ -588,8 +588,8 @@ vec2 normalizeCoords(in vec2 screenCoords) {
 }
 
 vec2 aspectCoords(in vec2 screenCoords) {
-    float cappedResolutionY = max(iResolution.y, iResolution.x * 0.5); // todo?
-    return (screenCoords*2.0-iResolution.xy) / cappedResolutionY;
+    return (screenCoords*2.0-iResolution.xy) / max(min(iResolution.x, iResolution.y), max(iResolution.x, iResolution.y) * 0.5);
+
 }
 
 vec2 fetchRawCellCoords(uint i) {
@@ -1019,7 +1019,11 @@ vec4 calcMediaBbox(in uint index, in vec2 cellCoords, in float bulgeFactor, inou
     if (lockedAspect) {
         float bbMax = max(bbX, bbY / MEDIA_ASPECT);
         float aspect = iResolution.x / iResolution.y;
-        offset *= vec2(bbMax / aspect, bbMax * MEDIA_ASPECT);
+        if (aspect > 1.) {
+            offset *= vec2(bbMax / aspect, bbMax * MEDIA_ASPECT);
+        } else {
+            offset *= vec2(bbMax, (bbMax * MEDIA_ASPECT) * aspect);
+        }
     } else {
         offset *= vec2(bbX, bbY);
     }
@@ -1222,13 +1226,12 @@ Plot init(vec2 p) {
 
 void calcIndices(inout uvec4 indices, inout uvec4 indices2, inout uint neighborsPosition, in vec2 p, in uint index, in float weightOffsetScale, in float prevMaxWeight, in float bulgeFactor) {
 
-    vec2 fragCoord = gl_FragCoord.xy; // todo
-
     vec4 distances = vec4(FLOAT_INF);
     vec4 distances2 = vec4(FLOAT_INF);
 
     // pixel search
     if (PIXEL_SEARCH == 1 && bPixelSearch) {
+        vec2 fragCoord = gl_FragCoord.xy;
         vec2 rad = vec2(PIXEL_SEARCH_RADIUS * (fPixelSearchRadiusMod > 0. ? fPixelSearchRadiusMod : 1.));
         #if BULGE == 1
             if (bulgeFactor < 1.) {
@@ -1276,7 +1279,7 @@ Plot plot() {
 
     vec2 p = pCoords();
 
-    vec2 fragCoord = gl_FragCoord.xy; // todo
+    vec2 fragCoord = gl_FragCoord.xy;
     uvec4 prevIndices = fetchIndices(fragCoord);
     if (indexIsUndefined(prevIndices.x)) return init(p);
 

@@ -1,3 +1,5 @@
+import { VOROFORCE_MODE } from '../consts'
+
 export default {
   cells: 5000,
   multiThreading: {
@@ -21,6 +23,64 @@ export default {
               },
               select: {
                 value: 1,
+              },
+            },
+          },
+          fBorderThicknessMod: {
+            transition: true,
+            modes: {
+              default: {
+                value: 1.5,
+              },
+              [VOROFORCE_MODE.select]: {
+                value: 1.5,
+              },
+            },
+          },
+          fBorderSmoothnessMod: {
+            transition: true,
+            modes: {
+              default: {
+                value: 1,
+              },
+              [VOROFORCE_MODE.select]: {
+                value: 0.75,
+              },
+            },
+          },
+          fCenterForceBulgeStrength: {
+            transition: true,
+            targetFactor: 0.0125,
+            initial: {
+              value: 1,
+            },
+            modes: {
+              default: {
+                value: 0,
+              },
+              [VOROFORCE_MODE.preview]: {
+                value: 1,
+              },
+              [VOROFORCE_MODE.select]: {
+                value: 1,
+              },
+            },
+          },
+          fCenterForceBulgeRadius: {
+            transition: true,
+            targetFactor: 0.0125,
+            initial: {
+              value: 1,
+            },
+            modes: {
+              default: {
+                value: 0,
+              },
+              [VOROFORCE_MODE.preview]: {
+                value: 1,
+              },
+              [VOROFORCE_MODE.select]: {
+                value: 1.5,
               },
             },
           },

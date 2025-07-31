@@ -15,7 +15,6 @@ export default class BaseControls extends CustomEventTarget {
     super()
     this.initGlobals(store, display)
     this.initProperties()
-    this.initEventListeners()
     this.handleConfig()
   }
 
@@ -41,9 +40,18 @@ export default class BaseControls extends CustomEventTarget {
     if (
       this.config.autoFocusCenter?.enabled &&
       (this.config.autoFocusCenter.enabled !== 'touch' || isTouchDevice)
-    )
+    ) {
       this.assignPointer(this.getAutoFocusCenter())
-    this.update = this.handleAutoFocusUpdate
+      this.update = this.handleAutoFocusUpdate
+    } else {
+      this.update = this.handleFirstUpdate
+    }
+  }
+
+  handleFirstUpdate() {
+    this.initEventListeners()
+    this.update = this.handleUpdate
+    this.update()
   }
 
   handleConfig() {}
@@ -104,6 +112,7 @@ export default class BaseControls extends CustomEventTarget {
 
   getCellIndices(position, cb) {
     this.display.getPositionCellIndices(position).then((indices) => {
+      if (this.isResizing) return
       const primaryIndex = indices?.[0]
       if (primaryIndex === undefined) {
         console.warn('No cell found at position', {
@@ -133,7 +142,7 @@ export default class BaseControls extends CustomEventTarget {
   handleAutoFocusUpdate() {
     if (this.cells.focused) {
       this.reset()
-      this.update = this.handleUpdate
+      this.update = this.handleFirstUpdate
     }
 
     this.handleUpdate()
@@ -214,6 +223,20 @@ export default class BaseControls extends CustomEventTarget {
     }
   }
 
+  onTouchMove(e) {
+    switch (e.touches.length) {
+      case 1: {
+        const x = e.touches[0].pageX
+        const y = e.touches[0].pageY
+        this.onPointerMove({
+          x,
+          y,
+        })
+        break
+      }
+    }
+  }
+
   onPointerOut(event) {
     this.handlePointerOut()
   }
@@ -223,8 +246,14 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   handlePointerClick(e) {
+    this.onPointerMove(e)
     if (this.pointerFrozen) {
-      this.unfreezePointer()
+      this.getCellIndices(this.rawPosition, (primaryIndex, indices) => {
+        this.unfreezePointer()
+        this.assignPointer({
+          indices,
+        })
+      })
     } else {
       if (!this.cells.selectedIndex) {
         if (
@@ -232,8 +261,6 @@ export default class BaseControls extends CustomEventTarget {
           this.pointer.index === this.cells.focusedIndex
         ) {
           this.cells.selectedIndex = this.cells.focusedIndex
-        } else {
-          this.onPointerMove(e)
         }
       } else {
         if (this.cells.selectedIndex !== this.cells.focusedIndex) {
@@ -253,41 +280,48 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   initEventListeners() {
-    window.addEventListener('blur', this.onPointerOut.bind(this))
+    // Store bound function references
+    this.boundOnPointerOut = this.onPointerOut.bind(this)
+    this.boundHandlePointerClick = this.handlePointerClick.bind(this)
+    this.boundOnTouchMove = this.onTouchMove.bind(this)
+    this.boundOnPointerMove = this.onPointerMove.bind(this)
+
+    window.addEventListener('blur', this.boundOnPointerOut)
 
     // this.container.addEventListener(
     //   'pointerdown',
-    //   this.onPointerDown.bind(this),
+    //   this.onPointerDown,
     // )
-    // this.container.addEventListener('pointerup', this.onPointerUp.bind(this))
-    this.container.addEventListener('click', this.handlePointerClick.bind(this))
+    // this.container.addEventListener('pointerup', this.onPointerUp)
+    this.container.addEventListener('click', this.boundHandlePointerClick)
 
-    // if (isTouchDevice) {
-    // } else {
-    this.container.addEventListener(
-      'pointermove',
-      this.onPointerMove.bind(this),
-    )
-    this.container.addEventListener('pointerout', this.onPointerOut.bind(this))
-    // }
+    if (isTouchDevice) {
+      this.container.addEventListener('touchmove', this.boundOnTouchMove)
+    } else {
+      this.container.addEventListener('pointermove', this.boundOnPointerMove)
+      this.container.addEventListener('pointerout', this.boundOnPointerOut)
+    }
   }
 
   removeEventListeners() {
-    window.removeEventListener('blur', this.onPointerOut)
+    window.removeEventListener('blur', this.boundOnPointerOut)
 
-    // if (isTouchDevice) {
-    // } else {
-    this.container.removeEventListener('pointermove', this.onPointerMove)
-    this.container.removeEventListener('pointerout', this.onPointerOut)
-    // }
+    if (isTouchDevice) {
+      this.container.removeEventListener('touchmove', this.boundOnTouchMove)
+    } else {
+      this.container.removeEventListener('pointermove', this.boundOnPointerMove)
+      this.container.removeEventListener('pointerout', this.boundOnPointerOut)
+    }
 
     // this.container.removeEventListener('pointerdown', this.onPointerDown)
     // this.container.removeEventListener('pointerup', this.onPointerUp)
-    this.container.removeEventListener('click', this.handlePointerClick)
+    this.container.removeEventListener('click', this.boundHandlePointerClick)
   }
 
+  isResizing = false
   startResize(dimensions) {
-    if (!this.cells.focused) return
+    this.isResizing = true
+    // this.removeEventListeners()
     this.assignPointer({
       x: undefined,
       y: undefined,
@@ -296,29 +330,17 @@ export default class BaseControls extends CustomEventTarget {
     this.reset()
   }
 
-  postResizeTimeout
   endResize(dimensions) {
+    this.isResizing = false
+    // this.initEventListeners()
     if (!this.cells.focused) return
     const newPointer = {
       x: this.cells.focused.x,
       y: this.cells.focused.y,
-      // speedScale: 1,
       speedScale: 0,
     }
     this.assignPointer(newPointer)
     this.freezePointer(newPointer)
-    // this.pointer.speedScale = 1
-    //
-    // // todo
-    // if (this.postResizeTimeout) {
-    //   clearTimeout(this.postResizeTimeout)
-    // }
-    // this.postResizeTimeout = setTimeout(() => {
-    //   if (this.pointerFrozen) {
-    //     this.pointer.speedScale = 0
-    //   }
-    // }, 1500)
-
     this.dispatchEvent(new CellFocusedEvent(this.cells.focused, this.cells))
   }
 

@@ -14,7 +14,6 @@ import { orientation } from '../../../../utils/mq'
 import { cn } from '../../../../utils/tw'
 import type { Film } from '../../../../vf'
 import { Modal } from '../../../common/modal'
-import { AnimateDimensionsChange } from '../../../common/animate-dimensions-change'
 
 const AddCustomLinkModal = lazy(() =>
   import('./content').then((module) => ({
@@ -34,45 +33,41 @@ const FilmViewFooter = lazy(() =>
 
 export const FilmViewDrawer = () => {
   const landscape = useMediaQuery(orientation('landscape'))
-  const [viewMounted, setViewMounted] = useState(false)
+  const [mountContent, setMountContent] = useState(false)
   const [freezeFilm, setFreezeFilm] = useState(false)
   const filmRef = useRef<Film>(undefined)
 
   const {
     film: activeFilm,
     isSelectMode,
+    voroforce,
     exitVoroforceSelectMode,
     newLinkTypeOpen,
   } = useShallowState((state) => ({
     film: state.film,
     isSelectMode: state.isSelectMode,
-    updateStoreBounds: state.setFilmViewBounds,
+    voroforce: state.voroforce,
     exitVoroforceSelectMode: state.exitSelectMode,
     newLinkTypeOpen: state.newLinkTypeOpen,
   }))
 
   const film = useMemo(() => {
     if (freezeFilm) return filmRef.current
-
     filmRef.current = activeFilm
     return activeFilm
   }, [activeFilm, freezeFilm])
 
   useEffect(() => {
-    if (isSelectMode) setViewMounted(true)
-  }, [isSelectMode])
-
-  const [viewHovered, setViewHovered] = useState(false)
-
-  // const filmView = useMemo(
-  //   () => viewMounted && <FilmView film={film} />,
-  //   [viewMounted, film],
-  // )
-  //
-  // const filmViewFooter = useMemo(
-  //   () => viewMounted && <FilmViewFooter film={film} />,
-  //   [viewMounted, film],
-  // )
+    if (mountContent) return
+    const mount = () => setMountContent(true)
+    if (isSelectMode) {
+      mount()
+    } else if (voroforce) {
+      setTimeout(() => {
+        mount()
+      }, 5000)
+    }
+  }, [voroforce, isSelectMode, mountContent])
 
   const onClose = useCallback(() => {
     exitVoroforceSelectMode()
@@ -97,28 +92,14 @@ export const FilmViewDrawer = () => {
           },
         ),
       }}
-      innerContentProps={{
-        className: cn({
-          'bg-background': viewHovered,
-        }),
-      }}
-      footer={viewMounted ? <FilmViewFooter film={film} /> : null}
+      footer={mountContent ? <FilmViewFooter film={film} /> : null}
       handleProps={{
         className:
           'max-md:bg-background max-md:-translate-y-[150%] max-md:h-1.5 lg:bg-transparent lg:backdrop-blur-lg',
       }}
-      additional={viewMounted ? <AddCustomLinkModal /> : null}
+      additional={mountContent ? <AddCustomLinkModal /> : null}
     >
-      <AnimateDimensionsChange
-        axis='height'
-        className='relative max-lg:landscape:static'
-        duration={500}
-        delay={100}
-        onMouseEnter={() => setViewHovered(true)}
-        onMouseLeave={() => setViewHovered(false)}
-      >
-        <Suspense>{viewMounted && <FilmView film={film} />}</Suspense>
-      </AnimateDimensionsChange>
+      <Suspense>{mountContent && <FilmView film={film} />}</Suspense>
     </Modal>
   )
 }

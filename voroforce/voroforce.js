@@ -10,7 +10,7 @@ import Controls from './controls'
 import { defaultConfig } from './default-config'
 import Display from './display'
 import { MultiThreadedSimulation, Simulation } from './simulation'
-import { mergeConfigs } from './utils'
+import { isTouchDevice, mergeConfigs } from './utils'
 import { CustomEventTarget } from './utils/custom-event-target'
 import { initVisibilityEventHandlers } from './utils/visibility'
 
@@ -177,10 +177,9 @@ export class Voroforce extends CustomEventTarget {
     this.ticker.addEventListener('tick', this.update)
 
     // TODO
-    if (this.config.handleVisibilityChange?.enabled) {
+    if (this.config.handleVisibilityChange?.enabled && !isTouchDevice) {
       initVisibilityEventHandlers(
         () => {
-          console.log('window visible')
           this.visible = true
           clearTimeout(this.tickerFreezeTimeout)
           this.ticker.start()
@@ -191,7 +190,6 @@ export class Voroforce extends CustomEventTarget {
           )
         },
         () => {
-          console.log('window hidden')
           this.visible = false
           this.dispatchEvent(
             new VisibilityChangeEvent({
@@ -201,7 +199,6 @@ export class Voroforce extends CustomEventTarget {
           clearTimeout(this.tickerFreezeTimeout)
           this.tickerFreezeTimeout = setTimeout(() => {
             if (this.visible) return
-            console.log('window hidden freeze')
             this.ticker.stop()
           }, this.config.handleVisibilityChange.hiddenDelay)
         },
@@ -252,12 +249,15 @@ export class Voroforce extends CustomEventTarget {
   // multithreaded simulation step workers must complete before triggering resize
   deferredResize() {
     this.ticker.stop()
+    this.controls.startResize()
     this.handleLattice()
     const dimensions = this.store.get('dimensions').get()
-    this.controls.startResize()
     this.simulation.resize(dimensions, () => {
+      this.simulationWarmedUp = false
       this.pendingResize = false
       this.display.resize(dimensions)
+      this.displayUpdates = 0
+      this.displayWarmedUp = false
       this.controls.endResize(dimensions)
       this.start()
     })

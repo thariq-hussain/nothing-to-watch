@@ -10,7 +10,7 @@ export const defaultDisplayConfig = {
     antialias: false,
     backgroundColor: '#ffffff00',
     // clearColor: [0, 1, 0, 1],
-    // pixelRatio: 2, // override device pixel ratio
+    // pixelRatio: 1, // override device pixel ratio
     scissor: {
       enabled: true,
       offset: {
