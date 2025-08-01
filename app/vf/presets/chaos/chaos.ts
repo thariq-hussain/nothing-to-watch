@@ -12,16 +12,11 @@ const forceSimulationStepConfigs = {
     },
     forces: {
       push: {
-        // strength: 0.05,
         strength: 0.1,
-        // centerXStretchMod: 0.8,
-        // centerXStretchMod: 0.4,
         centerXStretchMod: 3.2,
-        // centerXStretchMod: 0.4,
         yFactor: 2.25,
       },
       breathing: {
-        // enabled: false,
         enabled: true,
       },
       lattice: {
@@ -32,11 +27,8 @@ const forceSimulationStepConfigs = {
         cellSizeMod: 20,
       },
       origin: {
-        // strength: 0.8,
         strength: 0.2,
-        // yFactor: 1.5,
         latticeScale: 8,
-        // latticeScale: 3.5,
       },
       requestMediaVersions: {
         enabled: true,
@@ -56,16 +48,11 @@ const forceSimulationStepConfigs = {
     },
     forces: {
       push: {
-        // strength: 0.05,
         strength: 0.175,
-        // centerXStretchMod: 0.8,
-        // centerXStretchMod: 0.4,
         centerXStretchMod: 3.2,
-        // centerXStretchMod: 0.4,
         yFactor: 2.25,
       },
       breathing: {
-        // enabled: false,
         enabled: true,
       },
       lattice: {
@@ -76,11 +63,8 @@ const forceSimulationStepConfigs = {
         cellSizeMod: 20,
       },
       origin: {
-        // strength: 0.8,
         strength: 0.2,
-        // yFactor: 1.5,
         latticeScale: 8,
-        // latticeScale: 3.5,
       },
     },
   },
@@ -127,19 +111,12 @@ export default {
           BULGE: 0,
           RIPPLE: 0,
           NOISE: 0,
-          // MEDIA_ROTATE: 1,
-          // MEDIA_LOCKED_ASPECT: 0,
           EDGES_VISIBLE: 0,
           WEIGHTED_DIST: 1,
           X_DIST_SCALING: 1,
-          // DIST_METRIC: 'customHybridDist2',
-          // DIST_METRIC: 'customMinkowskiDist3',
-          DIST_METRIC: 'customMinkowskiDist4',
-          // DIST_METRIC: 'expManhattanDist',
-          // DIST_METRIC: 'euclideanDist',
+          DIST_METRIC: 'chaosMinkowskiDist',
           POST_UNWEIGHTED_MOD_GRAYSCALE: '0.',
           POST_UNWEIGHTED_MOD_OPACITY: '0.5',
-          // MEDIA_GRAYSCALE: 100,
         },
         uniforms: {
           fMediaBboxScale: { value: 0.8 },

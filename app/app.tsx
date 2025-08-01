@@ -1,5 +1,5 @@
 import { Navbar, ThemeProvider } from './cmps/layout'
-import LazyPrimaryViews from './cmps/views'
+import PrimaryViews from './cmps/views'
 import { Intro } from './cmps/views/intro'
 import { useKeyPress } from './hooks/use-key-press'
 
@@ -9,7 +9,7 @@ const App = () => {
     return (
       <ThemeProvider>
         <Navbar />
-        <LazyPrimaryViews />
+        <PrimaryViews />
         <Intro />
       </ThemeProvider>
     )

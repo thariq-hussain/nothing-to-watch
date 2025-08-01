@@ -461,33 +461,17 @@ float expEuclideanDist(vec2 a) {
     return  pow(dot2(a),1.5);
 }
 
-float customMinkowskiDist1(vec2 a) {
-    float p = 3.5;
-    vec2 diff = abs(a);
-    return pow((pow(diff.x, p) + pow(diff.y, p)), 1.0 / p*p+1.25);
-}
-
-float customHybridDist1(vec2 a) {
-    return mix(manhattanDist(a), customMinkowskiDist1(a), 0.75);
-}
-
-float customMinkowskiDist2(vec2 a) {
+float customMinkowskiDistTest(vec2 a) {
     float p = 2.5;
     vec2 diff = abs(a);
     return pow((pow(diff.x, p) + pow(diff.y, p)), 1.0 / p*p+.25);
 }
 
-float customHybridDist2(vec2 a) {
-    return mix(manhattanDist(a), customMinkowskiDist2(a), 0.75);
+float customHybridDistTest(vec2 a) {
+    return mix(manhattanDist(a), customMinkowskiDistTest(a), 0.75);
 }
 
-float customMinkowskiDist3(vec2 a) {
-    float p = 1.5;
-    vec2 diff = abs(a);
-    return pow((pow(diff.x, p) + pow(diff.y, p)), 1.0 / p);
-}
-
-float customMinkowskiDist4(vec2 a) {
+float chaosMinkowskiDist(vec2 a) {
     float p = 1.75;
     vec2 diff = abs(a);
     return pow((pow(diff.x, p) + pow(diff.y, p)), 1.3);
@@ -1102,7 +1086,6 @@ void processNeighborEdge(in uint neighborIndex, in vec2 cellCoords, in vec2 p, i
         borderRoundness *= len *.5 + .5;
     #endif
 
-    // todo could modify len based on:  * (1./bulgeFactor)
     edge.x = cSmin(edge.x, len, borderRoundness);
     edge.y = min(edge.y, len);
 }

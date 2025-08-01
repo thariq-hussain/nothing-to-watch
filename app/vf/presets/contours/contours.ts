@@ -1,8 +1,6 @@
 import { mediaConfigWithUncompressedSingleVersion } from '../../config/media'
 import { DEFAULT_VOROFORCE_MODE, VOROFORCE_MODE } from '../../consts'
-// import postFrag from './post-contours.frag'
-// import postFrag from './post-contours2.frag'
-import postFrag from './post-contours3.frag'
+import postFrag from './post-contours.frag'
 
 const forceSimulationStepConfigs = {
   [VOROFORCE_MODE.preview]: {
@@ -14,16 +12,11 @@ const forceSimulationStepConfigs = {
     },
     forces: {
       push: {
-        // strength: 0.05,
         strength: 0.15,
-        // centerXStretchMod: 0.8,
-        // centerXStretchMod: 0.4,
         centerXStretchMod: 3.2,
-        // centerXStretchMod: 0.4,
         yFactor: 2.25,
       },
       breathing: {
-        // enabled: false,
         enabled: true,
       },
       lattice: {
@@ -34,11 +27,8 @@ const forceSimulationStepConfigs = {
         cellSizeMod: 10,
       },
       origin: {
-        // strength: 0.8,
         strength: 0.2,
-        // yFactor: 1.5,
         latticeScale: 3,
-        // latticeScale: 3.5,
       },
     },
   },
@@ -54,14 +44,11 @@ const forceSimulationStepConfigs = {
         strength: 0.1,
         yFactor: 1.5,
         xFactor: 1,
-        // maxLevelsFromPrimary: 50,
         cellSizeMod: 10,
       },
       origin: {
         strength: 0.1,
-        // yFactor: 1.5,
         latticeScale: 10,
-        // latticeScale: 1,
       },
     },
   },
@@ -205,17 +192,12 @@ export default {
         enabled: true,
         fragmentShader: postFrag,
         uniforms: {
-          // fEdge0: { value: 0.2 },
           fEdge0: { value: 0.25 },
-          // fEdge0: { value: 0.4 },
-          // fEdgeScale: { value: 2 },
           fEdgeScale: { value: 1 },
           fBaseColor: {
             transition: true,
             themes: {
               default: {
-                // value: [0.005, 0.005, 0.005],
-                // value: [0.01, 0.01, 0.01],
                 value: [0.02, 0.02, 0.02],
               },
               light: {

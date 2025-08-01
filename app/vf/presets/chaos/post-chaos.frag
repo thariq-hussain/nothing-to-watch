@@ -17,7 +17,7 @@ out vec4 fragColor;
 
 #define PI 3.141592
 
-float objID = 0.; // 0. = frame, 1. = media
+float objID = 0.;// 0. = frame, 1. = media
 float scaleMod;
 
 float cheapSqrt(float a) {
@@ -82,16 +82,10 @@ vec3 toGrayscale(vec3 c, float factor) {
 
 vec4 bump(vec2 uv) {
     vec4 v = texture(uVoroEdgeBufferTexture, uv);
-    float b = v.r; // rounded edge value
+    float b = v.r;// rounded edge value
 
     vec2 mediaUv = v.ba;
     scaleMod = v.g;
-//    scaleMod *= scaleMod;
-//    scaleMod *= 10.;
-//    scaleMod = 1./inversesqrt(scaleMod);
-//    scaleMod = pow(scaleMod, 1.5);
-//    scaleMod = clamp(scaleMod, 0., 0.5);
-
 
     float mediaScaleMod = 1./inversesqrt(scaleMod);
 
@@ -99,11 +93,7 @@ vec4 bump(vec2 uv) {
     float edge1 = edge0+0.035*mediaScaleMod;
     objID = smoothstep(edge0, edge1, b);
 
-
     float c = sin(PI*1.9+abs(b-0.04));
-//    float c = sin(PI*1.9+abs(b-0.04)*scaleMod);
-//    float c = abs(b-0.04);
-
 
     vec3 tx = texture(iChannel1, mediaUv*1.5).xyz;
     tx *= tx;
@@ -114,34 +104,13 @@ vec4 bump(vec2 uv) {
 }
 
 vec3 bumpedNormal(vec2 uv, vec4 data, float scaleMod) {
-    float customScale = 1.;
-//    float customScale = scaleMod * 4.;
-//    float customScale = scaleMod *scaleMod * 4. * 20.;
-
-//    vec2 e = vec2(resolutionScale * 0.005 * customScale, 0.); // sample spred
-    vec2 e = vec2(resolutionScale * 0.0075 * customScale, 0.); // sample spred
-    float bf = 1.6 * customScale; // bump factor
-//    float bf = 3.2 * customScale; // bump factor
-    float fx = (bump(uv - e).x - bump(uv + e).x);// horizontal samples
-    float fy = (bump(uv - e.yx).x - bump(uv + e.yx).x);// vertical samples
-    float edge = abs(data.x*2. - fx) + abs(data.x*2. - fy);// edge value
-    vec3 n = normalize(vec3(fx, fy, -e.x/bf));// bumped normal
-    return n;
-}
-
-vec3 bumpedNormalAlt(vec2 uv, vec4 data, float scaleMod) {
-//    float customScale = 1.;
     float customScale = scaleMod * 4.;
-
-//                vec2 e = vec2(20./iResolution.y,0.);
-//                vec2 e = vec2(5./iResolution.y,0.);
-//                vec2 e = vec2(10./iResolution.y,0.);
-                vec2 e = vec2(resolutionScale * 0.0055 * customScale, 0.); // sample spred
-                vec3 n = normalize(vec3(
-                    bump(uv+e).x-bump(uv-e).x,
-                    0.2,
-                    bump(uv+e.yx).x-bump(uv-e.yx).x
-                ));
+    vec2 e = vec2(resolutionScale * 0.0055 * customScale, 0.); // sample spred
+    vec3 n = normalize(vec3(
+        bump(uv+e).x-bump(uv-e).x,
+        0.2,
+        bump(uv+e.yx).x-bump(uv-e.yx).x
+    ));
     return n;
 
 }
@@ -152,7 +121,7 @@ void main(){
     vec2 p = pCoords();
     vec2 uv = vUv;
 
-    vec4 data = bump(uv); // voronoi edges + more
+    vec4 data = bump(uv);// voronoi edges + more
 
     float svObjID = objID;
     float svScaleMod = scaleMod;
@@ -163,32 +132,23 @@ void main(){
 
     if (svObjID<1.) {
 
-
         webCol = 0.5+0.5*sin(vec3(0., 2., 2.99)/1.5+ data.x*PI*5.-0.2);
+        webCol *= 0.8;
 
-        // grabbing the texture based on the uv-cell point vectors
-//        webCol = mix(webCol, texture(iChannel1, mediaUv).rgb, data.y);
-            webCol *= 0.8;
+        vec3 n = bumpedNormal(uv, data, scaleMod);
 
-
-
-
-//        vec3 n = bumpedNormal(uv, data, scaleMod);
-        vec3 n = bumpedNormalAlt(uv, data, scaleMod);
-//        vec3 n = mix(bumpedNormal(uv, data, scaleMod), bumpedNormalAlt(uv, data, scaleMod), .5);
-
-//    float lTime = iTime;
-    float lTime = 0.;
-    vec3 light = vec3(1.*sin(lTime), 1.*cos(lTime), 4.);
-    vec3 light2 = vec3(1.*sin(lTime), 2.*cos(lTime), 4.);
+        //    float lTime = iTime;
+        //    float lTime = 0.;
 
         vec3 rd = normalize(vec3(uv, -1.));
         //light 1 position
-//        vec3 light = vec3(1., 1., 4.);
+        vec3 light = vec3(1., 1., 4.);
+        // vec3 light = vec3(1.*sin(lTime), 1.*cos(lTime), 4.);
         //light 1 direction vector using uv and voronoi height for surface point
         vec3 ldir = normalize(light-vec3(uv.x, data.x, uv.y));
         //light2
-//        vec3 light2 = vec3(1., 2., 4.);
+        vec3 light2 = vec3(1., 2., 4.);
+        // vec3 light2 = vec3(1.*sin(lTime), 2.*cos(lTime), 4.);
         vec3 ldir2 = normalize(light2-vec3(uv.x, data.x, uv.y));
 
         //phong lighting diffuse and specular for light 1
@@ -201,26 +161,15 @@ void main(){
         float spec2 = pow(max(dot(reflect(-ldir2, n), rd), 0.), 10.);
         webCol += diff2*0.3+vec3(0.1, 0.5, 0.9)*spec2*0.8;
 
-
         webCol = mix(webCol, pow(webCol.r*1.4, 3.2)*vec3(0.14, 0.09, 0.05), smoothstep(0.085, 0.05, data.y));
-//        webCol = mix(webCol,pow((diff+diff2+spec+spec2)*2.,1.5)*vec3(0.14,0.09,0.05),smoothstep(0.085,0.05,data.y));
-
-//        webCol /= 1.5;
-//        webCol= pow(webCol, vec3(1.6));
         webCol= pow(webCol, vec3(2.));
-
     }
 
     if (svObjID>0.) {
         mediaCol = texture(uMainOutputTexture, uv).rgb;
-//        mediaCol += diff*0.3+vec3(0.8, 0.5, 0.3)*spec*0.8;
-//        mediaCol += diff2*0.3+vec3(0.1, 0.5, 0.9)*spec2*0.8;
-//        mediaCol = mix(mediaCol, pow(mediaCol.r*1.4, 3.2)*vec3(0.14, 0.09, 0.05), smoothstep(0.085, 0.05, data.y));
     }
 
     vec3 col = mix(webCol, mediaCol, svObjID);
     col = toGrayscale(col, fGrayscaleMod);
     fragColor = vec4(col, 1);
-//    fragColor = vec4(n, 1);
-//    fragColor = vec4(vec3(svScaleMod), 1);
 }
