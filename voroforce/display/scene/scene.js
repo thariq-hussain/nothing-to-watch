@@ -56,6 +56,7 @@ export default class Scene extends BaseScene {
         ],
       })
       this.activePostRenderTarget = this.postRenderTargets[0]
+      this.inactivePostRenderTarget = this.postRenderTargets[0]
     }
   }
 
@@ -161,10 +162,10 @@ export default class Scene extends BaseScene {
 
   getPositionRenderTarget() {
     if (this.config.post?.enabled && this.config.post.voroIndexBuffer) {
-      return this.postRenderTargets?.[0]
+      return this.inactivePostRenderTarget
     }
 
-    return super.getPositionRenderTarget()
+    return this.inactiveMainRenderTarget
   }
 
   initCellNeighborsTexture() {
