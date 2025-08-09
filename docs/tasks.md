@@ -6,7 +6,7 @@
 [ ] 6. Split Zustand store into slices (UI slice, Engine slice, Data slice) to reduce the single large store file and improve maintainability.  
 [ ] 7. Add selector helpers and memoized derived state to minimize re-renders and avoid duplicated boolean flags (e.g., isPreviewMode/isSelectMode/isIntroMode derived from mode).  
 [ ] 8. Persist only necessary user settings to storage with a migration strategy; avoid persisting transient runtime state (e.g., dev toggles, ephemeral flags).  
-[ ] 9. Introduce React ErrorBoundary at app root with user-friendly fallback for unexpected errors, including WebGL initialization failures.  
+[x] 9. Introduce React ErrorBoundary at app root with user-friendly fallback for unexpected errors, including WebGL initialization failures.  
 [ ] 10. Implement capability detection and graceful fallback when WebGL/ANGLE or required extensions are unavailable; surface SmallScreenWarning-like UX for unsupported devices.  
 [ ] 11. Profile pointer handling in voroforce/controls/controls.js; extract speed history and gesture detection into small modules with unit tests and clear thresholds.  
 [ ] 12. Gate console logging and DebugMarker behind a single isDebug flag; strip debug logs from production builds (Vite define or babel plugin).  

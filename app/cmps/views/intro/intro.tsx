@@ -4,7 +4,7 @@ import { useShallowState } from '../../../store'
 import { isDefined } from '../../../utils/misc'
 import { down } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
-import { VOROFORCE_MODE, safeInitVoroforce } from '../../../vf'
+import { VOROFORCE_MODE } from '../../../vf'
 import { OBSCURE_VISUAL_DEFECTS } from '../../../vf/consts'
 import { CoreSettingsWidget } from '../../common/core-settings/core-settings-widget'
 import { DeviceClassWidget } from '../../common/device-class/device-class-widget'
@@ -87,11 +87,11 @@ export const Intro = () => {
           >
             <SmallScreenWarning />
             <CoreSettingsWidget
-              onSubmit={() => {
-                setTimeout(() => {
-                  void safeInitVoroforce()
-                }, 700)
-              }}
+              // onSubmit={() => {
+              //   setTimeout(() => {
+              //     void safeInitVoroforce()
+              //   }, 700)
+              // }}
               submitLabel='Continue'
               submitVisibility='always'
             />

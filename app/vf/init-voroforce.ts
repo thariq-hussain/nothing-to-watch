@@ -7,6 +7,7 @@ import { getVoroforceConfigProps } from './utils'
 
 export const initVoroforce = async (container: HTMLElement) => {
   const state = store.getState()
+  if (state.voroforce) return // already initialized
   const { config, configUniforms } = await getVoroforceConfigProps(state)
   if (state.preset) {
     store.setState({
