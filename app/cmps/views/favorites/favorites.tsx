@@ -1,5 +1,5 @@
 import { useShallowState } from '@/store'
-import { Trash } from 'lucide-react'
+import { MapPin, Trash } from 'lucide-react'
 import { lazy } from 'react'
 import { cn } from '../../../utils/tw'
 import { Modal } from '../../common/modal'
@@ -22,6 +22,7 @@ export const Favorites = () => {
     setUserConfig,
     favorites,
     hasCustomLinks,
+    voroforceControls,
   } = useShallowState((state) => ({
     open: state.favoritesOpen,
     setOpen: state.setFavoritesOpen,
@@ -30,6 +31,7 @@ export const Favorites = () => {
     favorites: state.userConfig.favorites,
     hasCustomLinks:
       state.userConfig.customLinks && state.userConfig.customLinks.length > 0,
+    voroforceControls: state.voroforce?.controls,
   }))
 
   const hasFavorites = favorites && Object.keys(favorites).length > 0
@@ -64,7 +66,7 @@ export const Favorites = () => {
         className='not-landscape:w-full bg-background/60 lg:w-full landscape:h-full'
         innerClassName='max-h-[calc(100vh-var(--spacing)*12)]'
       >
-        <div className='flex min-h-64 w-full flex-col gap-4 p-4 pb-18 md:grid md:grid-cols-2 md:gap-6 md:p-6 md:pb-24 lg:pt-16 lg:pb-24'>
+        <div className='flex min-h-64 w-full flex-col gap-4 p-4 pb-18 md:gap-6 md:p-6 md:pb-24 lg:flex lg:pt-16 lg:pb-24'>
           {userConfig.favorites ? (
             <>
               {Object.entries(userConfig.favorites).map(([key, film]) => (
@@ -76,7 +78,13 @@ export const Favorites = () => {
                   <div className='flex h-full grow flex-col justify-between gap-3 p-4'>
                     <h6 className='pr-3 font-black text-2xl leading-none'>
                       {film.title}
+                      <span className='font-normal text-foreground/50'>
+                        &nbsp;({film.year})
+                      </span>
                     </h6>
+                    <p className='line-clamp-1 hidden font-medium text-base text-foreground/90 leading-none md:inline-block'>
+                      {film.tagline}
+                    </p>
                     <div
                       className={cn(
                         'pointer-events-auto flex flex-row flex-wrap gap-1.5',
@@ -90,23 +98,35 @@ export const Favorites = () => {
                         <CustomLinks
                           film={film}
                           addNewDisabled
-                          buttonClassName='text-xxs !py-1 !px-2 !h-auto'
+                          buttonClassName='!py-1 !px-2 !h-auto'
                         />
                       )}
                     </div>
                   </div>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    className='!size-4 [&_svg]:!size-3 absolute top-2 right-2 cursor-pointer rounded-full'
-                    onClick={() => {
-                      delete favorites?.[Number.parseInt(key)]
-                      userConfig.favorites = { ...favorites }
-                      setUserConfig(userConfig)
-                    }}
-                  >
-                    <Trash />
-                  </Button>
+                  <div className='absolute top-4 right-4 flex flex-row gap-2'>
+                    {film.cellId && voroforceControls && (
+                      <Button
+                        size='icon'
+                        className='!size-6 [&_svg]:!size-4 cursor-pointer rounded-full'
+                        onClick={() => {
+                          voroforceControls.navigateToCellById(film.cellId)
+                        }}
+                      >
+                        <MapPin />
+                      </Button>
+                    )}
+                    <Button
+                      size='icon'
+                      className='!size-6 [&_svg]:!size-4 cursor-pointer rounded-full'
+                      onClick={() => {
+                        delete favorites?.[Number.parseInt(key)]
+                        userConfig.favorites = { ...favorites }
+                        setUserConfig(userConfig)
+                      }}
+                    >
+                      <Trash />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </>
