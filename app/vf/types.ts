@@ -1,4 +1,11 @@
 import type voroforce from '√'
+import type { SharedCell } from '√/common/data'
+
+export type VoroforceCell = SharedCell
+export type VoroforceCells = VoroforceCell[] & {
+  focused?: VoroforceCell
+  selected?: VoroforceCell
+}
 
 type SafeVoroforceInstance = ReturnType<typeof voroforce>
 export type VoroforceInstance = SafeVoroforceInstance & {
@@ -13,4 +20,5 @@ export type VoroforceInstance = SafeVoroforceInstance & {
   }
   simulation: NonNullable<SafeVoroforceInstance['simulation']>
   dimensions: NonNullable<SafeVoroforceInstance['dimensions']>
+  cells: VoroforceCells
 }
