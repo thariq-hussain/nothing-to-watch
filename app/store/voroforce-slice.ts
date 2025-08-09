@@ -29,9 +29,6 @@ export interface VoroforceSlice {
   mode: VOROFORCE_MODE
   setMode: (mode: VOROFORCE_MODE) => void
   exitSelectMode: () => void
-  isSelectMode: boolean
-  isPreviewMode: boolean
-  isIntroMode: boolean
   voroforceDevSceneEnabled: boolean
   setVoroforceDevSceneEnabled: (enabled: boolean) => void
   playedIntro: boolean
@@ -76,16 +73,7 @@ export const createEngineSlice: StateCreator<
       set({ voroforceMediaPreloaded })
     },
     mode: initialMode,
-    isPreviewMode: initialMode === VOROFORCE_MODE.preview,
-    isSelectMode: initialMode === VOROFORCE_MODE.select,
-    isIntroMode: initialMode === VOROFORCE_MODE.intro,
-    setMode: (mode: VOROFORCE_MODE) =>
-      set({
-        mode,
-        isSelectMode: mode === VOROFORCE_MODE.select,
-        isPreviewMode: mode === VOROFORCE_MODE.preview,
-        isIntroMode: mode === VOROFORCE_MODE.intro,
-      }),
+    setMode: (mode: VOROFORCE_MODE) => set({ mode }),
     exitSelectMode: () => {
       get().voroforce?.controls?.deselectAndPin()
     },

@@ -4,14 +4,14 @@
 [ ] 4. Introduce domain types for Film, FilmBatch, FilmData at the edges (loader, store, components) and validate with Valibot during ingestion.  
 [ ] 5. Create a configuration layer contract: centralize controls/config defaults (voroforce/controls/default-controls-config.js) and production overrides to avoid debug features in prod builds.  
 [x] 6. Split Zustand store into slices (UI slice, Engine slice, Data slice) to reduce the single large store file and improve maintainability.  
-[ ] 7. Add selector helpers and memoized derived state to minimize re-renders and avoid duplicated boolean flags (e.g., isPreviewMode/isSelectMode/isIntroMode derived from mode).  
+[x] 7. Add selector helpers and memoized derived state to minimize re-renders and avoid duplicated boolean flags (e.g., isPreviewMode/isSelectMode/isIntroMode derived from mode).  
 [x] 8. Persist only necessary user settings to storage with a migration strategy; avoid persisting transient runtime state (e.g., dev toggles, ephemeral flags).  
 [x] 9. Introduce React ErrorBoundary at app root with user-friendly fallback for unexpected errors, including WebGL initialization failures.  
 [ ] 10. Implement capability detection and graceful fallback when WebGL/ANGLE or required extensions are unavailable; surface SmallScreenWarning-like UX for unsupported devices.  
 [ ] 11. Profile pointer handling in voroforce/controls/controls.js; extract speed history and gesture detection into small modules with unit tests and clear thresholds.  
 [ ] 12. Gate console logging and DebugMarker behind a single isDebug flag; strip debug logs from production builds (Vite define or babel plugin).  
 [ ] 13. Replace repeated onPointerDown preventDefault/stopPropagation patterns with a reusable util to ensure consistent behavior across buttons.  
-[ ] 14. Remove stray console.log in navbar.tsx and ensure interaction handlers are passive where possible (or justify non-passive for gestures).  
+[ ] 14. Ensure interaction handlers are passive where possible (or justify non-passive for gestures).  
 [ ] 15. Add strict types (via JSDoc or TS) to voroforce/utils/styles.js and validate style keys; consider converting simple utils to TypeScript.  
 [ ] 16. Reduce the size of voroforce/controls/controls.js by extracting: (a) speed averaging, (b) jolt/shake freeze logic, (c) zoom handling, (d) pointer detach/attach lifecycle.  
 [ ] 17. Break up voroforce/simulation/steps/forces-step/forces/omni-force.js into smaller functions and data structures; remove the need for // @ts-nocheck by typing arguments incrementally.  

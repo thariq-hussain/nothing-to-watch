@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react'
 
-import { useShallowState } from '@/store'
+import { selectIsSelectMode, useShallowState } from '@/store'
 import type { DialogProps } from 'vaul'
 import { useMediaQuery } from '../../../../hooks/use-media-query'
 import { down, orientation } from '../../../../utils/mq'
@@ -54,7 +54,7 @@ export const FilmViewDrawer = () => {
     setAddCustomLinkTypeOpen,
   } = useShallowState((state) => ({
     film: state.film,
-    isSelectMode: state.isSelectMode,
+    isSelectMode: selectIsSelectMode(state),
     voroforce: state.voroforce,
     exitVoroforceSelectMode: state.exitSelectMode,
     addCustomLinkTypeOpen: state.addCustomLinkTypeOpen,

@@ -3,8 +3,8 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import { useShallow } from 'zustand/react/shallow'
 
 import { type FilmDataSlice, createFilmDataSlice } from './film-data-slice'
-import { type VoroforceSlice, createEngineSlice } from './voroforce-slice'
 import { type UiSlice, createUiSlice } from './ui-slice'
+import { type VoroforceSlice, createEngineSlice } from './voroforce-slice'
 
 export type StoreState = UiSlice & VoroforceSlice & FilmDataSlice
 
@@ -21,3 +21,6 @@ export const useShallowState = <U>(selector: (state: StoreState) => U) =>
 
 // Re-export slice types for convenience
 export type { FilmDataSlice, VoroforceSlice, UiSlice }
+
+// Export selectors
+export * from './selectors'

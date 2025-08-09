@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { THEME } from '../consts'
-import { store } from './index'
 import { VOROFORCE_MODE } from '../vf/consts'
+import {
+  selectIsIntroMode,
+  selectIsPreviewMode,
+  selectIsSelectMode,
+  store,
+} from './index'
 
 describe('Store', () => {
   beforeEach(() => {
@@ -114,32 +119,32 @@ describe('Store', () => {
   })
 
   describe('Mode management', () => {
-    it('should update mode and derived boolean flags', () => {
+    it('should update mode and derive boolean flags through selectors', () => {
       const { setMode } = store.getState()
 
       // Test select mode
       setMode(VOROFORCE_MODE.select)
       let state = store.getState()
       expect(state.mode).toBe(VOROFORCE_MODE.select)
-      expect(state.isSelectMode).toBe(true)
-      expect(state.isPreviewMode).toBe(false)
-      expect(state.isIntroMode).toBe(false)
+      expect(selectIsSelectMode(state)).toBe(true)
+      expect(selectIsPreviewMode(state)).toBe(false)
+      expect(selectIsIntroMode(state)).toBe(false)
 
       // Test preview mode
       setMode(VOROFORCE_MODE.preview)
       state = store.getState()
       expect(state.mode).toBe(VOROFORCE_MODE.preview)
-      expect(state.isSelectMode).toBe(false)
-      expect(state.isPreviewMode).toBe(true)
-      expect(state.isIntroMode).toBe(false)
+      expect(selectIsSelectMode(state)).toBe(false)
+      expect(selectIsPreviewMode(state)).toBe(true)
+      expect(selectIsIntroMode(state)).toBe(false)
 
       // Test intro mode
       setMode(VOROFORCE_MODE.intro)
       state = store.getState()
       expect(state.mode).toBe(VOROFORCE_MODE.intro)
-      expect(state.isSelectMode).toBe(false)
-      expect(state.isPreviewMode).toBe(false)
-      expect(state.isIntroMode).toBe(true)
+      expect(selectIsSelectMode(state)).toBe(false)
+      expect(selectIsPreviewMode(state)).toBe(false)
+      expect(selectIsIntroMode(state)).toBe(true)
     })
   })
 })

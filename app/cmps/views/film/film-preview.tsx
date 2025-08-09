@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import useMeasure from 'react-use-measure'
 
-import { useShallowState } from '@/store'
+import { selectIsPreviewMode, useShallowState } from '@/store'
 import {
   MIN_LERP_EASING_TYPES,
   type VoroforceCell,
@@ -30,7 +30,7 @@ export const FilmPreview = ({ poster = false }) => {
   const { film, isPreviewMode, config, voroforce } = useShallowState(
     (state) => ({
       film: state.film,
-      isPreviewMode: state.isPreviewMode,
+      isPreviewMode: selectIsPreviewMode(state),
       config: state.config?.filmPreview,
       voroforce: state.voroforce,
     }),
