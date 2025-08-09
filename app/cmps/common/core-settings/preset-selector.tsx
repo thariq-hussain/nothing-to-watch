@@ -4,9 +4,9 @@ import { isDefined } from '../../../utils/misc'
 import { cn } from '../../../utils/tw'
 import type { VOROFORCE_PRESET } from '../../../vf'
 import { type DEVICE_CLASS, PRESET_ITEMS } from '../../../vf/consts.ts'
+import { Badge } from '../../ui/badge'
 import { DeviceClassWarningMessage } from '../device-class/device-class-warning-message'
 import { Selector, type SelectorItems } from '../selector'
-import { Badge } from '../../ui/badge'
 
 type NoArray<T> = T extends Array<unknown> ? never : T
 

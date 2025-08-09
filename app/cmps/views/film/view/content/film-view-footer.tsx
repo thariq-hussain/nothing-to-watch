@@ -1,8 +1,9 @@
-import { useShallowState } from '../../../../../store'
-import type { Film } from '../../../../../vf'
 import { HeartOff, HeartPlus, Plus } from 'lucide-react'
+import { useShallowState } from '../../../../../store'
 import { cn } from '../../../../../utils/tw'
+import type { Film } from '../../../../../vf'
 import { CustomLinks } from '../../../../common/custom-links'
+import { StdLinks } from '../../../../common/standard-links'
 import { Button } from '../../../../ui/button'
 import {
   Tooltip,
@@ -10,7 +11,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../../../../ui/tooltip'
-import { StdLinks } from '../../../../common/standard-links'
 
 export const FilmViewFooter = ({
   film,

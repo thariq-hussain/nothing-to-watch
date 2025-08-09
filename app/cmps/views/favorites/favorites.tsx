@@ -1,12 +1,12 @@
 import { useShallowState } from '@/store'
 import { Trash } from 'lucide-react'
+import { lazy } from 'react'
+import { cn } from '../../../utils/tw'
 import { Modal } from '../../common/modal'
+import { StdLinks } from '../../common/standard-links'
 import { Button } from '../../ui/button'
 import { ScrollArea } from '../../ui/scroll-area'
 import { FilmPoster } from '../film/shared/film-poster'
-import { lazy } from 'react'
-import { cn } from '../../../utils/tw'
-import { StdLinks } from '../../common/standard-links'
 
 const CustomLinks = lazy(() =>
   import('../../common/custom-links').then((module) => ({

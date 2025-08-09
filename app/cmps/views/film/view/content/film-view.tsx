@@ -1,13 +1,13 @@
-import config from '../../../../../config'
-import { store } from '../../../../../store'
-import type { Film } from '../../../../../vf'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import config from '../../../../../config'
+import { useMediaQuery } from '../../../../../hooks/use-media-query'
+import { store } from '../../../../../store'
+import { down } from '../../../../../utils/mq'
 import { cn } from '../../../../../utils/tw'
+import type { Film } from '../../../../../vf'
+import { AnimateDimensionsChange } from '../../../../common/animate-dimensions-change'
 import { Badge } from '../../../../ui/badge'
 import { FilmRatingGauge } from '../../shared/film-rating-gauge'
-import { AnimateDimensionsChange } from '../../../../common/animate-dimensions-change'
-import { useMediaQuery } from '../../../../../hooks/use-media-query'
-import { down } from '../../../../../utils/mq'
 
 export const FilmView = ({
   film,

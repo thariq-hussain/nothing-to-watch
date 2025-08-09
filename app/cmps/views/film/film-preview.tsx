@@ -5,8 +5,8 @@ import { useShallowState } from '@/store'
 import {
   MIN_LERP_EASING_TYPES,
   type VoroforceCell,
-  easedMinLerp,
   type VoroforceInstance,
+  easedMinLerp,
 } from '@/vf'
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { clamp, lerp } from '../../../utils/math'
