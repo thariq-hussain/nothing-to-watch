@@ -1,2 +1,2 @@
 export * from './view'
-export * from './preview'
+export * from './film-preview'
