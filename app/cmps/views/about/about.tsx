@@ -3,6 +3,8 @@ import { GithubIcon } from 'lucide-react'
 import { store, useShallowState } from '@/store'
 import type { PropsWithChildren } from 'react'
 import config from '../../../config'
+import { cn } from '../../../utils/tw'
+import { Hotkeys } from '../../common/hotkeys'
 import { Modal } from '../../common/modal'
 import {
   Accordion,
@@ -12,8 +14,6 @@ import {
 } from '../../ui/accordion'
 import { Button } from '../../ui/button'
 import { ScrollArea } from '../../ui/scroll-area'
-import { Hotkeys } from '../../common/hotkeys'
-import { cn } from '../../../utils/tw'
 
 const Link = ({ children, href }: PropsWithChildren<{ href: string }>) => (
   <a

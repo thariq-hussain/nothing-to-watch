@@ -1,8 +1,6 @@
 /*
   micro sentry telemetry utility (opt-in)
   - Disabled by default; enable via config.telemetry.enabled or env vars.
-  - When enabled and an endpoint is provided, events are sent via sendBeacon/fetch(keepalive).
-  - If enabled but no endpoint is set, events are only logged to console (for local dev insights).
   - Privacy: Captures only error details
 */
 

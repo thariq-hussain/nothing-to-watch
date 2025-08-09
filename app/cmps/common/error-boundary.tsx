@@ -1,6 +1,6 @@
 import React from 'react'
 import config from '../../config'
-import microSentryTelemetry from '../../utils/telemetry/micro-sentry-telemetry'
+import telemetry from '../../utils/telemetry/micro-sentry-telemetry'
 
 type ErrorBoundaryState = {
   error: Error | null
@@ -22,7 +22,7 @@ export class ErrorBoundary extends React.Component<
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error', error, info)
     try {
-      microSentryTelemetry.captureError(error, {
+      telemetry.captureError(error, {
         source: 'ErrorBoundary',
         componentStack: info.componentStack,
       })
@@ -33,10 +33,11 @@ export class ErrorBoundary extends React.Component<
     try {
       const details = this.getErrorDetails()
       await navigator.clipboard.writeText(details)
-      alert('Error details copied to clipboard')
-    } catch {
-      alert('Failed to copy error details')
-    }
+    } catch {}
+  }
+
+  private dismissError = () => {
+    this.setState({ error: null })
   }
 
   private getErrorDetails() {
@@ -51,8 +52,6 @@ export class ErrorBoundary extends React.Component<
   render(): React.ReactNode {
     if (!this.state.error) return this.props.children
 
-    // const isDev = import.meta.env.DEV
-    const isDev = true
     const details = this.getErrorDetails()
 
     return (
@@ -73,11 +72,9 @@ export class ErrorBoundary extends React.Component<
             </ul>
           </div>
 
-          {isDev ? (
-            <pre className='mb-4 max-h-48 overflow-auto rounded-md border border-border bg-muted p-3 text-[11px] leading-tight'>
-              {details}
-            </pre>
-          ) : null}
+          <pre className='mb-4 max-h-48 overflow-auto rounded-md border border-border bg-muted p-3 text-[11px] leading-tight'>
+            {details}
+          </pre>
 
           <div className='flex flex-wrap gap-2'>
             <button
@@ -102,6 +99,13 @@ export class ErrorBoundary extends React.Component<
             >
               Report issue
             </a>
+            <button
+              type='button'
+              className='rounded-md border border-input bg-secondary px-3 py-2 text-sm hover:bg-secondary/80'
+              onClick={this.dismissError}
+            >
+              Dismiss
+            </button>
           </div>
         </div>
       </div>

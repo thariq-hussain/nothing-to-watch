@@ -5,17 +5,17 @@ import {
   TooltipTrigger,
 } from '../../ui/tooltip'
 
+import type { ReactNode } from 'react'
+import { cn } from '../../../utils/tw'
 import downIcon from './assets/down.svg'
 import enterIcon from './assets/enter.svg'
 // Import SVG assets as URLs
 import escIcon from './assets/esc.svg'
 import leftIcon from './assets/left.svg'
+import mouseImg from './assets/mouse.png'
 import rightIcon from './assets/right.svg'
 import spaceIcon from './assets/spacebar.svg'
 import upIcon from './assets/up.svg'
-import mouseImg from './assets/mouse.png'
-import { cn } from '../../../utils/tw'
-import type { ReactNode } from 'react'
 
 interface HotkeyItemProps {
   icon: string

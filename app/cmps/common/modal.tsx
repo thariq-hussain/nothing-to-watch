@@ -8,6 +8,7 @@ import React, {
 import { type DialogProps, Drawer as DrawerPrimitive } from 'vaul'
 
 import { useMediaQuery } from '../../hooks/use-media-query'
+import { useShallowState } from '../../store'
 import { orientation } from '../../utils/mq'
 import { cn } from '../../utils/tw'
 import {
@@ -19,7 +20,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '../ui/drawer'
-import { useShallowState } from '../../store'
 
 const ModalHandle = ({
   className = '',

@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { useShallowState } from '../../../store'
 import { up } from '../../../utils/mq'
-import { Modal } from '../../common/modal'
 import { Hotkeys } from '../../common/hotkeys'
+import { Modal } from '../../common/modal'
 
 export const HotkeysView = () => {
   const isMdScreen = useMediaQuery(up('md'))

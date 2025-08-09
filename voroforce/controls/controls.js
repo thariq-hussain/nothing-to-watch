@@ -4,8 +4,8 @@ import {
   PointerFrozenChangeEvent,
   PointerPinnedChangeEvent,
 } from './controls-events'
-import { DebugMarker } from './utils/debug-marker'
 import { getCell, getDirectionalNeighborCellIndex } from './utils/cell'
+import { DebugMarker } from './utils/debug-marker'
 import { DetachGestureHandler } from './utils/detach-gesture-handler'
 
 const { pow, sqrt, max } = Math
