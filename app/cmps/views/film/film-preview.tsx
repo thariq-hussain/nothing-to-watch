@@ -33,13 +33,18 @@ export const FilmPreview = ({ poster = false }) => {
   )
 
   if (config && 'enabled' in config && !config.enabled) return null
-  const neighborOriginMod = useRef(
-    config && 'neighborOriginMod' in config ? config.neighborOriginMod : 1,
+  const neighborOriginMod = useRef<number>(
+    config && 'neighborOriginMod' in config
+      ? (config.neighborOriginMod ?? 1)
+      : 1,
   )
-  const scaleMod = useRef(config && 'scaleMod' in config ? config.scaleMod : 1)
+  const scaleMod = useRef<number>(
+    config && 'scaleMod' in config ? (config.scaleMod ?? 1) : 1,
+  )
 
   const [reverseX, setReverseX] = useState(false)
   const [reverseY, setReverseY] = useState(false)
+  const [hasAppliedStyles, setHasAppliedStyles] = useState(false)
 
   const cellsRef = useRef<VoroforceCell[]>(null)
   const primaryCellRef = useRef<VoroforceCell>(null)
@@ -88,6 +93,7 @@ export const FilmPreview = ({ poster = false }) => {
     if (!containerRef.current) return
     if (!innerRef.current) return
     if (!positionRef.current) return
+    setHasAppliedStyles(true)
     containerRef.current.style.translate = `${positionRef.current.x}px ${positionRef.current.y}px`
     innerRef.current.style.scale = `${scaleRef.current}`
     innerRef.current.style.opacity = `${scaleRef.current}`
@@ -231,7 +237,6 @@ export const FilmPreview = ({ poster = false }) => {
 
   return (
     <>
-      {/*{isPreviewMode && film && (*/}
       {film && (
         <div
           ref={(element) => {
@@ -241,7 +246,8 @@ export const FilmPreview = ({ poster = false }) => {
           className={cn(
             'pointer-events-none fixed top-0 left-0 z-10 w-full max-w-full p-4 opacity-0 transition-opacity duration-700 md:w-300 md:p-0 md:will-change-transform lg:p-9',
             {
-              '!opacity-100': isPreviewMode,
+              '!opacity-100':
+                isPreviewMode && (hasAppliedStyles || isSmallScreen),
             },
           )}
         >
