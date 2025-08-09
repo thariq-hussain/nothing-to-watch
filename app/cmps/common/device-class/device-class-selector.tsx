@@ -43,6 +43,7 @@ export function DeviceClassSelector({
         Your device
       </div>
       <Selector
+        key={value}
         className={cn('', className)}
         defaultValue={String(value)}
         onValueChange={(value) => {

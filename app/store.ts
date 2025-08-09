@@ -4,7 +4,10 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { useShallow } from 'zustand/react/shallow'
 
-import { STORAGE_KEYS, getStorageItem, setStorageItem } from './utils/storage'
+import {
+  getPersistentSettings,
+  updatePersistentSetting,
+} from './utils/settings'
 import type {
   CELL_LIMIT,
   ConfigUniforms,
@@ -20,7 +23,7 @@ import type {
 import { DEFAULT_VOROFORCE_MODE, VOROFORCE_MODE } from './vf/consts'
 
 import type { DialogProps } from 'vaul'
-import { THEME } from './consts'
+import type { THEME } from './consts'
 
 export type StoreState = {
   theme: THEME
@@ -79,16 +82,19 @@ export type StoreState = {
   performanceMonitor?: PerformanceMonitorApi
   setPerformanceMonitor: (performanceMonitor: PerformanceMonitorApi) => void
 }
-const playedIntro = getStorageItem(STORAGE_KEYS.PLAYED_INTRO) ?? false
-const initialMode = playedIntro ? DEFAULT_VOROFORCE_MODE : VOROFORCE_MODE.intro
+// Load persistent settings once at startup
+const persistentSettings = getPersistentSettings()
+const initialMode = persistentSettings.playedIntro
+  ? DEFAULT_VOROFORCE_MODE
+  : VOROFORCE_MODE.intro
 
 export const store = create(
   subscribeWithSelector<StoreState>(
     (set, get) =>
       ({
-        theme: getStorageItem(STORAGE_KEYS.THEME) ?? THEME.dark,
+        theme: persistentSettings.theme,
         setTheme: (theme: THEME) => {
-          setStorageItem(STORAGE_KEYS.THEME, theme)
+          updatePersistentSetting('theme', theme)
           set({ theme })
         },
         ua: new UAParser(),
@@ -180,56 +186,40 @@ export const store = create(
             addCustomLinkTypeOpen: !get().addCustomLinkTypeOpen,
           })
         },
-        playedIntro,
+        playedIntro: persistentSettings.playedIntro,
         setPlayedIntro: (playedIntro: boolean) => {
-          set({
-            playedIntro,
-          })
-          setStorageItem(STORAGE_KEYS.PLAYED_INTRO, playedIntro)
+          updatePersistentSetting('playedIntro', playedIntro)
+          set({ playedIntro })
         },
-        preset: getStorageItem(STORAGE_KEYS.PRESET) ?? undefined,
+        preset: persistentSettings.preset,
         setPreset: (preset: VOROFORCE_PRESET) => {
-          set({
-            preset,
-          })
-          setStorageItem(STORAGE_KEYS.PRESET, preset)
+          updatePersistentSetting('preset', preset)
+          set({ preset })
         },
-        cellLimit: getStorageItem(STORAGE_KEYS.CELL_LIMIT) ?? undefined,
+        cellLimit: persistentSettings.cellLimit,
         setCellLimit: (cellLimit: CELL_LIMIT) => {
-          set({
-            cellLimit,
-          })
-          setStorageItem(STORAGE_KEYS.CELL_LIMIT, cellLimit)
+          updatePersistentSetting('cellLimit', cellLimit)
+          set({ cellLimit })
         },
-        deviceClass: getStorageItem(STORAGE_KEYS.DEVICE_CLASS) ?? undefined,
+        deviceClass: persistentSettings.deviceClass,
         setDeviceClass: (deviceClass: DEVICE_CLASS) => {
-          set({
-            deviceClass,
-          })
-          setStorageItem(STORAGE_KEYS.DEVICE_CLASS, deviceClass)
+          updatePersistentSetting('deviceClass', deviceClass)
+          set({ deviceClass })
         },
-        estimatedDeviceClass:
-          getStorageItem(STORAGE_KEYS.ESTIMATED_DEVICE_CLASS) ?? undefined,
+        estimatedDeviceClass: persistentSettings.estimatedDeviceClass,
         setEstimatedDeviceClass: (estimatedDeviceClass: DEVICE_CLASS) => {
-          set({
-            estimatedDeviceClass,
-          })
-          setStorageItem(
-            STORAGE_KEYS.ESTIMATED_DEVICE_CLASS,
-            estimatedDeviceClass,
-          )
+          updatePersistentSetting('estimatedDeviceClass', estimatedDeviceClass)
+          set({ estimatedDeviceClass })
         },
         setFilmViewBounds: (filmViewBounds: RectReadOnly) => {
           set({
             filmViewBounds,
           })
         },
-        userConfig: getStorageItem(STORAGE_KEYS.USER_CONFIG) ?? {},
+        userConfig: persistentSettings.userConfig,
         setUserConfig: (userConfig: UserConfig) => {
-          set({
-            userConfig,
-          })
-          setStorageItem(STORAGE_KEYS.USER_CONFIG, userConfig)
+          updatePersistentSetting('userConfig', userConfig)
+          set({ userConfig })
         },
         setPerformanceMonitor: (performanceMonitor) => {
           set({

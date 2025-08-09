@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { useShallowState } from '../../../store'
@@ -38,6 +38,11 @@ export function DeviceClassWidget({
         ? estimatedDeviceClass
         : undefined),
   )
+
+  useEffect(() => {
+    if (!storeDeviceClass && estimatedDeviceClass)
+      setSelectedDeviceClass(estimatedDeviceClass)
+  }, [storeDeviceClass, estimatedDeviceClass])
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>

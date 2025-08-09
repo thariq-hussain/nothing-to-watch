@@ -12,7 +12,7 @@ export default {
   tmdbFilmBaseUrl: 'https://www.themoviedb.org/movie/',
   imdbFilmBaseUrl: 'https://imdb.com/title/',
   contactEmail: '96j0o1ivb@mozmail.com',
-  standaloneMode: false,
+  disableUI: false,
   telemetry: {
     enabled:
       env?.VITE_TELEMETRY_ENABLED === '1' ||
