@@ -3,8 +3,10 @@ import BaseControls from './base-controls'
 import {
   PointerFrozenChangeEvent,
   PointerPinnedChangeEvent,
-  PointerShakeEvent,
 } from './controls-events'
+import { DebugMarker } from './utils/debug-marker'
+import { getCell, getDirectionalNeighborCellIndex } from './utils/cell'
+import { DetachGestureHandler } from './utils/detach-gesture-handler'
 
 const { pow, sqrt, max } = Math
 
@@ -14,22 +16,8 @@ const getAverageSpeedTotal = (array) =>
 const MAX_SPEED_HISTORY = 10
 
 export default class Controls extends BaseControls {
-  pointerFrozen = true
-  pointerPinned = false
-
-  speedHistory = []
-  rawSpeedHistory = []
-  position = null
-  lastPosition = null
-  lastRawPosition = null
-  speed = { x: 0, y: 0, total: 0 }
-  rawSpeed = { x: 0, y: 0, total: 0 }
-  avgRawSpeedTotal = 0
-  avgSpeedTotal = 0
-
   reset() {
     super.reset()
-
     this.speedHistory = []
     this.rawSpeedHistory = []
     this.position = null
@@ -44,12 +32,18 @@ export default class Controls extends BaseControls {
   handleConfig() {
     super.handleConfig()
     this.options = {
+      debug: this.config.debug || false,
       maxSpeed: this.config.maxSpeed || 10,
-      maxSpeedPinned: this.config.maxSpeedPinned || this.config.maxSpeed || 30,
+      maxSpeedPinned: this.config.maxSpeedPinned || this.config.maxSpeed || 10,
       ease: this.config.ease || 0.15,
-      easePinned: this.config.easePinned || this.config.ease || 0.05,
-      unfreezePointerMaxSpeed: this.config.unfreezePointerMaxSpeed || 5,
-      selectionMaxSpeed: this.config.selectionMaxSpeed || 2,
+      easePinned: this.config.easePinned || this.config.ease || 0.15,
+      interactionMaxSpeed: this.config.interactionMaxSpeed || 5,
+      zoom:
+        typeof this.config.zoom?.enabled === 'boolean'
+          ? this.config.zoom.enabled
+          : true,
+      zoomMin: this.config.zoom?.min || 1,
+      zoomMax: this.config.zoom?.max || 1.5,
       freezeOnJolt: {
         enabled: this.config.freezeOnJolt?.enabled || false,
         factor: this.config.freezeOnJolt?.factor || 7,
@@ -63,11 +57,30 @@ export default class Controls extends BaseControls {
         cooldown: this.config.freezeOnShake?.cooldown || 2000, // Minimum time between shake events
       },
     }
+
+    if (
+      (this.options.freezeOnJolt.enabled ||
+        this.options.freezeOnShake.enabled) &&
+      !this.detachGestureHandler
+    ) {
+      this.detachGestureHandler = new DetachGestureHandler(this)
+    }
+
+    if (this.options.debug && !this.debugMarker) {
+      this.debugMarker = new DebugMarker(this.container)
+    } else if (this.debugMarker) {
+      this.debugMarker.destroy()
+      this.debugMarker = null
+    }
+  }
+
+  handleAutoFocusCenter() {
+    super.handleAutoFocusCenter()
+    this.freezePointer()
   }
 
   handleAutoFocusUpdate() {
     if (this.cells.focused) {
-      // this.reset()
       this.pinPointer()
       this.update = this.handleFirstUpdate
       return
@@ -80,22 +93,25 @@ export default class Controls extends BaseControls {
     this.handlePositions()
     this.handleCursor()
 
-    if (!this.pointerIdle && (this.pointerFrozen || this.pointerPinned)) {
+    if (this.isDetached()) {
       if (
         this.rawPosition &&
-        this.avgSpeedTotal < this.options.unfreezePointerMaxSpeed
+        !this.rawPositionIdle &&
+        this.avgSpeedTotal < this.options.interactionMaxSpeed
       ) {
-        // only check pixels if raw speed exists and speed is reasonable
+        // only check pixels if raw position exists and is active and pointer speed is reasonable
         if (
           this.hasSelection() ||
-          !this.frozenPosition ||
+          !this.isFrozen() ||
           distance(this.rawPosition, this.frozenPosition) < 50
         ) {
-          // only check pixels if the raw position is close to the frozen position
+          // only check pixels if in select mode or no frozen position or the raw position is close to the frozen position
           this.getCellIndices(this.rawPosition, (index, indices) => {
             if (!this.rawPosition) return
-            this.rawPosition.indices = indices
-            this.rawPosition.index = index
+            Object.assign(this.rawPosition, {
+              index,
+              indices,
+            })
             if (this.cells.focusedIndex === index) {
               this.unfreezePointer()
             }
@@ -104,7 +120,7 @@ export default class Controls extends BaseControls {
       }
     }
 
-    if (!this.pointerFrozen) {
+    if (!this.isFrozen()) {
       if (!this.position) return
       this.assignPointer({
         x: this.position.x,
@@ -112,7 +128,7 @@ export default class Controls extends BaseControls {
         speedScale: this.avgSpeedTotal / this.options.maxSpeed,
         // speedScale:
         //   this.avgSpeedTotal /
-        //   (this.pointerPinned
+        //   (this.pinnedPosition
         //     ? this.options.maxSpeedPinned
         //     : this.options.maxSpeed),
       })
@@ -146,6 +162,7 @@ export default class Controls extends BaseControls {
 
     // Process the position with capping if needed
     this.position = this.calcMainPosition(targetPosition)
+    this.clampToBounds(this.position)
 
     this.speedHistory.push({
       ...this.speed,
@@ -161,20 +178,23 @@ export default class Controls extends BaseControls {
       x: this.position.x,
       y: this.position.y,
     }
+
+    this.debugMarker?.updatePosition(this.position)
   }
 
   calcMainPosition(targetPosition) {
     // If this is the first position, just return target position
     if (!this.lastPosition) return targetPosition
 
-    if (!this.pointerPinned && !this.pointerFrozen) {
-      if ((!this.isTouching && this.detectJolt()) || this.detectShake()) {
-        this.freezePointer()
-        return this.lastPosition
+    if (this.detectDetachGesture()) {
+      this.freezePointer()
+      return {
+        x: this.lastPosition.x,
+        y: this.lastPosition.y,
       }
     }
 
-    if (this.pointerFrozen) {
+    if (this.isFrozen()) {
       this.speed.x = 0
       this.speed.y = 0
       this.speed.total = 0
@@ -195,10 +215,10 @@ export default class Controls extends BaseControls {
       return targetPosition
     }
 
-    const ease = this.pointerPinned
+    const ease = this.pinnedPosition
       ? this.options.easePinned
       : this.options.ease
-    const maxSpeed = this.pointerPinned
+    const maxSpeed = this.pinnedPosition
       ? this.options.maxSpeedPinned
       : this.options.maxSpeed
 
@@ -229,6 +249,8 @@ export default class Controls extends BaseControls {
   handleRawPosition() {
     if (!this.rawPosition) return
 
+    this.clampToBounds(this.rawPosition)
+
     this.assignPointer({
       rawX: this.rawPosition.x,
       rawY: this.rawPosition.y,
@@ -258,27 +280,25 @@ export default class Controls extends BaseControls {
   handleCursor() {
     if (this.isTouching) {
       this.setCursor('default')
+    } else if (this.pointer.downMoved) {
+      this.setCursor('grabbing')
     } else if (this.isPinned() && this.hasSelection()) {
-      if (this.focusedIsPinned()) {
+      if (this.rawIsPinned()) {
         this.setCursor('zoom-out')
       } else {
         this.setCursor('pointer')
       }
-
-      // if () {
-      //   if (this.focusedIsPinned()) {
-      //     this.setCursor('zoom-out')
-      //   } else {
-      //   }
-      // } else {
-      //   this.setCursor('default')
-      // }
     } else {
-      if (!this.pointerFrozen) {
+      if (!this.isDetached()) {
         if (this.hasSelection()) {
-          this.setCursor('pointer')
+          // if (this.rawIsSelected()) {
+          if (this.focusedIsSelected()) {
+            this.setCursor('zoom-out')
+          } else {
+            this.setCursor('pointer')
+          }
         } else {
-          if (this.avgSpeedTotal < this.options.selectionMaxSpeed) {
+          if (this.avgSpeedTotal < this.options.interactionMaxSpeed) {
             this.setCursor('pointer')
           } else {
             this.setCursor('default')
@@ -287,6 +307,11 @@ export default class Controls extends BaseControls {
       } else {
         if (this.hasSelection()) {
           this.setCursor('pointer')
+          if (this.rawIsSelected()) {
+            this.setCursor('zoom-out')
+          } else {
+            this.setCursor('pointer')
+          }
         } else {
           this.setCursor('default')
         }
@@ -295,33 +320,36 @@ export default class Controls extends BaseControls {
   }
 
   onPointerMove(e) {
+    if (this.isPinching) return
+
     super.onPointerMove(e)
-    this.pointerIdle = false
 
     if (this.isTouching) {
-      if (this.pointerPinned) {
-        this.unpinPointer()
-      }
-      if (this.pointerFrozen) {
-        this.unfreezePointer()
-      }
+      this.attach()
     } else if (this.isPinned()) {
       if (this.hasSelection()) {
-        if (!this.focusedIsRaw()) {
+        if (!this.rawIsFocused()) {
           this.freezePointer()
         }
       } else {
-        if (this.focusedIsPinned()) this.freezePointer()
+        if (this.pinnedIsFocused()) this.freezePointer()
       }
     }
   }
 
   handlePointerOut() {
-    this.pinPointer()
+    this.pointer.downMoved = false
+    this.pointer.down = false
+    if (!this.isDetached()) this.pinPointer()
   }
 
   onPointerClick(e) {
-    this.pointerIdle = false
+    if (this.isPinching) return
+    if (this.pointer.downMoved) {
+      this.pointer.downMoved = false
+      return
+    }
+    this.logger?.debug('onPointerClick')
     this.updateRawPositionFromEvent(e)
 
     this.getCellIndices(this.rawPosition, (index, indices) => {
@@ -331,9 +359,7 @@ export default class Controls extends BaseControls {
       })
       if (
         !this.isTouching &&
-        (this.pointerFrozen ||
-          (this.pointerPinned &&
-            this.pinnedPosition.index !== this.rawPosition.index))
+        (this.frozenPosition || (this.pinnedPosition && !this.rawIsPinned()))
       ) {
         this.navigateToCell(this.rawPosition.index)
       } else {
@@ -343,9 +369,7 @@ export default class Controls extends BaseControls {
   }
 
   freezePointer(frozenPosition) {
-    this.pointerIdle = true
-    if (this.pointerPinned) this.unpinPointer()
-    this.pointerFrozen = true
+    if (this.pinnedPosition) this.unpinPointer()
     this.pointer.speedScale = 0
     this.frozenPosition =
       frozenPosition ?? this.frozenPosition ?? this.savePointer()
@@ -358,18 +382,18 @@ export default class Controls extends BaseControls {
       }),
     )
     this.logger?.debug('freeze pointer')
+    this.debugMarker?.updateColor('blue')
   }
 
   unfreezePointer() {
-    if (!this.pointerFrozen) return
-    if (this.frozenPosition) {
-      this.lastPosition = {
-        x: this.frozenPosition.x,
-        y: this.frozenPosition.y,
-      }
-      this.frozenPosition = null
+    if (!this.frozenPosition) return
+    // TODO TMP
+    if (Number.isNaN(this.frozenPosition.x)) {
+      throw new Error('frozen position is NaN')
     }
-    this.pointerFrozen = false
+    if (!this.lastPosition) this.lastPosition = {}
+    Object.assign(this.lastPosition, this.frozenPosition)
+    this.frozenPosition = null
     this.dispatchEvent(
       new PointerFrozenChangeEvent({
         frozen: false,
@@ -377,15 +401,14 @@ export default class Controls extends BaseControls {
       }),
     )
     this.logger?.debug('unfreeze pointer')
+    this.debugMarker?.updateColor('red')
   }
 
   pinPointer(pinnedPosition) {
-    this.pointerIdle = true
     this.pinnedPosition =
       pinnedPosition ?? this.pinnedPosition ?? this.cells.focused
     if (!this.pinnedPosition) return
-    if (this.pointerFrozen) this.unfreezePointer()
-    this.pointerPinned = true
+    if (this.frozenPosition) this.unfreezePointer()
     this.dispatchEvent(
       new PointerPinnedChangeEvent({
         pinned: true,
@@ -394,11 +417,11 @@ export default class Controls extends BaseControls {
       }),
     )
     this.logger?.debug('pin pointer')
+    this.debugMarker?.updateColor('green')
   }
 
   unpinPointer() {
-    if (!this.pointerPinned) return
-    this.pointerPinned = false
+    if (!this.pinnedPosition) return
     this.pinnedPosition = null
 
     this.dispatchEvent(
@@ -408,42 +431,16 @@ export default class Controls extends BaseControls {
       }),
     )
     this.logger?.debug('unpin pointer')
+    this.debugMarker?.updateColor('red')
   }
 
-  // handleSelectRequest() {
-  //   let selectedCellIndex
-  //   if (!this.cells.selectedIndex) {
-  //     if (
-  //       this.pointer.speedScale < 0.5 &&
-  //       this.pointer.index === this.cells.focusedIndex
-  //     ) {
-  //       selectedCellIndex = this.cells.focusedIndex
-  //     }
-  //   } else {
-  //     if (this.cells.selectedIndex !== this.cells.focusedIndex) {
-  //       selectedCellIndex = this.pointer.index
-  //     } else {
-  //       this.deselect()
-  //     }
-  //   }
-  //
-  //   if (selectedCellIndex) {
-  //     this.cells.selectedIndex = selectedCellIndex
-  //     this.dispatchEvent(new CellSelectedEvent(this.cells.selected))
-  //     this.pinPointer()
-  //     this.logger?.debug('select cell', this.cells.selectedIndex)
-  //     return selectedCellIndex
-  //   }
-  // }
-
-  requestSelection(customPointer) {
-    const pointer = customPointer ?? this.pointer
-    this.logger?.debug('handleSelectRequest', pointer)
-    this.logger?.debug('this.cells.focusedIndex', this.cells.focusedIndex)
+  requestSelection(pointer) {
+    this.logger?.debug('handleSelectRequest')
     let selectCellIndex
-    if (!this.hasSelection()) {
+    const hasPreviousSelection = this.hasSelection()
+    if (!hasPreviousSelection) {
       if (
-        this.avgSpeedTotal < this.options.selectionMaxSpeed &&
+        this.avgSpeedTotal < this.options.interactionMaxSpeed &&
         pointer.index === this.cells.focusedIndex
       ) {
         selectCellIndex = this.cells.focusedIndex
@@ -458,57 +455,32 @@ export default class Controls extends BaseControls {
 
     if (selectCellIndex) {
       this.selectCell(selectCellIndex)
-      this.pinPointer(this.cells.selected)
+      if (hasPreviousSelection) {
+        this.pinPointer(this.cells.selected)
+      } else {
+        this.resetZoom()
+      }
       return selectCellIndex
     }
   }
 
   deselect() {
-    this.logger?.debug('deselecting cell')
     super.deselect()
+  }
+
+  deselectAndPin() {
+    this.deselect()
     this.pinPointer()
   }
 
-  getDirectionalNeighborCell(cell, direction) {
-    const { cols, rows } = this.globalConfig.lattice
-    const currentRow = cell.row
-    const currentCol = cell.col
-
-    let targetRow = currentRow
-    let targetCol = currentCol
-
-    switch (direction) {
-      case 'up':
-        targetRow = Math.max(0, currentRow - 1)
-        break
-      case 'down':
-        targetRow = Math.min(rows - 1, currentRow + 1)
-        break
-      case 'left':
-        targetCol = Math.max(0, currentCol - 1)
-        break
-      case 'right':
-        targetCol = Math.min(cols - 1, currentCol + 1)
-        break
-    }
-
-    if (targetRow === currentRow && targetCol === currentCol) {
-      return null
-    }
-
-    return this.cells[targetRow * cols + targetCol]
-  }
-
   navigateToCell(cellOrCellIndex) {
-    if (cellOrCellIndex === null || cellOrCellIndex === undefined) return
-
-    const cell =
-      typeof cellOrCellIndex === 'number'
-        ? this.cells[cellOrCellIndex]
-        : cellOrCellIndex
-
+    const cell = getCell(cellOrCellIndex, this.cells)
     if (!cell) return
+
     this.pinPointer(cell)
+    if (this.hasSelection()) {
+      this.selectCell(cell)
+    }
   }
 
   navigateToCellById(id) {
@@ -516,14 +488,14 @@ export default class Controls extends BaseControls {
   }
 
   onKeyDown(e) {
-    if (!this.globalConfig.lattice?.enabled) return
-    if (!this.cells.focusedIndex) return
+    if (!this.hasFocus()) return
 
     switch (e.code) {
       case 'ArrowUp':
       case 'ArrowDown':
       case 'ArrowLeft':
       case 'ArrowRight': {
+        if (!this.globalConfig.lattice?.enabled) return
         const directionMap = {
           ArrowUp: 'up',
           ArrowDown: 'down',
@@ -532,19 +504,19 @@ export default class Controls extends BaseControls {
         }
         const direction = directionMap[e.key]
         e.preventDefault()
-        const neighbor = this.getDirectionalNeighborCell(
-          this.cells.focused,
-          direction,
+        this.navigateToCell(
+          getDirectionalNeighborCellIndex(
+            this.cells.focused,
+            direction,
+            this.globalConfig.lattice,
+          ),
         )
-        if (neighbor) {
-          this.navigateToCell(neighbor)
-        }
         break
       }
       case 'Space':
       case 'Enter': {
         e.preventDefault()
-        this.requestSelection()
+        this.requestSelection(this.pointer)
         break
       }
       default:
@@ -552,14 +524,113 @@ export default class Controls extends BaseControls {
     }
   }
 
+  onTouchMove(e) {
+    if (e.touches.length === 1) {
+      // Single touch - let pointer events handle it
+      return
+    }
+
+    // Multi-touch gestures
+    if (e.touches.length === 2) {
+      this.handlePinchGesture(e.touches)
+    }
+
+    e.preventDefault() // Prevent pointer events for multi-touch
+  }
+
+  onTouchEnd(e) {
+    super.onTouchEnd(e)
+    this.isPinching = false
+    this.lastPinchDistance = undefined
+  }
+
+  handlePinchGesture(touches) {
+    this.isPinching = true
+    this.logger?.debug('onPinch')
+
+    if (!this.options.zoom) return
+
+    const touch1 = touches[0]
+    const touch2 = touches[1]
+
+    const distance = Math.hypot(
+      touch1.clientX - touch2.clientX,
+      touch1.clientY - touch2.clientY,
+    )
+
+    if (this.lastPinchDistance) {
+      const pinchRatio = distance / this.lastPinchDistance
+      const deltaScale = Math.abs(pinchRatio - 1) * 2
+
+      this.zoom =
+        pinchRatio > 1
+          ? Math.min(1.5, this.zoom + deltaScale)
+          : Math.max(1, this.zoom - deltaScale)
+
+      this.handleZoom(this.zoom)
+    }
+
+    this.lastPinchDistance = distance
+  }
+
+  zoom = 1
+  onWheel(e) {
+    // e.preventDefault()
+    this.logger?.debug('onWheel', { deltaY: e.deltaY })
+
+    if (!this.options.zoom) return
+
+    const deltaScale = Math.abs(e.deltaY) * 0.002
+    this.zoom =
+      e.deltaY > 0
+        ? Math.max(1, this.zoom - deltaScale)
+        : Math.min(1.5, this.zoom + deltaScale)
+    this.handleZoom(this.zoom)
+  }
+
+  handleZoom(zoom) {
+    this.logger?.debug('zoom', zoom)
+    this.pointer.zoom = zoom
+
+    if (!this.hasSelection()) {
+      if (zoom >= this.options.zoomMax) {
+        this.requestSelection(this.pointer)
+      }
+    } else {
+      if (zoom <= this.options.zoomMin) {
+        this.deselect()
+      }
+    }
+  }
+
+  resetZoom() {
+    this.pointer.zoom = this.zoom = 1
+  }
+
   initEventListeners() {
     super.initEventListeners()
+    this.initWheelEventListeners()
     this.initKeyboardEventListeners()
+    this.initOrientationEventListeners()
   }
 
   removeEventListeners() {
     super.removeEventListeners()
+    this.removeWheelEventListeners()
     this.removeKeyboardEventListeners()
+    this.removeOrientationEventListeners()
+  }
+
+  initWheelEventListeners() {
+    if (this.boundOnWheel) return
+    this.boundOnWheel = this.onWheel.bind(this)
+    window.addEventListener('wheel', this.boundOnWheel)
+  }
+
+  removeWheelEventListeners() {
+    if (!this.boundOnWheel) return
+    window.removeEventListener('wheel', this.boundOnWheel)
+    this.boundOnWheel = undefined
   }
 
   initKeyboardEventListeners() {
@@ -574,140 +645,121 @@ export default class Controls extends BaseControls {
     this.boundOnKeyDown = undefined
   }
 
+  onDeviceOrientation(e) {
+    // if (this.isTouching) return
+    // if (!this.rawPosition) this.rawPosition = {}
+    // if (this.isDetached()) {
+    //   this.attach()
+    //   Object.assign(this.rawPosition, {
+    //     x: this.pointer.x,
+    //     y: this.pointer.y,
+    //     index: this.pointer.index,
+    //     indices: this.pointer.indices,
+    //   })
+    // }
+    //
+    // Object.assign(this.rawPosition, { x: newX, y: newY })
+  }
+
+  initOrientationEventListeners() {
+    if (this.boundOnDeviceOrientation) return
+    if (typeof DeviceOrientationEvent === 'undefined') return
+
+    this.boundOnDeviceOrientation = this.onDeviceOrientation.bind(this)
+
+    // Request permission for iOS 13+
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then((response) => {
+          if (response === 'granted') {
+            window.addEventListener(
+              'deviceorientation',
+              this.boundOnDeviceOrientation,
+            )
+          }
+        })
+        .catch(() => {
+          // Permission denied or error
+        })
+    } else {
+      // For other devices
+      window.addEventListener(
+        'deviceorientation',
+        this.boundOnDeviceOrientation,
+      )
+    }
+  }
+
+  removeOrientationEventListeners() {
+    if (!this.boundOnDeviceOrientation) return
+    window.removeEventListener(
+      'deviceorientation',
+      this.boundOnDeviceOrientation,
+    )
+    this.boundOnDeviceOrientation = undefined
+  }
+
   startResize(dimensions) {
     super.startResize(dimensions)
-    this.freezePointer()
   }
 
   endResize(dimensions) {
     super.endResize(dimensions)
-    this.freezePointer(this.pointer)
+    this.freezePointer(this.savePointer())
+  }
+
+  attach() {
+    this.unpinPointer()
+    this.unfreezePointer()
+  }
+
+  isDetached() {
+    return this.isFrozen() || this.isPinned()
+  }
+
+  isFrozen() {
+    return this.frozenPosition
   }
 
   isPinned() {
-    return this.pointerPinned
+    return this.pinnedPosition
   }
 
-  focusedIsPinned() {
-    return this.cells.focusedIndex === this.pinnedPosition?.index
+  pinnedIsFocused() {
+    return (
+      this.isPinned() && this.pinnedPosition.index === this.cells.focusedIndex
+    )
   }
 
-  focusedIsRaw() {
-    return this.cells.focusedIndex === this.rawPosition?.index
+  rawIsFocused() {
+    return this.rawPosition?.index === this.cells.focusedIndex
+  }
+
+  rawIsSelected() {
+    return (
+      this.hasSelection() &&
+      this.rawPosition?.index === this.cells.selectedIndex
+    )
+  }
+
+  rawIsPinned() {
+    return (
+      this.isPinned() && this.rawPosition?.index === this.pinnedPosition.index
+    )
   }
 
   setCursor(cursor) {
-    switch (cursor) {
-      case 'zoom-in':
-        this.container.style.cursor = 'zoom-in'
-        break
-      case 'zoom-out':
-        this.container.style.cursor = 'zoom-out'
-        break
-      case 'pointer':
-        this.container.style.cursor = 'pointer'
-        break
-      default:
-        this.container.style.cursor = 'default'
-        break
-    }
+    this.container.style.cursor = cursor
   }
 
-  detectJolt() {
-    if (!this.options.freezeOnJolt?.enabled) return
-
-    const detectedJolt =
-      this.rawSpeed.total >
-      max(this.avgRawSpeedTotal, this.options.freezeOnJolt.minSpeedValue) *
-        this.options.freezeOnJolt.factor
-    if (detectedJolt) this.logger?.debug('detected jolt')
-    return detectedJolt
-  }
-
-  detectShake() {
-    if (!this.options.freezeOnShake?.enabled) return
-
+  detectDetachGesture() {
     if (
-      this.pointerFrozen ||
-      this.rawSpeed.total <= this.options.freezeOnShake.minSpeed
+      this.detachGestureHandler &&
+      !this.isTouching &&
+      !this.pointer.down &&
+      !this.isDetached()
     ) {
-      this.resetShake()
-      return
+      return this.detachGestureHandler.detectDetachGesture()
     }
-
-    const directionX =
-      this.rawSpeed.x > 0 ? 'right' : this.rawSpeed.x < 0 ? 'left' : null
-    const directionY =
-      this.rawSpeed.y > 0 ? 'down' : this.rawSpeed.y < 0 ? 'up' : null
-
-    if (
-      this.lastShakeDirectionX &&
-      directionX &&
-      directionX !== this.lastShakeDirectionX
-    ) {
-      this.shakeDirectionXChangeCount++
-      this.refreshShakeDirChangeTimeout()
-    }
-    if (
-      this.lastShakeDirectionY &&
-      directionY &&
-      directionY !== this.lastShakeDirectionY
-    ) {
-      this.shakeDirectionYChangeCount++
-      this.refreshShakeDirChangeTimeout()
-    }
-
-    this.lastShakeDirectionX = directionX
-    this.lastShakeDirectionY = directionY
-
-    // Check if we've reached the threshold for a shake
-    if (
-      (this.shakeDirectionXChangeCount >=
-        this.options.freezeOnShake.minShakes ||
-        this.shakeDirectionYChangeCount >=
-          this.options.freezeOnShake.minShakes) &&
-      !this.shakeCooldownActive
-    ) {
-      // Trigger shake event
-      this.dispatchEvent(
-        new PointerShakeEvent({
-          pointer: this.pointer,
-          speed: this.rawSpeed.total,
-          directionXChanges: this.shakeDirectionXChangeCount,
-          directionYChanges: this.shakeDirectionYChangeCount,
-        }),
-      )
-
-      // Reset
-      this.resetShake()
-
-      // Set cooldown
-      this.shakeCooldownActive = true
-      setTimeout(() => {
-        this.shakeCooldownActive = false
-      }, this.options.freezeOnShake.cooldown)
-
-      return true
-    }
-  }
-
-  resetShake() {
-    this.shakeDirectionXChangeCount = 0
-    this.shakeDirectionYChangeCount = 0
-    this.lastShakeDirectionX = null
-    this.lastShakeDirectionX = null
-  }
-
-  clearShakeDirChangeTimeout() {
-    if (this.shakeDirChangeTimeout) {
-      clearTimeout(this.shakeDirChangeTimeout)
-    }
-  }
-
-  refreshShakeDirChangeTimeout() {
-    this.clearShakeDirChangeTimeout()
-    this.shakeDirChangeTimeout = setTimeout(() => {
-      this.resetShake()
-    }, this.options.freezeOnShake.dirChangeTimeout)
   }
 }

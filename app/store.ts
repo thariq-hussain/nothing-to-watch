@@ -116,7 +116,7 @@ export const store = create(
             isIntroMode: mode === VOROFORCE_MODE.intro,
           }),
         exitSelectMode: () => {
-          get().voroforce?.controls?.deselect()
+          get().voroforce?.controls?.deselectAndPin()
         },
         voroforceDevSceneEnabled: false,
         setVoroforceDevSceneEnabled: (voroforceDevSceneEnabled: boolean) => {

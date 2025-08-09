@@ -127,10 +127,14 @@ export const FilmViewDrawer = () => {
           onMouseEnter: () => setFreezeFilm(true),
           onMouseLeave: () => setFreezeFilm(false),
         }),
-        className: cn('group', {
-          'contain-layout contain-paint contain-style': !addCustomLinkTypeOpen,
-          'lg:landscape:pt-24': direction === 'right',
-        }),
+        className: cn(
+          'group landscape:max-h-[18rem] landscape:w-2/5 md:landscape:max-h-[24rem]',
+          {
+            'contain-layout contain-paint contain-style':
+              !addCustomLinkTypeOpen,
+            'lg:landscape:pt-24': direction === 'right',
+          },
+        ),
       }}
       innerContentProps={{
         className: 'relative z-40',

@@ -122,4 +122,4 @@ export const DEVICE_CLASS_ITEMS = [
   },
 ]
 
-export const OBSCURE_VISUAL_DEFECTS = true
+export const OBSCURE_VISUAL_DEFECTS = false

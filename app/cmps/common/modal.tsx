@@ -52,7 +52,7 @@ const ModalContent = React.forwardRef<
   <DrawerPrimitive.Content
     ref={ref}
     className={cn(
-      'not-landscape:-inset-x-px pointer-events-none fixed not-landscape:bottom-0 z-30 not-landscape:h-auto p-1.5 focus-visible:outline-none not-landscape:md:inset-x-0 md:px-3 md:py-3 lg:px-6 lg:py-6 landscape:top-0 landscape:right-0 landscape:h-full landscape:max-h-[18rem] landscape:w-2/5 landscape:min-w-100 landscape:max-w-210 landscape:lg:h-auto landscape:lg:max-h-full landscape:lg:w-2/5 landscape:lg:min-w-130 md:landscape:max-h-[24rem] landscape:md:min-w-120',
+      'not-landscape:-inset-x-px pointer-events-none fixed not-landscape:bottom-0 z-30 not-landscape:h-auto p-1.5 focus-visible:outline-none not-landscape:md:inset-x-0 md:px-3 md:py-3 lg:px-6 lg:py-6 landscape:top-0 landscape:right-0 landscape:h-full landscape:min-w-100 landscape:max-w-210 landscape:lg:h-auto landscape:lg:max-h-full landscape:lg:w-2/5 landscape:lg:min-w-130 landscape:md:min-w-120',
       {
         'landscape:right-auto landscape:left-0': direction === 'left',
         'not-landscape:top-0 not-landscape:bottom-auto': direction === 'top',

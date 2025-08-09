@@ -1,6 +1,7 @@
 export class SharedPointer {
   constructor(data) {
     this.data = data
+    this.zoom = 1
   }
 
   get x() {
@@ -49,5 +50,13 @@ export class SharedPointer {
 
   set speedScale(value) {
     this.data[6] = value
+  }
+
+  get zoom() {
+    return this.data[7]
+  }
+
+  set zoom(value) {
+    this.data[7] = value
   }
 }

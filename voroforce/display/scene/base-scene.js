@@ -652,7 +652,6 @@ export default class BaseScene {
     const index3 = data[2] - 1
     const index4 = data[3] - 1
     if (index >= 0) {
-      // console.log('index', index)
       return [index, index2, index3, index4]
     }
   }

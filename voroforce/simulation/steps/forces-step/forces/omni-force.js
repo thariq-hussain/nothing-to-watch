@@ -43,6 +43,7 @@ export const omniForce = () => {
     slowPointerMod = 0,
     easedIdlePointerMod = 1,
     easedActivePointerMod = 0,
+    pointerZoomScale = 1,
     prevCenterX,
     prevCenterY,
     centerX,
@@ -54,6 +55,7 @@ export const omniForce = () => {
     // centerLerp = defaultLerpFactor,
     latticeCenterX,
     latticeCenterY,
+    latticeScale = 1,
     centerLerp = 1,
     primaryCell,
     primaryCellIndex,
@@ -119,6 +121,7 @@ export const omniForce = () => {
       primaryCellWeightPushFactorEnabled = false,
       smoothPrimaryCell = false,
       handlePointerSpeedScale = true,
+      handlePointerZoomScale = true,
       breathing: {
         enabled: breathing = false,
         cycleDuration: breathingCycleDuration = 6000,
@@ -305,6 +308,7 @@ export const omniForce = () => {
     targetCenterY = undefined
     primaryCell = undefined
     primaryCellIndex = undefined
+    latticeScale = originLatticeScale
 
     if (typeof latticeCenterX === 'undefined') {
       latticeCenterX = originLatticeX
@@ -342,15 +346,19 @@ export const omniForce = () => {
       forceSetup(alpha)
       latticeForcePass(alpha) // lattice pass must run in isolation (for reasons)
       mainForcePass(alpha)
+      updateSharedData()
+    }
 
+    function updateSharedData() {
       sharedData.centerForceX = centerX
       sharedData.centerForceY = centerY
-      sharedData.centerForceStrengthMod = lerp(
-        sharedData.centerForceStrengthMod,
-        min(basePushDistMod / 1.125, 1),
-        // centerLerp,
-        defaultLerpFactor * 4,
-      )
+      // sharedData.centerForceStrengthMod = lerp(
+      //   sharedData.centerForceStrengthMod,
+      //   min(basePushDistMod / 1.125, 1), // todo
+      //   // centerLerp,
+      //   defaultLerpFactor * 4,
+      // )
+      sharedData.centerForceStrengthMod = basePushDistMod / 1.125
     }
 
     function handlePrimaryCellChange(alpha) {
@@ -445,7 +453,17 @@ export const omniForce = () => {
         complementPointerSpeedScale = 1 - pointerSpeedScale
       }
 
-      // media loading logic for primary cell, needs to run as early as possible
+      if (handlePointerZoomScale) {
+        pointerZoomScale = minLerp(
+          pointerZoomScale,
+          pointer.zoom ?? 1,
+          defaultLerpFactor * 4,
+        )
+
+        latticeScale = originLatticeScale * pointerZoomScale
+      }
+
+      // media loading logic for primary cell, needs to run before the other cells
       if (requestMediaVersions) {
         if (pointerSpeedScale < mediaVMaxSpeedLimit) {
           primaryCell.targetMediaVersion = max(
@@ -644,7 +662,10 @@ export const omniForce = () => {
         originStrength * alpha * (1 - (1 - breathingPushMod) * 3)
 
       basePushDistMod =
-        breathingPushMod * pushSpeedFactor * primaryCellWeightPushFactor
+        breathingPushMod *
+        pushSpeedFactor *
+        primaryCellWeightPushFactor *
+        pointerZoomScale
       commonPushDistMod = basePushDistMod * pushStrength * alpha
       commonPushXMod = configPushXMod * breathingPushMod
       commonPushYMod = configPushYMod * (1 - (1 - sqrt(breathingPushMod)))
@@ -656,18 +677,16 @@ export const omniForce = () => {
 
         // origin force
         cell.vx +=
-          ((originLatticeScale === 1
+          ((latticeScale === 1
             ? cell.localIx
-            : (cell.localIx - latticeCenterX) * originLatticeScale +
-              latticeCenterX) -
+            : (cell.localIx - latticeCenterX) * latticeScale + latticeCenterX) -
             cell.localX) *
           originXFactor *
           commonOriginMod
         cell.vy +=
-          ((originLatticeScale === 1
+          ((latticeScale === 1
             ? cell.localIy
-            : (cell.localIy - latticeCenterY) * originLatticeScale +
-              latticeCenterY) -
+            : (cell.localIy - latticeCenterY) * latticeScale + latticeCenterY) -
             cell.localY) *
           originYFactor *
           commonOriginMod

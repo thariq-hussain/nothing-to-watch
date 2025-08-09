@@ -7,6 +7,7 @@ export const controlModeConfigs: {
   [VOROFORCE_MODE.select]: {
     maxSpeed: 4,
     ease: 0.01,
+    easePinned: 0.25,
     freezeOnShake: {
       enabled: false,
     },
@@ -22,8 +23,8 @@ const defaultControlsConfig = {
     random: true,
   },
   maxSpeed: 10,
-  // maxSpeedPinned: 3,
   ease: 0.15,
+  easePinned: 0.15,
   freezeOnShake: {
     enabled: true,
   },

@@ -1,6 +1,11 @@
 import { createLogger, isTouchDevice } from '../utils'
 import { CustomEventTarget } from '../utils/custom-event-target'
 import { CellFocusedEvent, CellSelectedEvent } from './controls-events'
+import {
+  autoFocusCenterBaseRandomOffsetPercentage,
+  autoFocusCenterEnabled,
+} from './utils/auto-focus-center'
+import { getCellIndex } from './utils/cell'
 
 export default class BaseControls extends CustomEventTarget {
   rawPosition = undefined
@@ -10,10 +15,12 @@ export default class BaseControls extends CustomEventTarget {
     this.initGlobals(store, display)
     this.initProperties()
     this.handleFirstConfig()
+    this.reset()
   }
 
   reset() {
     this.rawPosition = undefined
+    this.resetZoom()
   }
 
   initGlobals(store, display) {
@@ -29,6 +36,10 @@ export default class BaseControls extends CustomEventTarget {
     this.dimensions = this.store.get('dimensions')
     this.pointer = this.store.get('sharedPointer')
     this.cells = this.store.get('cells')
+
+    this.updateBounds()
+
+    this.update = this.handleFirstUpdate
   }
 
   handleFirstUpdate() {
@@ -37,25 +48,20 @@ export default class BaseControls extends CustomEventTarget {
     this.update()
   }
 
-  isAutoFocusCenterEnabled() {
-    return (
-      this.config.autoFocusCenter?.enabled &&
-      (this.config.autoFocusCenter.enabled !== 'touch' || isTouchDevice)
-    )
+  handleFirstConfig() {
+    this.container.style.setProperty('touch-action', 'none')
+    if (this.config.debug) this.logger = createLogger('controls')
+
+    if (autoFocusCenterEnabled(this.config)) {
+      this.handleAutoFocusCenter()
+    }
+
+    this.handleConfig()
   }
 
-  handleFirstConfig() {
-    if (this.config.logging) {
-      this.logger = createLogger('controls')
-    }
-
-    if (this.isAutoFocusCenterEnabled()) {
-      this.assignPointer(this.getAutoFocusCenter())
-      this.update = this.handleAutoFocusUpdate
-    } else {
-      this.update = this.handleFirstUpdate
-    }
-    this.handleConfig()
+  handleAutoFocusCenter() {
+    this.assignPointer(this.getAutoFocusCenter())
+    this.update = this.handleAutoFocusUpdate
   }
 
   handleConfig() {}
@@ -71,7 +77,7 @@ export default class BaseControls extends CustomEventTarget {
       this.assignPointer({
         x: this.rawPosition.x,
         y: this.rawPosition.y,
-        speedScale: 0.2, // tmp hack for omni force
+        speedScale: 0.2, // tmp solution for omni force (base controls only)
       })
     }
 
@@ -84,6 +90,7 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   getCellIndices(position, cb) {
+    if (Number.isNaN(position.x) || Number.isNaN(position.y)) return
     this.display.getPositionCellIndices(position).then((indices) => {
       if (this.isResizing) return
       const primaryIndex = indices?.[0]
@@ -101,20 +108,26 @@ export default class BaseControls extends CustomEventTarget {
 
   getAutoFocusCenter() {
     const { width, height } = this.dimensions.get()
-    const randomOffset = this.config.autoFocusCenter?.random
+    const baseRandomOffsetPercentage =
+      autoFocusCenterBaseRandomOffsetPercentage(this.config)
     return {
       x: Math.floor(
-        width / 2 + (randomOffset ? (0.5 - Math.random()) * 0.1 * width : 0),
+        width / 2 +
+          (baseRandomOffsetPercentage
+            ? (0.5 - Math.random()) * baseRandomOffsetPercentage * width
+            : 0),
       ),
       y: Math.floor(
-        height / 2 + (randomOffset ? (0.5 - Math.random()) * 0.1 * height : 0),
+        height / 2 +
+          (baseRandomOffsetPercentage
+            ? (0.5 - Math.random()) * baseRandomOffsetPercentage * height
+            : 0),
       ),
     }
   }
 
   handleAutoFocusUpdate() {
     if (this.cells.focused) {
-      // this.reset()
       this.update = this.handleFirstUpdate
       return
     }
@@ -136,15 +149,27 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   onPointerDown(e) {
+    if (this.isTouching) return
     this.pointer.down = true
+    this.logger?.debug('onPointerDown')
   }
 
   onPointerUp(e) {
+    if (this.isTouching) return
     this.pointer.down = false
-    this.onPointerClick()
+    this.logger?.debug('onPointerUp')
   }
 
   updateRawPositionFromEvent(e) {
+    this.rawPositionIdle = false
+    if (this.rawPositionIdleTimeout) {
+      clearTimeout(this.rawPositionIdleTimeout)
+    }
+    this.rawPositionIdleTimeout = setTimeout(() => {
+      this.rawPositionIdle = true
+      this.rawPositionIdleTimeout = undefined
+    }, 2000)
+
     if (!this.rawPosition) this.rawPosition = {}
     Object.assign(this.rawPosition, {
       x: e.clientX || e.x,
@@ -154,21 +179,13 @@ export default class BaseControls extends CustomEventTarget {
 
   onPointerMove(e) {
     this.updateRawPositionFromEvent(e)
+    if (this.pointer.down) {
+      this.pointer.downMoved = true
+    }
   }
 
   onTouchMove(e) {
-    if (e.touches.length === 1) {
-      // Single touch - let pointer events handle it
-      this.logger?.debug('onTouchMove')
-      return
-    }
-
-    // Multi-touch gestures
-    if (e.touches.length === 2) {
-      this.handlePinchGesture(e)
-    }
-
-    e.preventDefault() // Prevent pointer events for multi-touch
+    // Single touch - let pointer events handle it
   }
 
   isTouching = false
@@ -181,28 +198,13 @@ export default class BaseControls extends CustomEventTarget {
     this.logger?.debug('onTouchEnd')
   }
 
-  // todo
-  handlePinchGesture(e) {
-    const touch1 = e.touches[0]
-    const touch2 = e.touches[1]
-
-    const distance = Math.hypot(
-      touch1.clientX - touch2.clientX,
-      touch1.clientY - touch2.clientY,
-    )
-
-    if (this.lastPinchDistance) {
-      const scale = distance / this.lastPinchDistance
-      this.handleZoom(scale)
-    }
-
-    this.lastPinchDistance = distance
+  onBlur(event) {
+    this.logger?.debug('onBlur')
+    this.handlePointerOut()
   }
 
-  // todo
-  handleZoom(scale) {}
-
   onPointerOut(event) {
+    if (this.isTouching) return
     this.logger?.debug('onPointerOut')
     this.handlePointerOut()
   }
@@ -213,6 +215,10 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   onPointerClick(e) {
+    if (this.pointer.downMoved) {
+      this.pointer.downMoved = false
+      return
+    }
     this.updateRawPositionFromEvent(e)
     this.requestSelection()
   }
@@ -240,37 +246,43 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   deselect() {
+    this.logger?.debug('deselect')
     this.cells.selectedIndex = undefined
     this.dispatchEvent(new CellSelectedEvent(undefined))
+    this.resetZoom()
   }
 
   initEventListeners() {
     // Store bound function references
+    this.boundOnBlur = this.onBlur.bind(this)
     this.boundOnPointerOut = this.onPointerOut.bind(this)
     this.boundOnPointerClick = this.onPointerClick.bind(this)
     this.boundOnTouchMove = this.onTouchMove.bind(this)
     this.boundOnTouchStart = this.onTouchStart.bind(this)
     this.boundOnTouchEnd = this.onTouchEnd.bind(this)
     this.boundOnPointerMove = this.onPointerMove.bind(this)
+    this.boundOnPointerDown = this.onPointerDown.bind(this)
+    this.boundOnPointerUp = this.onPointerUp.bind(this)
 
-    window.addEventListener('blur', this.boundOnPointerOut)
+    window.addEventListener('blur', this.boundOnBlur)
     this.container.addEventListener('pointerout', this.boundOnPointerOut)
 
-    this.container.addEventListener('click', this.boundOnPointerClick)
-    this.container.addEventListener('pointermove', this.boundOnPointerMove, {
-      // passive: false,
-    }) // Use pointer events for single-point interactions on touch devices as well
-
     if (isTouchDevice) {
-      // Use touch events specifically for multi-touch gestures
-      this.container.addEventListener('touchmove', this.boundOnTouchMove)
+      // Add touch events first to ensure they fire before pointer events
       this.container.addEventListener('touchstart', this.boundOnTouchStart)
+      this.container.addEventListener('touchmove', this.boundOnTouchMove)
       this.container.addEventListener('touchend', this.boundOnTouchEnd)
+    } else {
+      this.container.addEventListener('pointerdown', this.boundOnPointerDown)
+      this.container.addEventListener('pointerup', this.boundOnPointerUp)
     }
+
+    this.container.addEventListener('click', this.boundOnPointerClick)
+    this.container.addEventListener('pointermove', this.boundOnPointerMove)
   }
 
   removeEventListeners() {
-    window.removeEventListener('blur', this.boundOnPointerOut)
+    window.removeEventListener('blur', this.boundOnBlur)
 
     this.container.removeEventListener('click', this.boundOnPointerClick)
     this.container.removeEventListener('pointermove', this.boundOnPointerMove)
@@ -280,11 +292,16 @@ export default class BaseControls extends CustomEventTarget {
       this.container.removeEventListener('touchmove', this.boundOnTouchMove)
       this.container.removeEventListener('touchstart', this.boundOnTouchStart)
       this.container.removeEventListener('touchend', this.boundOnTouchEnd)
+    } else {
+      this.container.removeEventListener('pointerdown', this.boundOnPointerDown)
+      this.container.removeEventListener('pointerup', this.boundOnPointerUp)
     }
   }
 
   isResizing = false
   startResize(dimensions) {
+    this.logger?.debug('startResize')
+    this.updateBounds()
     this.isResizing = true
     this.assignPointer({
       x: undefined,
@@ -296,8 +313,9 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   endResize(dimensions) {
+    this.logger?.debug('endResize')
     if (!this.cells.focused || this.outOfBounds(this.cells.focused)) {
-      if (this.isAutoFocusCenterEnabled()) {
+      if (autoFocusCenterEnabled(this.config)) {
         this.assignPointer(this.getAutoFocusCenter())
       }
       return
@@ -310,21 +328,34 @@ export default class BaseControls extends CustomEventTarget {
     this.isResizing = false
   }
 
-  outOfBounds(position) {
+  boundsPadding = 10
+  updateBounds() {
     const { width, height } = this.dimensions.get()
+    this.bounds = [
+      this.boundsPadding,
+      this.boundsPadding,
+      width - this.boundsPadding,
+      height - this.boundsPadding,
+    ]
+  }
+
+  clampToBounds(position) {
+    position.x = Math.min(Math.max(position.x, this.bounds[0]), this.bounds[2])
+    position.y = Math.min(Math.max(position.y, this.bounds[1]), this.bounds[3])
+    return position
+  }
+
+  outOfBounds(position) {
     return !(
-      position.x >= 0 &&
-      position.x <= width &&
-      position.y >= 0 &&
-      position.y <= height
+      position.x >= this.bounds[0] &&
+      position.x <= this.bounds[2] &&
+      position.y >= this.bounds[1] &&
+      position.y <= this.bounds[3]
     )
   }
 
   selectCell(cellOrCellIndex) {
-    const cellIndex =
-      typeof cellOrCellIndex === 'number'
-        ? cellOrCellIndex
-        : cellOrCellIndex.index
+    const cellIndex = getCellIndex(cellOrCellIndex)
     if (this.cells.selectedIndex !== cellIndex) {
       this.cells.selectedIndex = cellIndex
       this.dispatchEvent(new CellSelectedEvent(this.cells.selected, this.cells))
@@ -333,10 +364,7 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   focusCell(cellOrCellIndex) {
-    const cellIndex =
-      typeof cellOrCellIndex === 'number'
-        ? cellOrCellIndex
-        : cellOrCellIndex.index
+    const cellIndex = getCellIndex(cellOrCellIndex)
     if (this.cells.focusedIndex !== cellIndex) {
       this.cells.focusedIndex = cellIndex
       this.dispatchEvent(new CellFocusedEvent(this.cells.focused, this.cells))
@@ -345,6 +373,10 @@ export default class BaseControls extends CustomEventTarget {
 
   hasSelection() {
     return this.cells.selectedIndex !== undefined
+  }
+
+  hasFocus() {
+    return this.cells.focusedIndex !== undefined
   }
 
   focusedIsSelected() {
