@@ -63,14 +63,14 @@ export const Intro = () => {
           className={cn(
             'relative flex h-1/3 flex-col items-stretch justify-end gap-4 pb-12',
             {
-              'max-lg:landscape:h-1/2 [@media(min-aspect-ratio:2.5)]:h-1/2':
+              'max-lg:landscape:h-1/2 max-lg:landscape:pb-6 [@media(min-aspect-ratio:2.5)]:h-1/2':
                 !preset,
             },
           )}
         >
           <FadeTransition
             visible={!isSmallScreen && !hasDeviceClass}
-            className='absolute inset-x-0 bottom-12 w-full duration-1000'
+            className='absolute inset-x-0 bottom-12 w-full duration-1000 max-lg:landscape:bottom-6'
             transitionOptions={{
               timeout: 500,
             }}
@@ -80,7 +80,7 @@ export const Intro = () => {
           </FadeTransition>
           <FadeTransition
             visible={(hasDeviceClass || isSmallScreen) && !preset}
-            className='absolute inset-x-0 bottom-12 w-full duration-1000'
+            className='absolute inset-x-0 bottom-12 w-full duration-1000 max-lg:landscape:bottom-6'
             transitionOptions={{
               timeout: 500,
             }}
@@ -114,16 +114,17 @@ const DEFAULT_REVEAL_SCREEN_DELAY = 1200
 const DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY = 600
 let hideScreen = OBSCURE_VISUAL_DEFECTS
 function useIntroVisible() {
-  const { introRequired, revealScreenDelay } = useShallowState((state) => ({
-    introRequired: !state.playedIntro || !state.preset,
-    isPreviewMode: state.mode === VOROFORCE_MODE.preview,
-    revealScreenDelay: state.config?.revealScreenDelay
-      ? (state.config.revealScreenDelay.modes?.[state.mode] ??
-        state.config.revealScreenDelay.default)
-      : state.mode === VOROFORCE_MODE.preview
-        ? DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY
-        : DEFAULT_REVEAL_SCREEN_DELAY,
-  }))
+  const { introRequired, voroforceMediaPreloaded, revealScreenDelay } =
+    useShallowState((state) => ({
+      introRequired: !state.playedIntro || !state.preset,
+      voroforceMediaPreloaded: state.voroforceMediaPreloaded,
+      revealScreenDelay: state.config?.revealScreenDelay
+        ? (state.config.revealScreenDelay.modes?.[state.mode] ??
+          state.config.revealScreenDelay.default)
+        : state.mode === VOROFORCE_MODE.preview
+          ? DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY
+          : DEFAULT_REVEAL_SCREEN_DELAY,
+    }))
 
   if (OBSCURE_VISUAL_DEFECTS) {
     const [, forceUpdate] = useReducer((x) => x + 1, 0)
@@ -153,5 +154,5 @@ function useIntroVisible() {
     }, [revealScreenDelay])
   }
 
-  return introRequired || hideScreen
+  return introRequired || hideScreen || !voroforceMediaPreloaded
 }

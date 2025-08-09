@@ -22,6 +22,7 @@ const defaultControlsConfig = {
     random: true,
   },
   maxSpeed: 10,
+  // maxSpeedPinned: 3,
   ease: 0.15,
   freezeOnShake: {
     enabled: true,

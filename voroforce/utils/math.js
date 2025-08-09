@@ -174,3 +174,15 @@ export const smoothstep = (edge0, edge1, x) => {
   // Apply the smoothstep formula: 3x² - 2x³
   return y * y * (3 - 2 * y)
 }
+
+/**
+ * Calculate the Euclidean distance between two points
+ * @param {Object} p1 - First point with x and y properties
+ * @param {Object} p2 - Second point with x and y properties
+ * @returns {number} The distance between the two points
+ */
+export const distance = (p1, p2) => {
+  const dx = p2.x - p1.x
+  const dy = p2.y - p1.y
+  return Math.sqrt(dx * dx + dy * dy)
+}

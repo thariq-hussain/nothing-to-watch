@@ -8,7 +8,7 @@ import { down, matchMediaQuery } from '../../utils/mq'
 import type { THEME } from '../../consts'
 import type { StoreState } from '../../store'
 import { DEVICE_CLASS, type VOROFORCE_MODE, VOROFORCE_PRESET } from '../consts'
-import type { VoroforceInstance } from '../types'
+import type { VoroforceCell, VoroforceInstance } from '../types'
 import type { Film } from './films'
 import type { ConfigUniform } from './uniforms'
 
@@ -27,7 +27,10 @@ export type UserConfig = {
   customLinks?: CustomLink[]
   favorites?: {
     [key: Film['tmdbId']]: {
+      cellId: VoroforceCell['id']
       title: Film['title']
+      year: Film['year']
+      tagline: Film['tagline']
       tmdbId: Film['tmdbId']
       imdbId?: Film['imdbId']
       poster?: Film['poster']

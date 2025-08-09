@@ -5,12 +5,13 @@ import { useShallowState } from '@/store'
 import {
   MIN_LERP_EASING_TYPES,
   type VoroforceCell,
+  type VoroforceCells,
   type VoroforceInstance,
   easedMinLerp,
 } from '@/vf'
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { clamp, lerp } from '../../../utils/math'
-import { down } from '../../../utils/mq'
+import { down, only, orientation } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
 import { Badge } from '../../ui/badge'
 import { FilmPoster } from './shared/film-poster'
@@ -20,7 +21,10 @@ export const FilmPreview = ({ poster = false }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
   const isSmallScreen = useMediaQuery(down('md'))
-
+  const isLandscape = useMediaQuery(orientation('landscape'))
+  const isMdScreen = useMediaQuery(only('md'))
+  const isMdLandscapeScreen = isLandscape && isMdScreen
+  const isStatic = isSmallScreen || isMdLandscapeScreen
   const [measureRef, bounds] = useMeasure()
 
   const { film, isPreviewMode, config, voroforce } = useShallowState(
@@ -46,7 +50,7 @@ export const FilmPreview = ({ poster = false }) => {
   const [reverseY, setReverseY] = useState(false)
   const [hasAppliedStyles, setHasAppliedStyles] = useState(false)
 
-  const cellsRef = useRef<VoroforceCell[]>(null)
+  const cellsRef = useRef<VoroforceCells>(null)
   const primaryCellRef = useRef<VoroforceCell>(null)
   const topNeighborCellRef = useRef<{ x: number; y: number }>(undefined)
   const bottomNeighborCellRef = useRef<{ x: number; y: number }>(undefined)
@@ -61,7 +65,7 @@ export const FilmPreview = ({ poster = false }) => {
   const onCellFocused = useCallback(
     ({ cell }: { cell?: VoroforceCell } = {}) => {
       if (!voroforceRef.current) return
-      if (isSmallScreen) return
+      if (isStatic) return
       if (cell) primaryCellRef.current = cell
       if (!primaryCellRef.current || !cellsRef.current) return
 
@@ -78,7 +82,7 @@ export const FilmPreview = ({ poster = false }) => {
         cellsRef.current[primaryCellRef.current.index + cols] ??
         bottomNeighborCellRef.current
     },
-    [isSmallScreen],
+    [isStatic],
   )
 
   const resetStyles = useCallback(() => {
@@ -101,7 +105,7 @@ export const FilmPreview = ({ poster = false }) => {
 
   useEffect(() => {
     if (!voroforceRef.current) return
-    if (isSmallScreen) {
+    if (isStatic) {
       resetStyles()
       return
     }
@@ -221,19 +225,19 @@ export const FilmPreview = ({ poster = false }) => {
     return () => {
       ticker.removeEventListener('tick', onTick)
     }
-  }, [isSmallScreen, bounds, reverseY, reverseX, applyStyles, resetStyles])
+  }, [isStatic, bounds, reverseY, reverseX, applyStyles, resetStyles])
 
   useEffect(() => {
     if (!voroforceRef.current) return
-    if (isSmallScreen) return
+    if (isStatic) return
     const { controls, cells } = voroforceRef.current
-    if (!cellsRef.current) cellsRef.current = cells as VoroforceCell[]
+    if (!cellsRef.current) cellsRef.current = cells as VoroforceCells
 
     controls.addEventListener('focused', onCellFocused)
     return () => {
       controls.removeEventListener('focused', onCellFocused)
     }
-  }, [isSmallScreen, onCellFocused])
+  }, [isStatic, onCellFocused])
 
   return (
     <>
@@ -244,21 +248,19 @@ export const FilmPreview = ({ poster = false }) => {
             measureRef(element)
           }}
           className={cn(
-            'pointer-events-none fixed top-0 left-0 z-10 w-full max-w-full p-4 opacity-0 transition-opacity duration-700 md:w-300 md:p-0 md:will-change-transform lg:p-9',
+            'pointer-events-none fixed top-0 left-0 z-10 w-full max-w-full p-4 opacity-0 transition-opacity duration-700 lg:p-9',
             {
-              '!opacity-100':
-                isPreviewMode && (hasAppliedStyles || isSmallScreen),
+              'md:w-300 md:p-0 md:will-change-transform': !isStatic,
+              '!opacity-100': isPreviewMode && (hasAppliedStyles || isStatic),
             },
           )}
         >
           <div
             ref={innerRef}
-            className={cn(
-              'flex origin-top-left flex-row gap-3 md:will-change-[transform,opacity] lg:gap-9',
-              {
-                'flex-row-reverse': reverseX,
-              },
-            )}
+            className={cn('flex origin-top-left flex-row gap-3 lg:gap-9', {
+              'md:will-change-[transform,opacity]': !isStatic,
+              'flex-row-reverse': reverseX,
+            })}
           >
             {poster && (
               <FilmPoster
@@ -273,8 +275,10 @@ export const FilmPreview = ({ poster = false }) => {
             )}
             <div
               className={cn(
-                'flex basis-full flex-row justify-between gap-3 md:basis-3/4 md:flex-col md:justify-start md:gap-4 lg:gap-6',
+                'flex basis-full flex-row justify-between gap-3 lg:gap-6',
                 {
+                  'md:basis-3/4 md:flex-col md:justify-start md:gap-4':
+                    !isStatic,
                   'items-end text-right': reverseX,
                   'md:flex-col-reverse': reverseY,
                 },

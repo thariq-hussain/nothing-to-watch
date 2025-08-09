@@ -4,6 +4,7 @@ import { DialogFooter } from '../../../../ui/dialog'
 
 import { useForm } from 'react-hook-form'
 import { useShallowState } from '../../../../../store'
+import { cn } from '../../../../../utils/tw'
 import { Modal } from '../../../../common/modal'
 import { Button } from '../../../../ui/button'
 import {
@@ -39,13 +40,20 @@ const formSchema = v.object({
 type FormData = v.InferOutput<typeof formSchema>
 
 export function AddCustomLinkModal() {
-  const { userConfig, setUserConfig, newLinkTypeOpen, setNewLinkTypeOpen } =
-    useShallowState((state) => ({
-      userConfig: state.userConfig,
-      setUserConfig: state.setUserConfig,
-      newLinkTypeOpen: state.newLinkTypeOpen,
-      setNewLinkTypeOpen: state.setNewLinkTypeOpen,
-    }))
+  const {
+    userConfig,
+    setUserConfig,
+    addCustomLinkTypeOpen,
+    setAddCustomLinkTypeOpen,
+  } = useShallowState((state) => ({
+    userConfig: state.userConfig,
+    setUserConfig: state.setUserConfig,
+    addCustomLinkTypeOpen: state.addCustomLinkTypeOpen,
+    setAddCustomLinkTypeOpen: state.setAddCustomLinkTypeOpen,
+  }))
+
+  const direction =
+    typeof addCustomLinkTypeOpen === 'string' ? addCustomLinkTypeOpen : 'left'
 
   const form = useForm<FormData>({
     resolver: valibotResolver(formSchema),
@@ -70,19 +78,20 @@ export function AddCustomLinkModal() {
       customLinks: [...customLinks],
     })
     form.reset()
-    setNewLinkTypeOpen(false)
+    setAddCustomLinkTypeOpen(false)
   }
 
   return (
     <Modal
       rootProps={{
-        open: newLinkTypeOpen,
-        onOpenChange: setNewLinkTypeOpen,
-        direction: 'left',
+        open: Boolean(addCustomLinkTypeOpen),
+        onOpenChange: setAddCustomLinkTypeOpen,
+        direction,
       }}
       contentProps={{
-        // className: '!top-auto bottom-0',
-        className: '!absolute !top-full pt-0 lg:pt-0',
+        className: cn('!absolute !top-full pt-0 lg:pt-0', {
+          '!top-auto !bottom-full': direction === 'bottom',
+        }),
       }}
       innerContentProps={{
         className: 'bg-background p-6 xl:p-9 border',
@@ -90,6 +99,7 @@ export function AddCustomLinkModal() {
       overlay
       portal={false}
       handle={false}
+      disableVoroforceKeyboardControls
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className=''>
@@ -164,7 +174,15 @@ export function AddCustomLinkModal() {
             />
           </div>
           <DialogFooter>
-            <Button type='submit'>Add</Button>
+            <Button
+              variant='outline'
+              onClick={() => setAddCustomLinkTypeOpen(false)}
+            >
+              Close
+            </Button>
+            <Button variant='default' type='submit'>
+              Add
+            </Button>
           </DialogFooter>
         </form>
       </Form>

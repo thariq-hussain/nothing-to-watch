@@ -6,19 +6,20 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { STORAGE_KEYS, getStorageItem, setStorageItem } from './utils/storage'
 import type {
+  CELL_LIMIT,
   ConfigUniforms,
+  DEVICE_CLASS,
   Film,
   FilmBatch,
   FilmData,
   PerformanceMonitorApi,
   UserConfig,
   VOROFORCE_PRESET,
-  CELL_LIMIT,
-  DEVICE_CLASS,
   VoroforceInstance,
 } from './vf'
 import { DEFAULT_VOROFORCE_MODE, VOROFORCE_MODE } from './vf/consts'
 
+import type { DialogProps } from 'vaul'
 import { THEME } from './consts'
 
 export type StoreState = {
@@ -31,6 +32,8 @@ export type StoreState = {
   setVoroforce: (instance: VoroforceInstance) => void
   config: VoroforceInstance['config']
   setConfig: (instance: VoroforceInstance['config']) => void
+  voroforceMediaPreloaded: boolean
+  setVoroforceMediaPreloaded: (preloaded: boolean) => void
   film?: Film
   setFilm: (film?: Film) => void
   filmBatches: Map<number, FilmData[]>
@@ -39,6 +42,7 @@ export type StoreState = {
   exitSelectMode: () => void
   isSelectMode: boolean
   isPreviewMode: boolean
+  isIntroMode: boolean
   voroforceDevSceneEnabled: boolean
   setVoroforceDevSceneEnabled: (enabled: boolean) => void
   settingsOpen: boolean
@@ -50,9 +54,9 @@ export type StoreState = {
   favoritesOpen: boolean
   setFavoritesOpen: (favoritesOpen: boolean) => void
   toggleFavoritesOpen: () => void
-  newLinkTypeOpen: boolean
-  setNewLinkTypeOpen: (open: boolean) => void
-  toggleNewLinkTypeOpen: () => void
+  addCustomLinkTypeOpen: boolean | DialogProps['direction']
+  setAddCustomLinkTypeOpen: (open: boolean | DialogProps['direction']) => void
+  toggleAddCustomLinkTypeOpen: () => void
   playedIntro: boolean
   setPlayedIntro: (playedIntro: boolean) => void
   preset?: VOROFORCE_PRESET
@@ -91,17 +95,25 @@ export const store = create(
         setVoroforce: (instance: VoroforceInstance) =>
           set({ voroforce: instance }),
         setConfig: (config: VoroforceInstance['config']) => set({ config }),
+        voroforceMediaPreloaded: false,
+        setVoroforceMediaPreloaded: (voroforceMediaPreloaded: boolean) => {
+          set({
+            voroforceMediaPreloaded,
+          })
+        },
         setContainer: (container: HTMLElement) => set({ container }),
         setFilm: (film?: Film) => set({ film }),
         filmBatches: new Map<number, FilmBatch>(),
         mode: initialMode,
         isPreviewMode: initialMode === VOROFORCE_MODE.preview,
         isSelectMode: initialMode === VOROFORCE_MODE.select,
+        isIntroMode: initialMode === VOROFORCE_MODE.intro,
         setMode: (mode: VOROFORCE_MODE) =>
           set({
             mode,
             isSelectMode: mode === VOROFORCE_MODE.select,
             isPreviewMode: mode === VOROFORCE_MODE.preview,
+            isIntroMode: mode === VOROFORCE_MODE.intro,
           }),
         exitSelectMode: () => {
           get().voroforce?.controls?.deselect()
@@ -155,15 +167,17 @@ export const store = create(
           })
         },
 
-        newLinkTypeOpen: false,
-        setNewLinkTypeOpen: (newLinkTypeOpen: boolean) => {
+        addCustomLinkTypeOpen: false,
+        setAddCustomLinkTypeOpen: (
+          addCustomLinkTypeOpen: boolean | DialogProps['direction'],
+        ) => {
           set({
-            newLinkTypeOpen,
+            addCustomLinkTypeOpen,
           })
         },
-        toggleNewLinkTypeOpen: () => {
+        toggleAddCustomLinkTypeOpen: () => {
           set({
-            newLinkTypeOpen: !get().newLinkTypeOpen,
+            addCustomLinkTypeOpen: !get().addCustomLinkTypeOpen,
           })
         },
         playedIntro,

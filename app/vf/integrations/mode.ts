@@ -1,12 +1,16 @@
 import { store } from '@/store'
 import { baseLatticeConfig } from '../config'
-import { type VoroforceCell, updateUniformsByMode } from '../utils'
+import { updateUniformsByMode } from '../utils'
 
 import { VOROFORCE_MODE } from '../consts'
+import type { VoroforceCell } from '../types'
 import { updateControlsByMode } from './controls'
 
 export const revealVoroforceContainer = () => {
-  store.getState().container.classList.remove('opacity-0')
+  // store.getState().container.classList.remove('opacity-0')
+  store.setState({
+    voroforceMediaPreloaded: true,
+  })
 }
 
 let afterModeChangeTimeout: NodeJS.Timeout

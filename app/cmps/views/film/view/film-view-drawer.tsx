@@ -9,10 +9,11 @@ import {
 } from 'react'
 
 import { useShallowState } from '@/store'
+import type { DialogProps } from 'vaul'
 import { useMediaQuery } from '../../../../hooks/use-media-query'
-import { orientation } from '../../../../utils/mq'
+import { down, orientation } from '../../../../utils/mq'
 import { cn } from '../../../../utils/tw'
-import type { Film } from '../../../../vf'
+import type { Film, VoroforceCell } from '../../../../vf'
 import { Modal } from '../../../common/modal'
 
 const AddCustomLinkModal = lazy(() =>
@@ -31,30 +32,41 @@ const FilmViewFooter = lazy(() =>
   })),
 )
 
+const getDefaultDirection = (isLandscape: boolean): DialogProps['direction'] =>
+  isLandscape ? 'left' : 'top'
+
 export const FilmViewDrawer = () => {
-  const landscape = useMediaQuery(orientation('landscape'))
+  const [open, setOpen] = useState(false)
+  const isSmallScreen = useMediaQuery(down('md'))
+  const isLandscape = useMediaQuery(orientation('landscape'))
+  const [direction, setDirection] = useState(getDefaultDirection(isLandscape))
   const [mountContent, setMountContent] = useState(false)
   const [freezeFilm, setFreezeFilm] = useState(false)
   const filmRef = useRef<Film>(undefined)
+  const voroforceCellRef = useRef<VoroforceCell>(undefined)
 
   const {
     film: activeFilm,
     isSelectMode,
     voroforce,
     exitVoroforceSelectMode,
-    newLinkTypeOpen,
+    addCustomLinkTypeOpen,
+    setAddCustomLinkTypeOpen,
   } = useShallowState((state) => ({
     film: state.film,
     isSelectMode: state.isSelectMode,
     voroforce: state.voroforce,
     exitVoroforceSelectMode: state.exitSelectMode,
-    newLinkTypeOpen: state.newLinkTypeOpen,
+    addCustomLinkTypeOpen: state.addCustomLinkTypeOpen,
+    setAddCustomLinkTypeOpen: state.setAddCustomLinkTypeOpen,
   }))
 
-  const film = useMemo(() => {
-    if (freezeFilm) return filmRef.current
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+  const [film, voroforceCell] = useMemo(() => {
+    if (freezeFilm) return [filmRef.current, voroforceCellRef.current]
     filmRef.current = activeFilm
-    return activeFilm
+    voroforceCellRef.current = voroforce?.cells?.focused
+    return [activeFilm, voroforceCellRef.current]
   }, [activeFilm, freezeFilm])
 
   useEffect(() => {
@@ -70,29 +82,69 @@ export const FilmViewDrawer = () => {
   }, [voroforce, isSelectMode, mountContent])
 
   const onClose = useCallback(() => {
-    exitVoroforceSelectMode()
     setFreezeFilm(false)
-  }, [exitVoroforceSelectMode])
+    setOpen(false)
+    setAddCustomLinkTypeOpen(false)
+  }, [setAddCustomLinkTypeOpen])
+
+  const handleClose = useCallback(() => {
+    exitVoroforceSelectMode()
+    onClose()
+  }, [exitVoroforceSelectMode, onClose])
+
+  useEffect(() => {
+    if (isSelectMode) {
+      let direction = getDefaultDirection(isLandscape)
+      const voroforceCell = voroforceCellRef.current
+      if (voroforceCell) {
+        if (isLandscape) {
+          if (voroforceCell.x < window.innerWidth / (isSmallScreen ? 2 : 3)) {
+            direction = 'right'
+          }
+        } else {
+          if (voroforceCell.y < window.innerHeight / 2) {
+            direction = 'bottom'
+          }
+        }
+      }
+      setDirection(direction)
+      setOpen(true)
+    } else {
+      onClose()
+    }
+  }, [isSelectMode, isLandscape, isSmallScreen, onClose])
 
   return (
     <Modal
       rootProps={{
-        direction: landscape ? 'left' : 'top',
-        open: isSelectMode,
-        onClose,
+        direction,
+        open,
+        onClose: handleClose,
         modal: false,
       }}
       contentProps={{
-        onMouseEnter: () => setFreezeFilm(true),
-        onMouseLeave: () => setFreezeFilm(false),
-        className: cn(
-          'group landscape:max-lg:min-w-[33vw] landscape:max-lg:max-w-[66vw]',
-          {
-            'contain-layout contain-paint contain-style': !newLinkTypeOpen,
-          },
-        ),
+        ...(!isSmallScreen && {
+          onMouseEnter: () => setFreezeFilm(true),
+          onMouseLeave: () => setFreezeFilm(false),
+        }),
+        className: cn('group', {
+          'contain-layout contain-paint contain-style': !addCustomLinkTypeOpen,
+          'lg:landscape:pt-24': direction === 'right',
+        }),
       }}
-      footer={mountContent ? <FilmViewFooter film={film} /> : null}
+      innerContentProps={{
+        className: 'relative z-40',
+      }}
+      footer={
+        mountContent ? (
+          <FilmViewFooter
+            film={film}
+            voroforceCell={voroforceCell}
+            handleClose={handleClose}
+            direction={direction}
+          />
+        ) : null
+      }
       handleProps={{
         className:
           'max-md:bg-background max-md:-translate-y-[150%] max-md:h-1.5 lg:bg-transparent lg:backdrop-blur-lg',
