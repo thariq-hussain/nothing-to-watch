@@ -6,11 +6,11 @@ import type { VoroforceCell } from '@/vf'
 import { useMediaQuery } from '../../../../hooks/use-media-query'
 import { down } from '../../../../utils/mq'
 import { cn } from '../../../../utils/tw'
-import { useFilmPreviewAnimation } from './use-film-preview-animation'
-import { useFilmPreviewPositioning } from './use-film-preview-positioning'
 import { Badge } from '../../../ui/badge'
 import { FilmPoster } from '../shared/film-poster'
 import { FilmRatingGauge } from '../shared/film-rating-gauge'
+import { useFilmPreviewAnimation } from './use-film-preview-animation'
+import { useFilmPreviewPositioning } from './use-film-preview-positioning'
 
 export const FilmPreview = ({ poster = false }) => {
   const isSmallScreen = useMediaQuery(down('md'))
@@ -63,7 +63,7 @@ export const FilmPreview = ({ poster = false }) => {
     const onTick = () => {
       const success = updateAnimationValues(pointer)
       if (!success) return
-      
+
       applyStyles(positionRef.current, scaleRef.current)
       checkBoundaryConditions(setReverseX, setReverseY)
     }
@@ -73,7 +73,16 @@ export const FilmPreview = ({ poster = false }) => {
     return () => {
       ticker.removeEventListener('tick', onTick)
     }
-  }, [isSmallScreen, bounds, reverseY, reverseX, updateAnimationValues, checkBoundaryConditions, applyStyles, resetStyles])
+  }, [
+    isSmallScreen,
+    bounds,
+    reverseY,
+    reverseX,
+    updateAnimationValues,
+    checkBoundaryConditions,
+    applyStyles,
+    resetStyles,
+  ])
 
   useEffect(() => {
     if (!voroforceRef.current) return

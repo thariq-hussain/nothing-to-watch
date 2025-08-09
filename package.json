@@ -12,7 +12,11 @@
 		"format": "biome format .",
 		"check": "biome check .",
 		"check:write": "biome check . --write --unsafe",
-		"clean:dist": "bunx rimraf dist"
+		"clean:dist": "bunx rimraf dist",
+		"test": "bunx playwright test",
+		"test:headed": "bunx playwright test --headed",
+		"test:ui": "bunx playwright test --ui",
+		"test:debug": "bunx playwright test --debug"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.0",
@@ -48,6 +52,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@playwright/test": "^1.54.2",
 		"@types/node": "^24.1.0",
 		"@types/react": "^19.1.8",
 		"@types/react-dom": "^19.1.6",

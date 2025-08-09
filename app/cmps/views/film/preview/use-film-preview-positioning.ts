@@ -1,5 +1,5 @@
-import { useCallback, useRef } from 'react'
 import type { VoroforceInstance } from '@/vf'
+import { useCallback, useRef } from 'react'
 
 export const useFilmPreviewPositioning = () => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -14,23 +14,26 @@ export const useFilmPreviewPositioning = () => {
     innerRef.current.style.opacity = ''
   }, [])
 
-  const applyStyles = useCallback((
-    position: { x: number; y: number } | undefined,
-    scale: number,
-  ) => {
-    if (!containerRef.current) return
-    if (!innerRef.current) return
-    if (!position) return
-    containerRef.current.style.translate = `${position.x}px ${position.y}px`
-    innerRef.current.style.scale = `${scale}`
-    innerRef.current.style.opacity = `${scale}`
-  }, [])
+  const applyStyles = useCallback(
+    (position: { x: number; y: number } | undefined, scale: number) => {
+      if (!containerRef.current) return
+      if (!innerRef.current) return
+      if (!position) return
+      containerRef.current.style.translate = `${position.x}px ${position.y}px`
+      innerRef.current.style.scale = `${scale}`
+      innerRef.current.style.opacity = `${scale}`
+    },
+    [],
+  )
 
-  const updateVoroforceRef = useCallback((voroforce: VoroforceInstance | undefined) => {
-    if (voroforce && !voroforceRef.current) {
-      voroforceRef.current = voroforce
-    }
-  }, [])
+  const updateVoroforceRef = useCallback(
+    (voroforce: VoroforceInstance | undefined) => {
+      if (voroforce && !voroforceRef.current) {
+        voroforceRef.current = voroforce
+      }
+    },
+    [],
+  )
 
   return {
     containerRef,

@@ -1,5 +1,5 @@
+import { MIN_LERP_EASING_TYPES, type VoroforceCell, easedMinLerp } from '@/vf'
 import { useCallback, useRef } from 'react'
-import { MIN_LERP_EASING_TYPES, easedMinLerp, type VoroforceCell } from '@/vf'
 import { clamp, lerp } from '../../../../utils/math'
 
 export const useFilmPreviewAnimation = (
@@ -9,9 +9,13 @@ export const useFilmPreviewAnimation = (
   reverseY: boolean,
 ) => {
   const neighborOriginMod = useRef(
-    config && 'neighborOriginMod' in config ? config.neighborOriginMod ?? 1 : 1,
+    config && 'neighborOriginMod' in config
+      ? (config.neighborOriginMod ?? 1)
+      : 1,
   )
-  const scaleMod = useRef(config && 'scaleMod' in config ? config.scaleMod ?? 1 : 1)
+  const scaleMod = useRef(
+    config && 'scaleMod' in config ? (config.scaleMod ?? 1) : 1,
+  )
 
   const cellsRef = useRef<VoroforceCell[]>(null)
   const primaryCellRef = useRef<VoroforceCell>(null)
@@ -24,7 +28,7 @@ export const useFilmPreviewAnimation = (
 
   const onCellFocused = useCallback(
     (
-      { cell }: { cell?: VoroforceCell } = {},
+      { cell }: { cell?: VoroforceCell },
       voroforce: any,
       isSmallScreen: boolean,
     ) => {
@@ -51,7 +55,8 @@ export const useFilmPreviewAnimation = (
 
   const calculateTargetPosition = useCallback(() => {
     if (!primaryCellRef.current) return null
-    if (!topNeighborCellRef.current || !bottomNeighborCellRef.current) return null
+    if (!topNeighborCellRef.current || !bottomNeighborCellRef.current)
+      return null
 
     const neighborCell = reverseY
       ? bottomNeighborCellRef.current
@@ -82,52 +87,59 @@ export const useFilmPreviewAnimation = (
     }
   }, [bounds, reverseX, reverseY])
 
-  const updateAnimationValues = useCallback((pointer: any) => {
-    if (!primaryCellRef.current) return false
-    if (!topNeighborCellRef.current || !bottomNeighborCellRef.current) return false
+  const updateAnimationValues = useCallback(
+    (pointer: any) => {
+      if (!primaryCellRef.current) return false
+      if (!topNeighborCellRef.current || !bottomNeighborCellRef.current)
+        return false
 
-    const targetPosition = calculateTargetPosition()
-    if (!targetPosition) return false
+      const targetPosition = calculateTargetPosition()
+      if (!targetPosition) return false
 
-    if (!positionRef.current) {
-      positionRef.current = {
-        x: targetPosition.x,
-        y: targetPosition.y,
+      if (!positionRef.current) {
+        positionRef.current = {
+          x: targetPosition.x,
+          y: targetPosition.y,
+        }
+      } else {
+        positionRef.current.x = easedMinLerp(
+          positionRef.current.x,
+          targetPosition.x,
+          0.1,
+          MIN_LERP_EASING_TYPES.easeInOutQuad,
+        )
+        positionRef.current.y = easedMinLerp(
+          positionRef.current.y,
+          targetPosition.y,
+          0.1,
+          MIN_LERP_EASING_TYPES.easeInOutQuad,
+        )
       }
-    } else {
-      positionRef.current.x = easedMinLerp(
-        positionRef.current.x,
-        targetPosition.x,
-        0.1,
+
+      const customSpeedScale = 1.25 - clamp(0.25, 1.25, pointer.speedScale * 4)
+      scaleRef.current = easedMinLerp(
+        scaleRef.current,
+        customSpeedScale * (scaleMod.current ?? 1),
+        0.05,
         MIN_LERP_EASING_TYPES.easeInOutQuad,
       )
-      positionRef.current.y = easedMinLerp(
-        positionRef.current.y,
-        targetPosition.y,
-        0.1,
-        MIN_LERP_EASING_TYPES.easeInOutQuad,
+      opacityRef.current = easedMinLerp(
+        opacityRef.current,
+        customSpeedScale,
+        0.05,
       )
-    }
 
-    const customSpeedScale = 1.25 - clamp(0.25, 1.25, pointer.speedScale * 4)
-    scaleRef.current = easedMinLerp(
-      scaleRef.current,
-      customSpeedScale * (scaleMod.current ?? 1),
-      0.05,
-      MIN_LERP_EASING_TYPES.easeInOutQuad,
-    )
-    opacityRef.current = easedMinLerp(
-      opacityRef.current,
-      customSpeedScale,
-      0.05,
-    )
-
-    frameRef.current++
-    return true
-  }, [calculateTargetPosition])
+      frameRef.current++
+      return true
+    },
+    [calculateTargetPosition],
+  )
 
   const checkBoundaryConditions = useCallback(
-    (setReverseX: (reverse: boolean) => void, setReverseY: (reverse: boolean) => void) => {
+    (
+      setReverseX: (reverse: boolean) => void,
+      setReverseY: (reverse: boolean) => void,
+    ) => {
       if (frameRef.current % 60 !== 0) return
       if (!primaryCellRef.current || !topNeighborCellRef.current) return
 
