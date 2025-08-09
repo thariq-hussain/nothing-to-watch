@@ -3,6 +3,7 @@ import { Favorites } from './favorites'
 import { FilmPreview, FilmViewDrawer } from './film'
 import { LowFpsAlert } from './low-fps-alert'
 import { Settings } from './settings'
+import { HotkeysView } from './hotkeys'
 
 const PrimaryViews = () => (
   <>
@@ -12,6 +13,7 @@ const PrimaryViews = () => (
     <FilmPreview />
     <FilmViewDrawer />
     <LowFpsAlert />
+    <HotkeysView />
   </>
 )
 
