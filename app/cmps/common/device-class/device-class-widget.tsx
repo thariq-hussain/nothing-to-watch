@@ -5,7 +5,7 @@ import { useShallowState } from '../../../store'
 import { isDefined } from '../../../utils/misc'
 import { down } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
-import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts.ts'
+import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts'
 import { Button, type ButtonProps } from '../../ui/button'
 import { DeviceClassSelector } from './device-class-selector'
 
@@ -53,13 +53,13 @@ export function DeviceClassWidget({
           const deviceClass = isDefined(selectedDeviceClass)
             ? selectedDeviceClass
             : estimatedDeviceClass
-          if (deviceClass) {
+          if (typeof deviceClass === 'number' && deviceClass >= 0) {
             setStoreDeviceClass(deviceClass)
             onSubmit?.()
           }
         }}
         size='lg'
-        disabled={!isSmallScreen && !selectedDeviceClass}
+        disabled={!isSmallScreen && !isDefined(selectedDeviceClass)}
         {...submitProps}
         className={cn('w-full cursor-pointer text-lg', submitProps?.className)}
       >

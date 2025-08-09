@@ -1,7 +1,7 @@
 import { TabletSmartphone } from 'lucide-react'
 import { useMemo } from 'react'
 import { cn } from '../../../utils/tw'
-import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts.ts'
+import { DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts'
 import { Badge } from '../../ui/badge'
 import { Selector, type SelectorItems } from '../selector'
 
@@ -17,7 +17,12 @@ export function DeviceClassSelector({
   onValueChange: (value: DEVICE_CLASS) => void
 }) {
   const deviceClassItems: SelectorItems = useMemo(() => {
-    return DEVICE_CLASS_ITEMS.map((deviceClass) => {
+    return DEVICE_CLASS_ITEMS.filter((deviceClass) => {
+      if (estimatedValue === DEVICE_CLASS.mobile) {
+        return deviceClass.id < DEVICE_CLASS.high
+      }
+      return deviceClass.id !== DEVICE_CLASS.mobile
+    }).map((deviceClass) => {
       return {
         label: deviceClass.name,
         value: String(deviceClass.id),
@@ -26,7 +31,7 @@ export function DeviceClassSelector({
             <Badge className='-translate-x-1/2 -translate-y-1/2 !text-background pointer-events-none absolute top-0 left-1/2 text-xxs'>
               Estimated
             </Badge>
-          ) : undefined,
+          ) : null,
       }
     })
   }, [estimatedValue])
