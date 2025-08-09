@@ -4,22 +4,22 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { useShallow } from 'zustand/react/shallow'
 
-import {
-  type ConfigUniforms,
-  DEFAULT_VOROFORCE_MODE,
-  type Film,
-  type FilmBatch,
-  type FilmData,
-  type PerformanceMonitorApi,
-  type UserConfig,
-  VOROFORCE_MODE,
-  type VOROFORCE_PRESET,
-  type VoroforceInstance,
+import { STORAGE_KEYS, getStorageItem, setStorageItem } from './utils/storage'
+import type {
+  ConfigUniforms,
+  Film,
+  FilmBatch,
+  FilmData,
+  PerformanceMonitorApi,
+  UserConfig,
+  VOROFORCE_PRESET,
+  CELL_LIMIT,
+  DEVICE_CLASS,
+  VoroforceInstance,
 } from './vf'
+import { DEFAULT_VOROFORCE_MODE, VOROFORCE_MODE } from './vf/consts'
 
 import { THEME } from './consts'
-import { STORAGE_KEYS, getStorageItem, setStorageItem } from './utils/storage'
-import type { CELL_LIMIT, DEVICE_CLASS } from './vf/consts'
 
 export type StoreState = {
   theme: THEME
