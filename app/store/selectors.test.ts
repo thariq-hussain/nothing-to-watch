@@ -1,6 +1,8 @@
+import { UAParser } from 'ua-parser-js'
 import { describe, expect, it } from 'vitest'
 import { THEME } from '../consts'
-import { VOROFORCE_MODE } from '../vf/consts'
+import { VOROFORCE_MODE, VOROFORCE_PRESET } from '../vf/consts'
+import type { ConfigUniforms, VoroforceInstance } from '../vf'
 import type { StoreState } from './index'
 import {
   selectAnyModalOpen,
@@ -33,7 +35,7 @@ const createMockState = (overrides: Partial<StoreState> = {}): StoreState => ({
   toggleAddCustomLinkTypeOpen: () => {},
 
   // Voroforce Slice defaults
-  ua: {} as any,
+  ua: new UAParser(),
   setContainer: () => {},
   setVoroforce: () => {},
   setConfig: () => {},
@@ -53,9 +55,9 @@ const createMockState = (overrides: Partial<StoreState> = {}): StoreState => ({
   setUserConfig: () => {},
   userConfig: { cells: 100, devTools: false },
   configUniforms: {
-    main: {} as any,
-    post: {} as any,
-    transitioning: {} as any,
+    main: new Map() as ConfigUniforms,
+    post: new Map() as ConfigUniforms,
+    transitioning: new Map() as ConfigUniforms,
   },
   setPerformanceMonitor: () => {},
 
@@ -147,13 +149,13 @@ describe('Store Selectors', () => {
       expect(selectVoroforceReady(stateNotReady)).toBe(false)
 
       const stateWithVoroforce = createMockState({
-        voroforce: {} as any,
+        voroforce: {} as VoroforceInstance,
         voroforceMediaPreloaded: false,
       })
       expect(selectVoroforceReady(stateWithVoroforce)).toBe(false)
 
       const stateReady = createMockState({
-        voroforce: {} as any,
+        voroforce: {} as VoroforceInstance,
         voroforceMediaPreloaded: true,
       })
       expect(selectVoroforceReady(stateReady)).toBe(true)
@@ -161,11 +163,11 @@ describe('Store Selectors', () => {
 
     it('should select app readiness', () => {
       const state = createMockState({
-        voroforce: {} as any,
+        voroforce: {} as VoroforceInstance,
         voroforceMediaPreloaded: true,
         playedIntro: true,
         mode: VOROFORCE_MODE.select,
-        preset: 'balanced' as any,
+        preset: VOROFORCE_PRESET.depth,
       })
 
       const readiness = selectAppReadiness(state)

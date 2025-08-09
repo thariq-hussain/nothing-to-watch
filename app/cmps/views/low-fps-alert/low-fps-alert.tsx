@@ -6,7 +6,7 @@ import { useShallowState } from '../../../store'
 import { orientation, up } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
 import { VOROFORCE_PRESET } from '../../../vf'
-import { DEVICE_CLASS } from '../../../vf/consts'
+import { DEVICE_CLASS, VOROFORCE_MODE } from '../../../vf/consts'
 import { CoreSettingsWidget } from '../../common/core-settings/core-settings-widget'
 import { Modal } from '../../common/modal'
 
@@ -18,7 +18,7 @@ export const LowFpsAlert = () => {
     performanceMonitor,
     preset,
     ticker,
-    isSelectMode,
+    mode,
     estimatedDeviceClass,
     setEstimatedDeviceClass,
     setAboutOpen,
@@ -28,7 +28,7 @@ export const LowFpsAlert = () => {
     performanceMonitor: state.performanceMonitor,
     preset: state.preset,
     ticker: state.voroforce?.ticker,
-    isSelectMode: state.isSelectMode,
+    mode: state.mode,
     estimatedDeviceClass: state.estimatedDeviceClass,
     setEstimatedDeviceClass: state.setEstimatedDeviceClass,
     setAboutOpen: state.setAboutOpen,
@@ -107,8 +107,8 @@ export const LowFpsAlert = () => {
   }, [performanceMonitor, openedCount, warnLimit, open])
 
   useEffect(() => {
-    setAlignContentToBottom(isSelectMode && isLgScreen)
-  }, [isSelectMode, isLgScreen])
+    setAlignContentToBottom(mode === VOROFORCE_MODE.select && isLgScreen)
+  }, [mode, isLgScreen])
 
   return (
     <Modal

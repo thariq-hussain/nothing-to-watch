@@ -8,6 +8,8 @@ export const handleTicker = () => {
     configUniforms: { transitioning: transitioningUniforms },
   } = store.getState()
 
+  if (!voroforce) return
+
   const performanceMonitor = initPerformanceMonitor()
   store.setState({
     performanceMonitor,
