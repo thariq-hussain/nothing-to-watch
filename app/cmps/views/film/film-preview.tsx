@@ -248,7 +248,7 @@ export const FilmPreview = ({ poster = false }) => {
             measureRef(element)
           }}
           className={cn(
-            'pointer-events-none fixed top-0 left-0 z-10 w-full max-w-full p-4 opacity-0 transition-opacity duration-700 lg:p-9',
+            'pointer-events-none fixed top-0 left-0 z-10 w-full max-w-full p-4 opacity-0 transition-opacity duration-700 md:p-9 md:landscape:w-auto md:landscape:max-w-2/3',
             {
               'md:w-300 md:p-0 md:will-change-transform': !isStatic,
               '!opacity-100': isPreviewMode && (hasAppliedStyles || isStatic),
@@ -275,7 +275,7 @@ export const FilmPreview = ({ poster = false }) => {
             )}
             <div
               className={cn(
-                'flex basis-full flex-row justify-between gap-3 lg:gap-6',
+                'flex basis-full flex-row justify-between gap-3 lg:gap-6 md:landscape:flex-row-reverse',
                 {
                   'md:basis-3/4 md:flex-col md:justify-start md:gap-4':
                     !isStatic,
