@@ -13,7 +13,6 @@ export type PersistentSettings = {
   preset?: VOROFORCE_PRESET
   cellLimit?: CELL_LIMIT
   deviceClass?: DEVICE_CLASS
-  estimatedDeviceClass?: DEVICE_CLASS
   userConfig: UserConfig
 }
 

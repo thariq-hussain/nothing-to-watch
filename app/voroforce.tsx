@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { initVoroforce } from './vf'
 import { store } from './store'
+import { initVoroforce } from './vf'
 
 export function Voroforce() {
   const [error, setError] = useState<Error | null>(null)

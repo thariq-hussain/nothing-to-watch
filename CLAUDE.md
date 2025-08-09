@@ -13,6 +13,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `bun check:write` - Auto-fix Biome issues with unsafe fixes
 - `bun analyze` - Build with bundle analysis enabled
 
+## Testing Commands
+
+- `bun run test` - Run unit tests with Vitest (use `bun run test`, not `bun test`)
+- `bun test:unit` - Run unit tests with Vitest  
+- `bun test:unit:coverage` - Run unit tests with coverage report
+- `bun test:e2e` - Run end-to-end tests with Playwright
+- `bun test:e2e:headed` - Run E2E tests in headed mode (visible browser)
+- `bun test:e2e:ui` - Run E2E tests with Playwright UI
+
 ## Architecture Overview
 
 This is a React application that visualizes film data using WebGL and a custom Voronoi force simulation called "Voroforce". The app renders thousands of film posters in an interactive force-directed diagram.

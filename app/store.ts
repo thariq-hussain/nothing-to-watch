@@ -206,9 +206,9 @@ export const store = create(
           updatePersistentSetting('deviceClass', deviceClass)
           set({ deviceClass })
         },
-        estimatedDeviceClass: persistentSettings.estimatedDeviceClass,
+        // estimatedDeviceClass is transient - computed at runtime, not persisted
+        estimatedDeviceClass: undefined,
         setEstimatedDeviceClass: (estimatedDeviceClass: DEVICE_CLASS) => {
-          updatePersistentSetting('estimatedDeviceClass', estimatedDeviceClass)
           set({ estimatedDeviceClass })
         },
         setFilmViewBounds: (filmViewBounds: RectReadOnly) => {

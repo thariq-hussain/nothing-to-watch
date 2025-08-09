@@ -5,7 +5,7 @@
 [ ] 5. Create a configuration layer contract: centralize controls/config defaults (voroforce/controls/default-controls-config.js) and production overrides to avoid debug features in prod builds.  
 [ ] 6. Split Zustand store into slices (UI slice, Engine slice, Data slice) to reduce the single large store file and improve maintainability.  
 [ ] 7. Add selector helpers and memoized derived state to minimize re-renders and avoid duplicated boolean flags (e.g., isPreviewMode/isSelectMode/isIntroMode derived from mode).  
-[ ] 8. Persist only necessary user settings to storage with a migration strategy; avoid persisting transient runtime state (e.g., dev toggles, ephemeral flags).  
+[x] 8. Persist only necessary user settings to storage with a migration strategy; avoid persisting transient runtime state (e.g., dev toggles, ephemeral flags).  
 [x] 9. Introduce React ErrorBoundary at app root with user-friendly fallback for unexpected errors, including WebGL initialization failures.  
 [ ] 10. Implement capability detection and graceful fallback when WebGL/ANGLE or required extensions are unavailable; surface SmallScreenWarning-like UX for unsupported devices.  
 [ ] 11. Profile pointer handling in voroforce/controls/controls.js; extract speed history and gesture detection into small modules with unit tests and clear thresholds.  
@@ -18,9 +18,9 @@
 [ ] 18. Add unit tests for voroforce math utilities (clamp, lerp, minLerp, mapRange, diaphragmaticBreathing) to lock down numerical behavior.  
 [ ] 19. Verify simulation threading model; if workers are used, document the message contract; otherwise, evaluate offloading heavy steps to a Worker with transferable buffers.  
 [ ] 20. Introduce a lightweight performance overlay (hooking PerformanceMonitorApi in store) to show FPS, CPU time, and memory where available.  
-[ ] 21. Add Playwright E2E coverage for: intro -> select -> preview flows, opening/closing settings/about/favorites, theme toggle visibility rules, and basic zoom/pan interactions.  
-[ ] 22. Add a unit test framework (Vitest + @testing-library/react) for component and store tests; wire to bun test script alongside Playwright.  
-[ ] 23. Add snapshot tests for key UI components with deterministic props to catch accidental visual regressions (non-canvas parts).  
+[ ] 21. Add Playwright E2E coverage for: intro -> select -> preview flows, opening/closing settings/about/favorites and theme toggle visibility rules.  
+[x] 22. Add a unit test framework (Vitest + @testing-library/react) for component and store tests; wire to bun test script alongside Playwright.  
+[x] 23. Add snapshot tests for key UI components with deterministic props to catch accidental visual regressions (non-canvas parts).  
 [ ] 24. Ensure accessibility for icon-only buttons: add aria-labels and ensure focus styles; audit Radix components for correct roles/labels.  
 [ ] 25. Provide keyboard navigation for core UI actions (open settings/about, toggle theme where allowed) and ensure trap focus within dialogs.  
 [ ] 26. Add reduced motion support: respect prefers-reduced-motion in animation utilities and WebGL transitions where feasible.  

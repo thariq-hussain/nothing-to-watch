@@ -21,8 +21,6 @@ export type CustomLink = {
 
 export type UserConfig = {
   cells?: number
-  noPostEffects?: boolean
-  forceHigherQuality?: boolean
   devTools?: boolean
   customLinks?: CustomLink[]
   favorites?: {
