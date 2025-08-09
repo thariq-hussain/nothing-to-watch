@@ -120,7 +120,6 @@ export class Voroforce extends CustomEventTarget {
 
   initData() {
     this.sharedData = initSharedData(this.config)
-    // this.sharedPointer = initSharedPointer(this.config)
     this.sharedCellData = initSharedCellData(
       this.config.cells ?? 512,
       this.config,
@@ -156,7 +155,6 @@ export class Voroforce extends CustomEventTarget {
       loader: this.loader,
       controls: this.controls,
       ...this.sharedData,
-      // ...this.sharedPointer,
       ...this.sharedCellData,
       ...this.sharedLoadedMediaVersionLayersData,
     })

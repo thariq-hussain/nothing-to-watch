@@ -23,9 +23,9 @@ export default class ForcesSimulationStep extends BaseSimulationStep {
     this.updateParameters(this.config.parameters)
   }
 
-  updateParameters(parameters, config = { forcetransition: false }) {
+  updateParameters(parameters, config = { forceTransition: false }) {
     if (!parameters) return
-    if (this.parameters && (config?.forcetransition || parameters.transition)) {
+    if (this.parameters && (config?.forceTransition || parameters.transition)) {
       this.targetParameters = {
         alpha: parameters.alpha,
         velocityDecay: parameters.velocityDecay,
@@ -152,62 +152,10 @@ export default class ForcesSimulationStep extends BaseSimulationStep {
     cell.initialVx = cell.vx
     cell.initialVy = cell.vy
 
-    this.handleCellMediaVersion(cell)
+    this.handleCellTargetMediaVersion(cell)
   }
 
-  // tick(iterations = 1) {
-  //   let i
-  //   let cell
-  //
-  //   // defaults
-  //   let {
-  //     alpha = 1,
-  //     alphaMin = 0.001,
-  //     alphaDecay = 1 - alphaMin ** 1 / 300,
-  //     alphaTarget = 0,
-  //     velocityDecay = 0.6,
-  //   } = this.config.parameters
-  //
-  //   if (this.mediaConfig.enabled) {
-  //     this.mediaVersionLayerLoadRequests.forEach((set) => set.clear())
-  //   }
-  //
-  //   for (let k = 0; k < iterations; ++k) {
-  //     alpha += (alphaTarget - alpha) * alphaDecay
-  //
-  //     this.forces.forEach((force) => {
-  //       force(alpha)
-  //     })
-  //
-  //     for (i = 0; i < this.numCells; ++i) {
-  //       cell = this.cells[i]
-  //
-  //       // if (isNumber(cell.fx) && isNumber(cell.fy)) {
-  //       //   handleCellPins(cell)
-  //       // }
-  //
-  //       if (cell.fx == null) cell.x += cell.vx *= 1 - velocityDecay
-  //       else {
-  //         cell.x = cell.fx
-  //         cell.vx = 0
-  //       }
-  //       if (cell.fy == null) cell.y += cell.vy *= 1 - velocityDecay
-  //       else {
-  //         cell.y = cell.fy
-  //         cell.vy = 0
-  //       }
-  //
-  //       cell.initialVx = cell.vx
-  //       cell.initialVy = cell.vy
-  //
-  //       this.handleCellMediaVersion(cell)
-  //     }
-  //   }
-  //
-  //   this.handleMediaVersionLayerLoadRequests()
-  // }
-
-  handleCellMediaVersion(cell) {
+  handleCellTargetMediaVersion(cell) {
     if (!this.mediaConfig.enabled) return
 
     if (cell.targetMediaVersion !== cell.mediaVersion) {

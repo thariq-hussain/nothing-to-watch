@@ -6,7 +6,7 @@ import {
   CELL_LIMIT,
   CELL_LIMIT_ITEMS,
   DEVICE_CLASS,
-} from '../../../vf/consts.ts'
+} from '../../../vf/consts'
 import { DeviceClassWarningMessage } from '../device-class/device-class-warning-message'
 import { Selector, type SelectorItems } from '../selector'
 
