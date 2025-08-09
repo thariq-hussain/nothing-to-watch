@@ -18,6 +18,7 @@ import {
 } from './vf'
 
 import { THEME } from './consts'
+import { STORAGE_KEYS, getStorageItem, setStorageItem } from './utils/storage'
 import type { CELL_LIMIT, DEVICE_CLASS } from './vf/consts'
 
 export type StoreState = {
@@ -74,24 +75,16 @@ export type StoreState = {
   performanceMonitor?: PerformanceMonitorApi
   setPerformanceMonitor: (performanceMonitor: PerformanceMonitorApi) => void
 }
-const THEME_STORAGE_KEY = 'theme'
-const PLAYED_INTRO_STORAGE_KEY = 'playedIntro'
-const PRESET_STORAGE_KEY = 'preset'
-const CELL_LIMIT_STORAGE_KEY = 'cellLimit'
-const DEVICE_CLASS_STORAGE_KEY = 'deviceClass'
-const ESTIMATED_DEVICE_CLASS_STORAGE_KEY = 'estimatedDeviceClass'
-const USER_CONFIG_STORAGE_KEY = 'userConfig'
-
-const playedIntro = Boolean(localStorage.getItem(PLAYED_INTRO_STORAGE_KEY))
+const playedIntro = getStorageItem(STORAGE_KEYS.PLAYED_INTRO) ?? false
 const initialMode = playedIntro ? DEFAULT_VOROFORCE_MODE : VOROFORCE_MODE.intro
 
 export const store = create(
   subscribeWithSelector<StoreState>(
     (set, get) =>
       ({
-        theme: (localStorage.getItem(THEME_STORAGE_KEY) as THEME) || THEME.dark,
+        theme: getStorageItem(STORAGE_KEYS.THEME) ?? THEME.dark,
         setTheme: (theme: THEME) => {
-          localStorage.setItem(THEME_STORAGE_KEY, theme)
+          setStorageItem(STORAGE_KEYS.THEME, theme)
           set({ theme })
         },
         ua: new UAParser(),
@@ -178,58 +171,38 @@ export const store = create(
           set({
             playedIntro,
           })
-          localStorage.setItem(
-            PLAYED_INTRO_STORAGE_KEY,
-            playedIntro ? String(playedIntro) : '',
-          )
+          setStorageItem(STORAGE_KEYS.PLAYED_INTRO, playedIntro)
         },
-        preset: localStorage.getItem(PRESET_STORAGE_KEY)
-          ? (localStorage.getItem(PRESET_STORAGE_KEY) as VOROFORCE_PRESET)
-          : undefined,
+        preset: getStorageItem(STORAGE_KEYS.PRESET) ?? undefined,
         setPreset: (preset: VOROFORCE_PRESET) => {
           set({
             preset,
           })
-          localStorage.setItem(PRESET_STORAGE_KEY, preset)
+          setStorageItem(STORAGE_KEYS.PRESET, preset)
         },
-        cellLimit: localStorage.getItem(CELL_LIMIT_STORAGE_KEY)
-          ? (Number.parseInt(
-              localStorage.getItem(CELL_LIMIT_STORAGE_KEY) as string,
-            ) as CELL_LIMIT)
-          : undefined,
+        cellLimit: getStorageItem(STORAGE_KEYS.CELL_LIMIT) ?? undefined,
         setCellLimit: (cellLimit: CELL_LIMIT) => {
           set({
             cellLimit,
           })
-          localStorage.setItem(CELL_LIMIT_STORAGE_KEY, String(cellLimit))
+          setStorageItem(STORAGE_KEYS.CELL_LIMIT, cellLimit)
         },
-        deviceClass: localStorage.getItem(DEVICE_CLASS_STORAGE_KEY)
-          ? (Number.parseInt(
-              localStorage.getItem(DEVICE_CLASS_STORAGE_KEY) as string,
-            ) as DEVICE_CLASS)
-          : undefined,
+        deviceClass: getStorageItem(STORAGE_KEYS.DEVICE_CLASS) ?? undefined,
         setDeviceClass: (deviceClass: DEVICE_CLASS) => {
           set({
             deviceClass,
           })
-          localStorage.setItem(DEVICE_CLASS_STORAGE_KEY, String(deviceClass))
+          setStorageItem(STORAGE_KEYS.DEVICE_CLASS, deviceClass)
         },
-        estimatedDeviceClass: localStorage.getItem(
-          ESTIMATED_DEVICE_CLASS_STORAGE_KEY,
-        )
-          ? (Number.parseInt(
-              localStorage.getItem(
-                ESTIMATED_DEVICE_CLASS_STORAGE_KEY,
-              ) as string,
-            ) as DEVICE_CLASS)
-          : undefined,
+        estimatedDeviceClass:
+          getStorageItem(STORAGE_KEYS.ESTIMATED_DEVICE_CLASS) ?? undefined,
         setEstimatedDeviceClass: (estimatedDeviceClass: DEVICE_CLASS) => {
           set({
             estimatedDeviceClass,
           })
-          localStorage.setItem(
-            ESTIMATED_DEVICE_CLASS_STORAGE_KEY,
-            String(estimatedDeviceClass),
+          setStorageItem(
+            STORAGE_KEYS.ESTIMATED_DEVICE_CLASS,
+            estimatedDeviceClass,
           )
         },
         setFilmViewBounds: (filmViewBounds: RectReadOnly) => {
@@ -237,17 +210,12 @@ export const store = create(
             filmViewBounds,
           })
         },
-        userConfig: localStorage.getItem(USER_CONFIG_STORAGE_KEY)
-          ? JSON.parse(localStorage.getItem(USER_CONFIG_STORAGE_KEY) as string)
-          : {},
+        userConfig: getStorageItem(STORAGE_KEYS.USER_CONFIG) ?? {},
         setUserConfig: (userConfig: UserConfig) => {
           set({
             userConfig,
           })
-          localStorage.setItem(
-            USER_CONFIG_STORAGE_KEY,
-            JSON.stringify(userConfig),
-          )
+          setStorageItem(STORAGE_KEYS.USER_CONFIG, userConfig)
         },
         setPerformanceMonitor: (performanceMonitor) => {
           set({
