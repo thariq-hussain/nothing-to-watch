@@ -25,7 +25,8 @@ export const HotkeysView = () => {
   useEffect(() => {
     let timeout: NodeJS.Timeout
     if (isIntroMode && hasMouse && isMdScreen && hasPreset) {
-      setIsOpen(true)
+      // give voroforce some cpu time
+      timeout = setTimeout(() => setIsOpen(true), 300)
     } else if (isOpen) {
       timeout = setTimeout(() => setIsOpen(false), 3000)
     }
