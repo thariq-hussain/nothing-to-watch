@@ -1,13 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { THEME } from './consts'
-import { store } from './store'
-import { VOROFORCE_MODE } from './vf/consts'
+import { THEME } from '../consts'
+import { store } from './index'
+import { VOROFORCE_MODE } from '../vf/consts'
 
 describe('Store', () => {
   beforeEach(() => {
     // Reset store to initial state
     localStorage.clear()
-    // Re-initialize store would require module reloading, so we'll test from current state
   })
 
   describe('Theme management', () => {

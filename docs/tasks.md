@@ -3,7 +3,7 @@
 [ ] 3. Extract and document a schema for display uniforms and mode/theme transitions (app/vf/config/display) to reduce implicit coupling and magic numbers.  
 [ ] 4. Introduce domain types for Film, FilmBatch, FilmData at the edges (loader, store, components) and validate with Valibot during ingestion.  
 [ ] 5. Create a configuration layer contract: centralize controls/config defaults (voroforce/controls/default-controls-config.js) and production overrides to avoid debug features in prod builds.  
-[ ] 6. Split Zustand store into slices (UI slice, Engine slice, Data slice) to reduce the single large store file and improve maintainability.  
+[x] 6. Split Zustand store into slices (UI slice, Engine slice, Data slice) to reduce the single large store file and improve maintainability.  
 [ ] 7. Add selector helpers and memoized derived state to minimize re-renders and avoid duplicated boolean flags (e.g., isPreviewMode/isSelectMode/isIntroMode derived from mode).  
 [x] 8. Persist only necessary user settings to storage with a migration strategy; avoid persisting transient runtime state (e.g., dev toggles, ephemeral flags).  
 [x] 9. Introduce React ErrorBoundary at app root with user-friendly fallback for unexpected errors, including WebGL initialization failures.  
