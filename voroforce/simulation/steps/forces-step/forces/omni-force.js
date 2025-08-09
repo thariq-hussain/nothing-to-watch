@@ -252,7 +252,7 @@ export const omniForce = () => {
         // pushStrength = _pushStrength,
         pushStrength = _pushStrength * 0.5,
         radius: pushRadius = getPushRadius(dimensions),
-        pushRadius2 = pushRadius * pushRadius,
+        pushRadiusSquared = pushRadius * pushRadius,
         radiusLimit: pushRadiusLimit = true,
         xFactor: configPushXMod = 1,
         yFactor: configPushYMod = 1,
@@ -445,6 +445,16 @@ export const omniForce = () => {
         complementPointerSpeedScale = 1 - pointerSpeedScale
       }
 
+      // media loading logic for primary cell, needs to run as early as possible
+      if (requestMediaVersions) {
+        if (pointerSpeedScale < mediaVMaxSpeedLimit) {
+          primaryCell.targetMediaVersion = max(
+            primaryCell.targetMediaVersion,
+            maxTargetMediaVersion,
+          )
+        }
+      }
+
       slowIdlePrimaryCellMod = minLerp(
         slowIdlePrimaryCellMod,
         1,
@@ -467,7 +477,6 @@ export const omniForce = () => {
 
       // todo tmp?
       if (smoothPrimaryCell && idlePrimaryCellMod < 1) {
-        // console.log('idlePrimaryCellMod', idlePrimaryCellMod)
         primaryCellX = lerp(prevPrimaryCellX, primaryCellX, idlePrimaryCellMod)
         primaryCellY = lerp(prevPrimaryCellY, primaryCellY, idlePrimaryCellMod)
       }
@@ -524,6 +533,14 @@ export const omniForce = () => {
 
       prevCenterX = centerX
       prevCenterY = centerY
+
+      // todo handles large jumps, keep an eye on it
+      const targetCenterDistScale =
+        squaredDist(centerX, centerY, targetCenterX, targetCenterY) /
+        (pushRadiusSquared * 0.00025)
+      if (targetCenterDistScale > 1) {
+        centerLerp = min(centerLerp * targetCenterDistScale, 1)
+      }
 
       centerX = minLerp(centerX, targetCenterX, centerLerp)
       centerY = minLerp(centerY, targetCenterY, centerLerp)
@@ -662,7 +679,7 @@ export const omniForce = () => {
 
           l = x * x + y * y
 
-          if (l < pushRadius2) {
+          if (0 < l && l < pushRadiusSquared) {
             l = sqrt(l)
             l = (pushRadius - l) / l
             l *= commonPushDistMod
@@ -683,13 +700,6 @@ export const omniForce = () => {
                   cell.colLevelAdjacency,
                   cell.rowLevelAdjacency,
                 )
-              } else {
-                if (pointerSpeedScale < mediaVMaxSpeedLimit) {
-                  primaryCell.targetMediaVersion = max(
-                    primaryCell.targetMediaVersion,
-                    maxTargetMediaVersion,
-                  )
-                }
               }
             }
 
