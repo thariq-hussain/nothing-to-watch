@@ -43,8 +43,8 @@
 [ ] 43. Add a developer setup guide covering env vars, data sources, test running, debugging WebGL, and common scripts.  
 [ ] 44. Document and validate env vars (e.g., VITE_ANALYZE_BUNDLE, VITE_COMPRESS_GLSL) with defaults and examples in .env.local.example.  
 [ ] 45. Review and document license and attribution for media, libraries, and fonts; add NOTICE if required.  
-[ ] 46. Add robots.txt and optional sitemap.xml generation for public deployments; clarify indexing expectations.  
+[x] 46. Add robots.txt and optional sitemap.xml generation for public deployments; clarify indexing expectations.  
 [ ] 47. Create a security checklist for releases (CSP, headers, dependency audit, Playwright hardening tests, sensitive data scan).  
-[ ] 48. Add a minimal crash/telemetry hook (opt-in) to capture fatal errors and device classes for performance insights; document privacy stance.  
+[x] 48. Add a minimal crash/telemetry hook (opt-in) to capture fatal errors and device classes for performance insights; document privacy stance.  
 [ ] 49. Implement a cleanup routine on unmount/app close to prevent memory leaks in WebGL (dispose buffers, textures, event listeners).  
 [ ] 50. Provide a CPU/GPU quality preset switch (minimal/mobile/default) that maps to Voroforce config uniforms and engine parameters with clear documentation.  
