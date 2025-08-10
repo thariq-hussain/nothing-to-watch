@@ -614,7 +614,9 @@ vec2 normalizedPCoords() {
 /* GLOBALS */
 float resolutionScale;
 void initResolutionScale() {
-    resolutionScale = length(iResolution.xy) / 1000.0;
+//    resolutionScale = length(iResolution.xy) / 1000.0;
+    resolutionScale = length(iResolution.xy*iResolution.z) / 1500.0;
+
     // resolutionScale = max(iResolution.x, iResolution.y) / 800.0; // based on largest dimension
     // resolutionScale = sqrt(iResolution.x * iResolution.y) / 600.0; // based on area (gives more weight to resolution changes)
 
@@ -1226,7 +1228,7 @@ void calcIndices(inout uvec4 indices, inout uvec4 indices2, inout uint neighbors
     // pixel search
     if (PIXEL_SEARCH == 1 && fPixelSearchRadiusMod > 0.) {
         vec2 fragCoord = gl_FragCoord.xy;
-        vec2 rad = vec2(PIXEL_SEARCH_RADIUS * fPixelSearchRadiusMod);
+        vec2 rad = vec2(PIXEL_SEARCH_RADIUS * numCellsScale * (resolutionScale/1.208) * fPixelSearchRadiusMod);
         #if BULGE == 1
             if (bulgeFactor < 1.) {
                 rad *= max((1.-bulgeFactor), 0.45); // todo it helps? but needs further tweaking

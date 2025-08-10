@@ -1,7 +1,7 @@
+import { getGPUTier } from 'detect-gpu'
 import { store } from '../../store'
 import { down, matchMediaQuery } from '../../utils/mq'
 import { DEVICE_CLASS } from '../consts'
-import { getGPUTier } from 'detect-gpu'
 
 export const estimateDeviceClass = async () => {
   const { estimatedDeviceClass: initialEstimatedDeviceClass, ua } =

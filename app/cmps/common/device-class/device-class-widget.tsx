@@ -6,9 +6,9 @@ import { isDefined } from '../../../utils/misc'
 import { down } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
 import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts'
+import { estimateDeviceClass } from '../../../vf/utils/device-class'
 import { Button, type ButtonProps } from '../../ui/button'
 import { DeviceClassSelector } from './device-class-selector'
-import { estimateDeviceClass } from '../../../vf/utils/device-class'
 
 export function DeviceClassWidget({
   className = '',

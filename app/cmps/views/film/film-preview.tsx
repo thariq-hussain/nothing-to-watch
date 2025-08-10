@@ -7,6 +7,7 @@ import {
   type VoroforceCells,
   easedMinLerp,
 } from '@/vf'
+import useDimensions from '../../../hooks/use-dimensions'
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { clamp, lerp } from '../../../utils/math'
 import { down, only, orientation } from '../../../utils/mq'
@@ -14,7 +15,6 @@ import { cn } from '../../../utils/tw'
 import { Badge } from '../../ui/badge'
 import { FilmPoster } from './shared/film-poster'
 import { FilmRatingGauge } from './shared/film-rating-gauge'
-import useDimensions from '../../../hooks/use-dimensions'
 
 export const FilmPreview = ({ poster = false }) => {
   const containerRef = useRef<HTMLDivElement>(null)

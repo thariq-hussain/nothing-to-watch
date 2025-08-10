@@ -1,8 +1,8 @@
 import { UAParser } from 'ua-parser-js'
 import { describe, expect, it } from 'vitest'
 import { THEME } from '../consts'
-import { VOROFORCE_MODE, VOROFORCE_PRESET } from '../vf/consts'
 import type { ConfigUniforms, VoroforceInstance } from '../vf'
+import { VOROFORCE_MODE, VOROFORCE_PRESET } from '../vf/consts'
 import type { StoreState } from './index'
 import {
   selectAnyModalOpen,
