@@ -139,7 +139,6 @@ uniform vec2 fCenterForce3;
 uniform float fCenterForceStrengthMod3;
 uniform bool bDrawEdges;
 uniform bool bVoroEdgeBufferOutput;
-uniform bool bPixelSearch;
 uniform float fPixelSearchRadiusMod;
 uniform float fUnweightedEffectMod;
 uniform float fBaseXDistScale;
@@ -1225,9 +1224,9 @@ void calcIndices(inout uvec4 indices, inout uvec4 indices2, inout uint neighbors
     vec4 distances2 = vec4(FLOAT_INF);
 
     // pixel search
-    if (PIXEL_SEARCH == 1 && bPixelSearch) {
+    if (PIXEL_SEARCH == 1 && fPixelSearchRadiusMod > 0.) {
         vec2 fragCoord = gl_FragCoord.xy;
-        vec2 rad = vec2(PIXEL_SEARCH_RADIUS * (fPixelSearchRadiusMod > 0. ? fPixelSearchRadiusMod : 1.));
+        vec2 rad = vec2(PIXEL_SEARCH_RADIUS * fPixelSearchRadiusMod);
         #if BULGE == 1
             if (bulgeFactor < 1.) {
                 rad *= max((1.-bulgeFactor), 0.45); // todo it helps? but needs further tweaking

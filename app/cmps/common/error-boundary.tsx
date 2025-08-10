@@ -55,12 +55,12 @@ export class ErrorBoundary extends React.Component<
     const details = this.getErrorDetails()
 
     return (
-      <div className='fixed inset-0 z-50 grid h-dvh w-dvw place-items-center bg-background p-6 text-foreground'>
-        <div className='max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm'>
+      <div className='fixed inset-0 z-50 grid h-dvh w-dvw place-items-center bg-background text-foreground md:p-6'>
+        <div className='max-h-full max-w-full overflow-hidden overflow-y-auto p-6 max-md:w-full md:max-w-2xl md:rounded-lg md:border md:border-border md:bg-card md:shadow-sm'>
           <h1 className='mb-2 font-bold text-xl'>Something went wrong</h1>
           <p className='mb-4 text-muted-foreground text-sm'>
-            The app encountered an unexpected error. This can happen if your
-            browser or GPU doesn’t fully support WebGL or required extensions.
+            The app encountered an unexpected error. This can happen if you're
+            using an older device.
           </p>
 
           <div className='mb-4 rounded-md border border-border bg-popover p-3 text-xs'>

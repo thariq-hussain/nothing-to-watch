@@ -75,7 +75,7 @@ export function CoreSettingsWidget({
               ) as PresetItem[]
             ).find((p) =>
               isDefined(p.recommendedDeviceClass)
-                ? p.recommendedDeviceClass < deviceClass
+                ? p.recommendedDeviceClass <= deviceClass
                 : true,
             )?.id
           : undefined),

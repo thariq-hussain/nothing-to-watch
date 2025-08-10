@@ -14,6 +14,9 @@ export enum VOROFORCE_PRESET {
   chaos = 'chaos',
 }
 
+export const DEFAULT_VOROFORCE_PRESET: VOROFORCE_PRESET =
+  VOROFORCE_PRESET.minimal
+
 export enum DEVICE_CLASS {
   mobile = 0,
   low = 1,
@@ -122,4 +125,4 @@ export const DEVICE_CLASS_ITEMS = [
   },
 ]
 
-export const OBSCURE_VISUAL_DEFECTS = false
+export const OBSCURE_VISUAL_DEFECTS = true

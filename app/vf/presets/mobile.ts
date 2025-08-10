@@ -13,7 +13,20 @@ export default {
     scene: {
       main: {
         uniforms: {
-          bPixelSearch: { value: false },
+          fPixelSearchRadiusMod: {
+            transition: true,
+            initial: {
+              value: 1, // abusing uniform transition mechanics to get some initial help and avoid broken pixels
+            },
+            modes: {
+              default: {
+                value: 0,
+              },
+              [VOROFORCE_MODE.select]: {
+                value: 0,
+              },
+            },
+          },
           fBorderRoundnessMod: {
             value: 1,
             transition: true,

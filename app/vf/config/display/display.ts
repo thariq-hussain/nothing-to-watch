@@ -11,7 +11,6 @@ export default {
       fragmentShader: mainFrag,
       uniforms: {
         iForcedMaxNeighborLevel: { value: 0 },
-        bPixelSearch: { value: true },
         fPixelSearchRadiusMod: {
           transition: true,
           modes: {

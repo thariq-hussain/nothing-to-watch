@@ -5,7 +5,7 @@ import ErrorBoundary from './cmps/common/error-boundary'
 import config from './config'
 import { animateDocTitleSuffix } from './utils/anim'
 import { initTelemetry } from './utils/telemetry/init-telemetry'
-import { safeInitVoroforce } from './vf'
+import { initVoroforce } from './vf'
 import { Voroforce } from './voroforce'
 import './styles.css'
 
@@ -23,7 +23,7 @@ window.addEventListener('DOMContentLoaded', () => {
       </StrictMode>,
     )
   } else {
-    void safeInitVoroforce()
+    void initVoroforce({ force: true })
   }
   animateDocTitleSuffix()
 })

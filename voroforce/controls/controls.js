@@ -66,8 +66,8 @@ export default class Controls extends BaseControls {
       this.detachGestureHandler = new DetachGestureHandler(this)
     }
 
-    if (this.options.debug && !this.debugMarker) {
-      this.debugMarker = new DebugMarker(this.container)
+    if (this.options.debug) {
+      if (!this.debugMarker) this.debugMarker = new DebugMarker(this.container)
     } else if (this.debugMarker) {
       this.debugMarker.destroy()
       this.debugMarker = null
@@ -564,8 +564,8 @@ export default class Controls extends BaseControls {
 
       this.zoom =
         pinchRatio > 1
-          ? Math.min(1.5, this.zoom + deltaScale)
-          : Math.max(1, this.zoom - deltaScale)
+          ? Math.min(this.options.zoomMax, this.zoom + deltaScale)
+          : Math.max(this.options.zoomMin, this.zoom - deltaScale)
 
       this.handleZoom(this.zoom)
     }
@@ -580,11 +580,11 @@ export default class Controls extends BaseControls {
 
     if (!this.options.zoom) return
 
-    const deltaScale = Math.abs(e.deltaY) * 0.002
+    const deltaScale = Math.abs(e.deltaY) * 0.001
     this.zoom =
       e.deltaY > 0
-        ? Math.max(1, this.zoom - deltaScale)
-        : Math.min(1.5, this.zoom + deltaScale)
+        ? Math.max(this.options.zoomMin, this.zoom - deltaScale)
+        : Math.min(this.options.zoomMax, this.zoom + deltaScale)
     this.handleZoom(this.zoom)
   }
 

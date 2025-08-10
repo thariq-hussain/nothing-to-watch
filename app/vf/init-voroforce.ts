@@ -3,29 +3,26 @@ import voroforce from '√/index'
 import { store } from '../store'
 import { initVoroforceIntegrations } from './integrations'
 import type { VoroforceInstance } from './types'
-import { getVoroforceConfigProps } from './utils'
+import { getVoroforceConfig, getVoroforceConfigUniforms } from './utils'
 
-export const initVoroforce = async (container: HTMLElement) => {
+export const initVoroforce = ({
+  // biome-ignore lint/style/noNonNullAssertion: exists
+  container = document.getElementById('voroforce')!,
+  force,
+}: {
+  container?: HTMLElement
+  force?: boolean
+} = {}) => {
   const state = store.getState()
   if (state.voroforce) return // already initialized
-  const { config, configUniforms } = await getVoroforceConfigProps(state)
-  if (state.preset) {
-    store.setState({
-      container,
-      voroforce: voroforce(container, config) as VoroforceInstance,
-      config,
-      configUniforms,
-    })
-    initVoroforceIntegrations()
-  }
-}
+  if (!force && !state.preset) return
 
-export const safeInitVoroforce = async () => {
-  try {
-    // biome-ignore lint/style/noNonNullAssertion: exists
-    await initVoroforce(document.getElementById('voroforce')!)
-  } catch (e) {
-    console.error(e)
-    alert((e as Error).message)
-  }
+  const config = getVoroforceConfig(state)
+  store.setState({
+    container,
+    voroforce: voroforce(container, config) as VoroforceInstance,
+    config,
+    configUniforms: getVoroforceConfigUniforms(config, state.mode, state.theme),
+  })
+  initVoroforceIntegrations()
 }

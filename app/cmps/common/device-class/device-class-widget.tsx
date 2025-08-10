@@ -8,6 +8,7 @@ import { cn } from '../../../utils/tw'
 import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts'
 import { Button, type ButtonProps } from '../../ui/button'
 import { DeviceClassSelector } from './device-class-selector'
+import { estimateDeviceClass } from '../../../vf/utils/device-class'
 
 export function DeviceClassWidget({
   className = '',
@@ -20,12 +21,19 @@ export function DeviceClassWidget({
   submitLabel?: string | ReactNode
   submitProps?: ButtonProps
 }) {
-  const { estimatedDeviceClass, setStoreDeviceClass, storeDeviceClass } =
-    useShallowState((state) => ({
-      setStoreDeviceClass: state.setDeviceClass,
-      estimatedDeviceClass: state.estimatedDeviceClass,
-      storeDeviceClass: state.deviceClass,
-    }))
+  const {
+    storeDeviceClass,
+    setStoreDeviceClass,
+    estimatedDeviceClass,
+    setEstimatedDeviceClass,
+    voroforce,
+  } = useShallowState((state) => ({
+    storeDeviceClass: state.deviceClass,
+    setStoreDeviceClass: state.setDeviceClass,
+    estimatedDeviceClass: state.estimatedDeviceClass,
+    setEstimatedDeviceClass: state.setEstimatedDeviceClass,
+    voroforce: state.voroforce,
+  }))
 
   const isSmallScreen = useMediaQuery(down('md'))
 
@@ -40,9 +48,29 @@ export function DeviceClassWidget({
   )
 
   useEffect(() => {
-    if (!storeDeviceClass && estimatedDeviceClass)
-      setSelectedDeviceClass(estimatedDeviceClass)
-  }, [storeDeviceClass, estimatedDeviceClass])
+    if (!storeDeviceClass) {
+      if (estimatedDeviceClass) {
+        setSelectedDeviceClass(estimatedDeviceClass)
+      } else {
+        if (!voroforce) {
+          estimateDeviceClass().then((estimatedDeviceClass) => {
+            if (isSmallScreen) {
+              setStoreDeviceClass(estimatedDeviceClass)
+            }
+            setEstimatedDeviceClass(estimatedDeviceClass)
+            setSelectedDeviceClass(estimatedDeviceClass)
+          })
+        }
+      }
+    }
+  }, [
+    storeDeviceClass,
+    estimatedDeviceClass,
+    setEstimatedDeviceClass,
+    setStoreDeviceClass,
+    voroforce,
+    isSmallScreen,
+  ])
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>

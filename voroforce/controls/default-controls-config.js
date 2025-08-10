@@ -1,7 +1,7 @@
 export const defaultControlsConfig = {
-  debug: true,
+  debug: false,
   autoFocusCenter: {
-    enabled: 'touch', // true, false or 'touch'
+    enabled: true, // true, false or 'touch'
     random: false,
     baseRandomOffsetPercentage: 0.1,
   },

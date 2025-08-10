@@ -6,7 +6,7 @@ export const controlModeConfigs: {
 } = {
   [VOROFORCE_MODE.select]: {
     maxSpeed: 4,
-    ease: 0.01,
+    ease: 0.1,
     easePinned: 0.25,
     freezeOnShake: {
       enabled: false,
@@ -14,10 +14,16 @@ export const controlModeConfigs: {
     freezeOnJolt: {
       enabled: false,
     },
+    zoom: {
+      enabled: true,
+      min: 1,
+      max: 1.01,
+    },
   },
 }
 
 const defaultControlsConfig = {
+  debug: true,
   autoFocusCenter: {
     enabled: true,
     random: true,
@@ -30,6 +36,11 @@ const defaultControlsConfig = {
   },
   freezeOnJolt: {
     enabled: true,
+  },
+  zoom: {
+    enabled: true,
+    min: 1,
+    max: 1.5,
   },
 }
 

@@ -11,8 +11,7 @@ export function Voroforce() {
       try {
         if (isIniting.current) return
         isIniting.current = true
-        // biome-ignore lint/style/noNonNullAssertion: exists
-        await initVoroforce(document.getElementById('voroforce')!)
+        await initVoroforce()
         isIniting.current = false
       } catch (e) {
         setError(e as Error)
@@ -26,7 +25,7 @@ export function Voroforce() {
       () => {
         setTimeout(() => {
           void tryInit()
-        }, 750)
+        }, 700)
       },
     )
     return () => {
