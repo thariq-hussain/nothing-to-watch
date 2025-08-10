@@ -93,9 +93,9 @@ export const Settings = () => {
                   userConfig.devTools = checked
                   setUserConfig(userConfig)
                   if (checked) {
-                    voroforce.initDevTools(true)
+                    voroforce?.initDevTools(true)
                   } else {
-                    voroforce.disposeDevTools()
+                    voroforce?.disposeDevTools()
                   }
                 }}
               />

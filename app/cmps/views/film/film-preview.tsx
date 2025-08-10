@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import useMeasure from 'react-use-measure'
 
-import { useShallowState } from '@/store'
+import { selectIsPreviewMode, useShallowState } from '@/store'
 import {
   MIN_LERP_EASING_TYPES,
   type VoroforceCell,
+  type VoroforceCells,
   easedMinLerp,
-  type VoroforceInstance,
 } from '@/vf'
+import useDimensions from '../../../hooks/use-dimensions'
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { clamp, lerp } from '../../../utils/math'
-import { down } from '../../../utils/mq'
+import { down, only, orientation } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
 import { Badge } from '../../ui/badge'
 import { FilmPoster } from './shared/film-poster'
@@ -20,28 +20,47 @@ export const FilmPreview = ({ poster = false }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
   const isSmallScreen = useMediaQuery(down('md'))
-
-  const [measureRef, bounds] = useMeasure()
+  const isLandscape = useMediaQuery(orientation('landscape'))
+  const isOnlyMdScreen = useMediaQuery(only('md'))
+  const isOnlyMdLandscapeScreen = isLandscape && isOnlyMdScreen
+  const isStatic = isSmallScreen || isOnlyMdLandscapeScreen
+  const [dimensionsRef, dimensions] = useDimensions()
 
   const { film, isPreviewMode, config, voroforce } = useShallowState(
     (state) => ({
       film: state.film,
-      isPreviewMode: state.isPreviewMode,
+      isPreviewMode: selectIsPreviewMode(state),
       config: state.config?.filmPreview,
       voroforce: state.voroforce,
     }),
   )
 
   if (config && 'enabled' in config && !config.enabled) return null
-  const neighborOriginMod = useRef(
-    config && 'neighborOriginMod' in config ? config.neighborOriginMod : 1,
+  const neighborOriginMod = useRef<number>(
+    config && 'neighborOriginMod' in config
+      ? (config.neighborOriginMod ?? 1)
+      : 1,
   )
-  const scaleMod = useRef(config && 'scaleMod' in config ? config.scaleMod : 1)
+  const scaleMod = useRef<number>(
+    config && 'scaleMod' in config ? (config.scaleMod ?? 1) : 1,
+  )
 
-  const [reverseX, setReverseX] = useState(false)
-  const [reverseY, setReverseY] = useState(false)
+  const [reversedX, setReversedX] = useState(false)
+  const [reversedY, setReversedY] = useState(false)
+  const reversedXRef = useRef(reversedX)
+  const reversedYRef = useRef(reversedY)
+  const reverseX = useCallback((reverse: boolean) => {
+    reversedXRef.current = reverse
+    setReversedX(reverse)
+  }, [])
+  const reverseY = useCallback((reverse: boolean) => {
+    reversedYRef.current = reverse
+    setReversedY(reverse)
+  }, [])
 
-  const cellsRef = useRef<VoroforceCell[]>(null)
+  const [hasAppliedStyles, setHasAppliedStyles] = useState(false)
+
+  const cellsRef = useRef<VoroforceCells>(null)
   const primaryCellRef = useRef<VoroforceCell>(null)
   const topNeighborCellRef = useRef<{ x: number; y: number }>(undefined)
   const bottomNeighborCellRef = useRef<{ x: number; y: number }>(undefined)
@@ -50,13 +69,10 @@ export const FilmPreview = ({ poster = false }) => {
   const opacityRef = useRef<number>(0)
   const frameRef = useRef<number>(0)
 
-  const voroforceRef = useRef<VoroforceInstance | undefined>(undefined)
-  if (voroforce && !voroforceRef.current) voroforceRef.current = voroforce
-
   const onCellFocused = useCallback(
     ({ cell }: { cell?: VoroforceCell } = {}) => {
-      if (!voroforceRef.current) return
-      if (isSmallScreen) return
+      if (!voroforce) return
+      if (isStatic) return
       if (cell) primaryCellRef.current = cell
       if (!primaryCellRef.current || !cellsRef.current) return
 
@@ -64,7 +80,7 @@ export const FilmPreview = ({ poster = false }) => {
         config: {
           lattice: { cols },
         },
-      } = voroforceRef.current
+      } = voroforce
       topNeighborCellRef.current =
         cellsRef.current[primaryCellRef.current.index - cols] ??
         topNeighborCellRef.current
@@ -73,7 +89,7 @@ export const FilmPreview = ({ poster = false }) => {
         cellsRef.current[primaryCellRef.current.index + cols] ??
         bottomNeighborCellRef.current
     },
-    [isSmallScreen],
+    [isStatic, voroforce],
   )
 
   const resetStyles = useCallback(() => {
@@ -88,21 +104,22 @@ export const FilmPreview = ({ poster = false }) => {
     if (!containerRef.current) return
     if (!innerRef.current) return
     if (!positionRef.current) return
+    setHasAppliedStyles(true)
     containerRef.current.style.translate = `${positionRef.current.x}px ${positionRef.current.y}px`
     innerRef.current.style.scale = `${scaleRef.current}`
     innerRef.current.style.opacity = `${scaleRef.current}`
   }, [])
 
   useEffect(() => {
-    if (!voroforceRef.current) return
-    if (isSmallScreen) {
+    if (!voroforce) return
+    if (isStatic) {
       resetStyles()
       return
     }
     const {
       ticker,
       controls: { pointer },
-    } = voroforceRef.current
+    } = voroforce
 
     let customSpeedScale = 0
 
@@ -113,7 +130,7 @@ export const FilmPreview = ({ poster = false }) => {
       if (!topNeighborCellRef.current) return
       if (!bottomNeighborCellRef.current) return
 
-      const neighborCell = reverseY
+      const neighborCell = reversedYRef.current
         ? bottomNeighborCellRef.current
         : topNeighborCellRef.current
 
@@ -136,9 +153,11 @@ export const FilmPreview = ({ poster = false }) => {
       const targetPosition = {
         x:
           origin.x -
-          (reverseX ? bounds.width * 0.5 : bounds.width * 0.25) *
+          (reversedXRef.current
+            ? dimensions.width * 0.5
+            : dimensions.width * 0.25) *
             scaleMod.current,
-        y: origin.y - (reverseY ? 0 : bounds.height),
+        y: origin.y - (reversedYRef.current ? 0 : dimensions.height),
       }
 
       if (!positionRef.current) {
@@ -192,67 +211,80 @@ export const FilmPreview = ({ poster = false }) => {
                 ),
               }
 
-        if (topOrigin.y - bounds.height < 0) {
-          setReverseY(true)
-        } else if (reverseY && topOrigin.y - bounds.height > bounds.height) {
-          setReverseY(false)
+        if (topOrigin.y - dimensions.height < 0) {
+          reverseY(true)
+        } else if (
+          reversedYRef.current &&
+          topOrigin.y - dimensions.height > dimensions.height
+        ) {
+          reverseY(false)
         }
 
-        const width = bounds.width * 0.25
+        const width = dimensions.width * 0.25
 
         if (origin.x - width < 0) {
-          setReverseX(true)
-        } else if (reverseX && origin.x - width > width) {
-          setReverseX(false)
+          reverseX(true)
+        } else if (reversedXRef.current && origin.x - width > width) {
+          reverseX(false)
         }
       }
 
       frameRef.current++
     }
-
     ticker.addEventListener('tick', onTick)
 
     return () => {
       ticker.removeEventListener('tick', onTick)
     }
-  }, [isSmallScreen, bounds, reverseY, reverseX, applyStyles, resetStyles])
+  }, [
+    isStatic,
+    dimensions,
+    reverseY,
+    reverseX,
+    applyStyles,
+    resetStyles,
+    voroforce,
+  ])
 
   useEffect(() => {
-    if (!voroforceRef.current) return
-    if (isSmallScreen) return
-    const { controls, cells } = voroforceRef.current
-    if (!cellsRef.current) cellsRef.current = cells as VoroforceCell[]
+    if (!voroforce) return
+    if (isStatic) return
+    const { controls, cells } = voroforce
+    if (!cellsRef.current) cellsRef.current = cells as VoroforceCells
 
     controls.addEventListener('focused', onCellFocused)
     return () => {
       controls.removeEventListener('focused', onCellFocused)
     }
-  }, [isSmallScreen, onCellFocused])
+  }, [isStatic, onCellFocused, voroforce])
+
+  const refFn = useCallback(
+    (element: HTMLDivElement | null) => {
+      containerRef.current = element
+      dimensionsRef(element)
+    },
+    [dimensionsRef],
+  )
 
   return (
     <>
-      {/*{isPreviewMode && film && (*/}
       {film && (
         <div
-          ref={(element) => {
-            containerRef.current = element
-            measureRef(element)
-          }}
+          ref={refFn}
           className={cn(
-            'pointer-events-none fixed top-0 left-0 z-10 w-full max-w-full p-4 opacity-0 transition-opacity duration-700 md:w-300 md:p-0 md:will-change-transform lg:p-9',
+            'pointer-events-none fixed top-0 left-0 z-10 w-full max-w-full p-4 opacity-0 transition-opacity duration-700 md:p-9 md:max-lg:landscape:w-auto md:max-lg:landscape:max-w-2/3',
             {
-              '!opacity-100': isPreviewMode,
+              'md:h-52 md:w-300 md:p-0 md:will-change-transform': !isStatic,
+              '!opacity-100': isPreviewMode && (hasAppliedStyles || isStatic),
             },
           )}
         >
           <div
             ref={innerRef}
-            className={cn(
-              'flex origin-top-left flex-row gap-3 md:will-change-[transform,opacity] lg:gap-9',
-              {
-                'flex-row-reverse': reverseX,
-              },
-            )}
+            className={cn('flex origin-top-left flex-row gap-3 lg:gap-9', {
+              'md:will-change-[transform,opacity]': !isStatic,
+              'flex-row-reverse': reversedX,
+            })}
           >
             {poster && (
               <FilmPoster
@@ -267,16 +299,18 @@ export const FilmPreview = ({ poster = false }) => {
             )}
             <div
               className={cn(
-                'flex basis-full flex-row justify-between gap-3 md:basis-3/4 md:flex-col md:justify-start md:gap-4 lg:gap-6',
+                'flex basis-full flex-row justify-between gap-3 lg:gap-6 md:max-lg:landscape:flex-row-reverse',
                 {
-                  'items-end text-right': reverseX,
-                  'md:flex-col-reverse': reverseY,
+                  'md:basis-3/4 md:flex-col md:justify-start md:gap-4':
+                    !isStatic,
+                  'items-end text-right': reversedX,
+                  'md:flex-col-reverse': reversedY,
                 },
               )}
             >
               <div
                 className={cn('flex flex-col gap-3 lg:justify-start lg:gap-3', {
-                  'flex-col-reverse': reverseY,
+                  'flex-col-reverse': reversedY,
                 })}
               >
                 <p className='line-clamp-2 hidden font-medium text-base text-foreground/90 leading-none md:inline-block lg:line-clamp-1 lg:h-[1.25rem] lg:text-xl lg:leading-none landscape:h-[1rem] lg:landscape:h-[1.25rem]'>
@@ -292,7 +326,7 @@ export const FilmPreview = ({ poster = false }) => {
                   className={cn(
                     'flex flex-row flex-wrap gap-3 lg:flex-nowrap lg:pt-2',
                     {
-                      'justify-end': reverseX,
+                      'justify-end': reversedX,
                     },
                   )}
                 >

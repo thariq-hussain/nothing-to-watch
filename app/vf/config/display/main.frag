@@ -27,7 +27,7 @@ precision highp float;
 
 #define BULGE 1
 #define BULGE_BLENDING 1
-#define BULGE_BLEND_MODE 1
+#define BULGE_BLEND_MODE 0
 #define BULGE_BASE_STRENGTH .5
 #define BULGE_BASE_RADIUS 1.
 
@@ -67,7 +67,7 @@ precision highp float;
 #define MEDIA_ASPECT 1.5
 #define MEDIA_ROTATE 0
 #define MEDIA_ROTATE_FACTOR 1.
-#define MEDIA_BULGE 1
+#define MEDIA_BULGE_MODE 0 // todo other media bulge modes
 #define MEDIA_BBOX_OVERFLOW_MODE 3 // 0 = debug (red), 1 = clamp edges, 2 = tiles, 3 = flipped tiles
 
 #define EDGES_VISIBLE 1
@@ -139,7 +139,6 @@ uniform vec2 fCenterForce3;
 uniform float fCenterForceStrengthMod3;
 uniform bool bDrawEdges;
 uniform bool bVoroEdgeBufferOutput;
-uniform bool bPixelSearch;
 uniform float fPixelSearchRadiusMod;
 uniform float fUnweightedEffectMod;
 uniform float fBaseXDistScale;
@@ -168,7 +167,7 @@ struct Plot {
     float cellScale;
     float weight;
     float bulgeFactor;
-    float reciprocalMediaBulgeFactor;
+    float mediaBulgeFactor;
     bool debugFlag;
 };
 
@@ -461,33 +460,17 @@ float expEuclideanDist(vec2 a) {
     return  pow(dot2(a),1.5);
 }
 
-float customMinkowskiDist1(vec2 a) {
-    float p = 3.5;
-    vec2 diff = abs(a);
-    return pow((pow(diff.x, p) + pow(diff.y, p)), 1.0 / p*p+1.25);
-}
-
-float customHybridDist1(vec2 a) {
-    return mix(manhattanDist(a), customMinkowskiDist1(a), 0.75);
-}
-
-float customMinkowskiDist2(vec2 a) {
+float customMinkowskiDistTest(vec2 a) {
     float p = 2.5;
     vec2 diff = abs(a);
     return pow((pow(diff.x, p) + pow(diff.y, p)), 1.0 / p*p+.25);
 }
 
-float customHybridDist2(vec2 a) {
-    return mix(manhattanDist(a), customMinkowskiDist2(a), 0.75);
+float customHybridDistTest(vec2 a) {
+    return mix(manhattanDist(a), customMinkowskiDistTest(a), 0.75);
 }
 
-float customMinkowskiDist3(vec2 a) {
-    float p = 1.5;
-    vec2 diff = abs(a);
-    return pow((pow(diff.x, p) + pow(diff.y, p)), 1.0 / p);
-}
-
-float customMinkowskiDist4(vec2 a) {
+float chaosMinkowskiDist(vec2 a) {
     float p = 1.75;
     vec2 diff = abs(a);
     return pow((pow(diff.x, p) + pow(diff.y, p)), 1.3);
@@ -587,21 +570,30 @@ vec2 normalizeCoords(in vec2 screenCoords) {
     return (screenCoords / iResolution.xy) * 2.0 - 1.0;
 }
 
-vec2 aspectCoords(in vec2 screenCoords) {
-    return (screenCoords*2.0-iResolution.xy) / max(min(iResolution.x, iResolution.y), max(iResolution.x, iResolution.y) * 0.5);
+float aspectCoordsDenominator;
+void initAspectCoordsDenominator() {
+    aspectCoordsDenominator = max(min(iResolution.x, iResolution.y), max(iResolution.x, iResolution.y) * 0.5);
+}
 
+vec2 aspectCoords(in vec2 screenCoords) {
+    return (screenCoords*2.0-iResolution.xy) / aspectCoordsDenominator;
 }
 
 vec2 fetchRawCellCoords(uint i) {
     return rawCoords(coordsTexData(int(i)));
 }
 
-vec2 fetchCellCoords(uint i) {
+vec2 fetchAspectCellCoords(uint i) {
     return aspectCoords(fetchRawCellCoords(i));
 }
 
 vec2 fetchNormalizedCellCoords(uint i) {
     return normalizeCoords(fetchRawCellCoords(i));
+}
+
+vec4 fetchCellCoords(uint i) {
+    vec2 rawCoords = fetchRawCellCoords(i);
+    return vec4(aspectCoords(rawCoords), normalizeCoords(rawCoords));
 }
 
 vec2 fragCoords() {
@@ -622,7 +614,9 @@ vec2 normalizedPCoords() {
 /* GLOBALS */
 float resolutionScale;
 void initResolutionScale() {
-    resolutionScale = length(iResolution.xy) / 1000.0;
+//    resolutionScale = length(iResolution.xy) / 1000.0;
+    resolutionScale = length(iResolution.xy*iResolution.z) / 1500.0;
+
     // resolutionScale = max(iResolution.x, iResolution.y) / 800.0; // based on largest dimension
     // resolutionScale = sqrt(iResolution.x * iResolution.y) / 600.0; // based on area (gives more weight to resolution changes)
 
@@ -694,6 +688,7 @@ void initBulge() {
 #endif
 
 void initGlobals() {
+    initAspectCoordsDenominator();
     initResolutionScale();
     initNumCellsScale();
     initCenterForce();
@@ -749,11 +744,11 @@ vec2 getMirroredTileUV(vec2 uv, float shrinkAmount) {
     return mix(shrunk, flipped, shouldFlip);
 }
 
-vec2 calcMediaUv(in vec4 mediaBbox, in uint index, in float reciprocalMediaBulgeFactor) {
+vec2 calcMediaUv(in vec4 mediaBbox, in uint index, in float mediaBulgeFactor) {
     vec2 p = normalizedPCoords();
 
-    #if BULGE == 1
-        p = (p - centerForceNCoords) * reciprocalMediaBulgeFactor + centerForceNCoords;
+    #if BULGE == 1 && (MEDIA_BULGE_MODE == 0 || MEDIA_BULGE_MODE == 1)
+        p = (p - centerForceNCoords) * mediaBulgeFactor + centerForceNCoords;
     #endif
 
     vec2 mediaUv = (p - mediaBbox.xy) / (mediaBbox.zw - mediaBbox.xy);
@@ -859,7 +854,6 @@ void mediaColor(inout vec3 c, inout float a, in Plot plot) {
 }
 
 #if BULGE == 1
-
 float bulgeSmoothstep(float a) {
     float x = clamp(a * a, 0., 1.);
 
@@ -880,16 +874,15 @@ float bulgeSmoothstep(float a) {
 #if BULGE_BLENDING == 1
 // blend modes for combining bulges
 float blendBulges(float a, float b) {
-    #if BULGE_BLEND_MODE == 1
-//        return min(a, b); // Min
+//    #if BULGE_BLEND_MODE == 0
         return smin(a, b, 0.1); // Smin
-    #elif BULGE_BLEND_MODE == 2
-        return a * b; // Multiply
-    #elif BULGE_BLEND_MODE == 3
-        return a + b - a * b; // Screen
-    #else
-        return a + b; // Additive
-    #endif
+//    #elif BULGE_BLEND_MODE == 1
+//        return a * b; // Multiply
+//    #elif BULGE_BLEND_MODE == 2
+//        return a + b - a * b; // Screen
+//    #else
+//        return a + b; // Additive
+//    #endif
 }
 #endif
 
@@ -926,38 +919,38 @@ void applyBulge(inout vec2 p, inout float bulgeFactor) {
     #endif
 
     p = (p - centerForceCoords) * bulgeFactor + centerForceCoords;
-
 }
 
-void applyMediaBboxBulge(inout vec2 cellNCoords, inout float reciprocalMediaBulgeFactor, in vec2 cellCoords, in float bulgeFactor) {
+void applyMediaBboxBulge(inout vec4 cellCoords, inout float mediaBulgeFactor, in float bulgeFactor) {
     if (bulgeRadius == 0.) return;
 
-    if (MEDIA_BULGE == 1 || bMediaDistortion) {
-        reciprocalMediaBulgeFactor = bulgeFactor;
-    } else {
-        float edge = length(cellCoords - centerForceCoords) / bulgeRadius;
-        reciprocalMediaBulgeFactor = mix(1.0, bulgeSmoothstep(edge), bulgeStrength);
+    #if MEDIA_BULGE_MODE == 0
+        mediaBulgeFactor = bulgeFactor;
+    # else
+        float edge = length(cellCoords.xy - centerForceCoords) / bulgeRadius;
+        mediaBulgeFactor = mix(1.0, bulgeSmoothstep(edge), bulgeStrength);
 
         #if BULGE_BLENDING == 1
-            edge = length(cellCoords - centerForceCoords2) / bulgeRadius2;
-            reciprocalMediaBulgeFactor = blendBulges(reciprocalMediaBulgeFactor,  mix(1.0, bulgeSmoothstep(edge), bulgeStrength2));
-            edge = length(cellCoords - centerForceCoords3) / bulgeRadius3;
-            reciprocalMediaBulgeFactor = blendBulges(reciprocalMediaBulgeFactor,  mix(1.0, bulgeSmoothstep(edge), bulgeStrength3));
+            edge = length(cellCoords.xy - centerForceCoords2) / bulgeRadius2;
+            mediaBulgeFactor = blendBulges(mediaBulgeFactor,  mix(1.0, bulgeSmoothstep(edge), bulgeStrength2));
+            edge = length(cellCoords.xy - centerForceCoords3) / bulgeRadius3;
+            mediaBulgeFactor = blendBulges(mediaBulgeFactor,  mix(1.0, bulgeSmoothstep(edge), bulgeStrength3));
         #endif
-    }
 
-//    reciprocalMediaBulgeFactor = mix(reciprocalMediaBulgeFactor, bulgeFactor, 0.5);
-//    cellNCoords = (cellNCoords - centerForceNCoords) * reciprocalMediaBulgeFactor + centerForceNCoords;
+        #if MEDIA_BULGE_MODE == 2
+//                mediaBulgeFactor = mix(mediaBulgeFactor, bulgeFactor, 0.5);
+            cellCoords.zw = (cellCoords.zw - centerForceNCoords) / mediaBulgeFactor + centerForceNCoords;
+        #endif
+    #endif
 }
 #endif
 
-vec4 calcMediaBbox(in uint index, in vec2 cellCoords, in float bulgeFactor, inout float reciprocalMediaBulgeFactor, in float edgeBorder, in float mediaWeightOffsetScale) {
+vec4 calcMediaBbox(in uint index, in vec4 cellCoords, in float bulgeFactor, inout float mediaBulgeFactor, in float edgeBorder, in float mediaWeightOffsetScale) {
     vec4 mediaBbox = vec4(vec2(1.), vec2(-1.));
     vec2 midSum = vec2(0.0);
-    vec2 cellNCoords = fetchNormalizedCellCoords(index);
 
     #if BULGE == 1
-        applyMediaBboxBulge(cellNCoords, reciprocalMediaBulgeFactor, cellCoords, bulgeFactor);
+        applyMediaBboxBulge(cellCoords, mediaBulgeFactor, bulgeFactor);
     #endif
 
     uint neighborsPosition = neighborsTexData(index*2u);
@@ -965,15 +958,15 @@ vec4 calcMediaBbox(in uint index, in vec2 cellCoords, in float bulgeFactor, inou
 
     for (uint i = 0u; i < neighborsLength; i++) {
         uint neighborIndex = neighborsTexData(neighborsPosition+i);
-        vec2 neighborNCoords = fetchNormalizedCellCoords(neighborIndex);
+        vec4 neighborCoords = fetchCellCoords(neighborIndex);
 
-//        #if BULGE == 1
-////            vec2 neighborCoords = fetchCellCoords(neighborIndex);
-////            float edge = length(neighborCoords - centerForceCoords) / bulgeRadius;
-////            float reciprocalMediaBulgeFactor2 = mix(1.0, bulgeSmoothstep(edge), bulgeStrength);
-////            neighborNCoords = (neighborNCoords - centerForceNCoords) * reciprocalMediaBulgeFactor2 + centerForceNCoords;
-//            neighborNCoords = (neighborNCoords - centerForceNCoords) * reciprocalMediaBulgeFactor + centerForceNCoords;
-//        #endif
+        float neighborMediaBulgeFactor;
+
+        #if BULGE == 1 && MEDIA_BULGE_MODE == 2
+            neighborMediaBulgeFactor = 1.;
+            applyMediaBboxBulge(neighborCoords, neighborMediaBulgeFactor, bulgeFactor);
+//            neighborNCoords = (neighborNCoords - centerForceNCoords) / mediaBulgeFactor + centerForceNCoords;
+        #endif
 
         float midFactor = 0.5;
         #if WEIGHTED_DIST == 1
@@ -982,7 +975,13 @@ vec4 calcMediaBbox(in uint index, in vec2 cellCoords, in float bulgeFactor, inou
             midFactor += (mediaWeight - neighborMediaWeight);
         #endif
 
-        vec2 mid = mix(cellNCoords, neighborNCoords, midFactor);
+//        #if BULGE == 1 && MEDIA_BULGE_MODE == 2
+//            midFactor *= (mediaBulgeFactor/neighborMediaBulgeFactor);
+//            midFactor = min(midFactor, 1.);
+//        #endif
+
+
+        vec2 mid = mix(cellCoords.zw, neighborCoords.zw, midFactor);
         midSum += mid;
 
         mediaBbox.xy = min(mediaBbox.xy, mid);
@@ -990,12 +989,10 @@ vec4 calcMediaBbox(in uint index, in vec2 cellCoords, in float bulgeFactor, inou
     }
 
     vec2 avgCenter = midSum / float(neighborsLength);
-    //    avgCenter = (avgCenter - centerForceNCoords) * reciprocalMediaBulgeFactor + centerForceNCoords;
-    //    vec2 avgCenterDiff = (avgCenter - cellNCoords);
-
-    //    vec2 avgCenterDiff = vec2(0.);
-    //    mediaBbox.xy = min(mediaBbox.xy, mediaBbox.xy + avgCenterDiff);
-    //    mediaBbox.zw = max(mediaBbox.zw, mediaBbox.zw + avgCenterDiff);
+//    avgCenter = (avgCenter - centerForceNCoords) * mediaBulgeFactor + centerForceNCoords;
+//    vec2 avgCenterDiff = (avgCenter - cellCoords.zw);
+//    mediaBbox.xy = min(mediaBbox.xy, mediaBbox.xy + avgCenterDiff);
+//    mediaBbox.zw = max(mediaBbox.zw, mediaBbox.zw + avgCenterDiff);
 
     float bbX = mediaBbox.z - mediaBbox.x;
     float bbY = mediaBbox.w - mediaBbox.y;
@@ -1028,7 +1025,7 @@ vec4 calcMediaBbox(in uint index, in vec2 cellCoords, in float bulgeFactor, inou
         offset *= vec2(bbX, bbY);
     }
 
-    //    offset *= reciprocalMediaBulgeFactor;
+    //    offset *= mediaBulgeFactor;
 
     mediaBbox.xy = avgCenter - offset;
     mediaBbox.zw = avgCenter + offset;
@@ -1038,7 +1035,7 @@ vec4 calcMediaBbox(in uint index, in vec2 cellCoords, in float bulgeFactor, inou
 
 
 void processNeighborEdge(in uint neighborIndex, in vec2 cellCoords, in vec2 p, inout vec2 edge, in float weight, in float weightOffset, in float weightOffsetScale, in float borderRoundness, in float bulgeFactor) {
-    vec2 neighborCellCoords = fetchCellCoords(neighborIndex);
+    vec2 neighborCellCoords = fetchAspectCellCoords(neighborIndex);
 
     #if WEIGHTED_DIST == 1 || X_DIST_SCALING == 1
 
@@ -1102,7 +1099,6 @@ void processNeighborEdge(in uint neighborIndex, in vec2 cellCoords, in vec2 p, i
         borderRoundness *= len *.5 + .5;
     #endif
 
-    // todo could modify len based on:  * (1./bulgeFactor)
     edge.x = cSmin(edge.x, len, borderRoundness);
     edge.y = min(edge.y, len);
 }
@@ -1154,7 +1150,7 @@ void sortClosest(
         weight = weight > 0. ? weight : prevMaxWeight;
     #endif
 
-    float d = dist(p, fetchCellCoords(index), weight, weightOffset);
+    float d = dist(p, fetchAspectCellCoords(index), weight, weightOffset);
 
     if (d < distances.x) {
         distances = vec4(d, distances.xyz);
@@ -1230,9 +1226,9 @@ void calcIndices(inout uvec4 indices, inout uvec4 indices2, inout uint neighbors
     vec4 distances2 = vec4(FLOAT_INF);
 
     // pixel search
-    if (PIXEL_SEARCH == 1 && bPixelSearch) {
+    if (PIXEL_SEARCH == 1 && fPixelSearchRadiusMod > 0.) {
         vec2 fragCoord = gl_FragCoord.xy;
-        vec2 rad = vec2(PIXEL_SEARCH_RADIUS * (fPixelSearchRadiusMod > 0. ? fPixelSearchRadiusMod : 1.));
+        vec2 rad = vec2(PIXEL_SEARCH_RADIUS * numCellsScale * (resolutionScale/1.208) * fPixelSearchRadiusMod);
         #if BULGE == 1
             if (bulgeFactor < 1.) {
                 rad *= max((1.-bulgeFactor), 0.45); // todo it helps? but needs further tweaking
@@ -1286,7 +1282,7 @@ Plot plot() {
     bool debugFlag = false;
 
     float bulgeFactor = 1.;
-    float reciprocalMediaBulgeFactor = 1.;
+    float mediaBulgeFactor = 1.;
     #if BULGE == 1
         applyBulge(p, bulgeFactor);
     #endif
@@ -1310,7 +1306,7 @@ Plot plot() {
 
     // update closest
     index = indices.x;
-    vec2 cellCoords = fetchCellCoords(index);
+    vec4 cellCoords = fetchCellCoords(index);
 
     float cellScale = 0.1;
     float borderThicknessScale = 0.1;
@@ -1318,7 +1314,7 @@ Plot plot() {
     float borderRoundnessScale = 0.1;
     #if EDGE_CELL_SCALING == 1 && (MEDIA_ENABLED == 0 || EDGE_CELL_SCALING_MODE != 1)
         // this only works well for vertically elongated cells
-        float neighborXAvgOffset = (abs(cellCoords.x - fetchCellCoords(neighborsTexData(neighborsPosition + 3u)).x) + abs(cellCoords.x - fetchCellCoords(neighborsTexData(neighborsPosition + 4u)).x)) * 0.5;
+        float neighborXAvgOffset = (abs(cellCoords.x - fetchAspectCellCoords(neighborsTexData(neighborsPosition + 3u)).x) + abs(cellCoords.x - fetchAspectCellCoords(neighborsTexData(neighborsPosition + 4u)).x)) * 0.5;
         cellScale = neighborXAvgOffset / 2.;
         #if EDGE_CELL_SCALING_BORDER_THICKNESS == 1
             borderThicknessScale = cellScale;
@@ -1351,8 +1347,8 @@ Plot plot() {
 
     vec2 mediaUv;
     #if MEDIA_ENABLED == 1
-        vec4 mediaBbox = calcMediaBbox(index, cellCoords, bulgeFactor, reciprocalMediaBulgeFactor, edgeStepStart*2., mediaWeightOffsetScale);
-        mediaUv = calcMediaUv(mediaBbox, index, reciprocalMediaBulgeFactor);
+        vec4 mediaBbox = calcMediaBbox(index, cellCoords, bulgeFactor, mediaBulgeFactor, edgeStepStart*2., mediaWeightOffsetScale);
+        mediaUv = calcMediaUv(mediaBbox, index, mediaBulgeFactor);
     #endif
 
     float weight;
@@ -1363,23 +1359,20 @@ Plot plot() {
     #endif
 
     vec2 edge = vec2(0.1);
-    calcEdge(indices, indices2, cellCoords, p, edge, weight, weightOffset, weightOffsetScale, borderRoundness, bulgeFactor);
+    calcEdge(indices, indices2, cellCoords.xy, p, edge, weight, weightOffset, weightOffsetScale, borderRoundness, bulgeFactor);
     float edgeStep = smoothstep(edgeStepStart, edgeStepEnd, edge.x);
 
-    return Plot(indices, indices2, edge, edgeStep, mediaUv, cellScale, weight, bulgeFactor, reciprocalMediaBulgeFactor, debugFlag);
+    return Plot(indices, indices2, edge, edgeStep, mediaUv, cellScale, weight, bulgeFactor, mediaBulgeFactor, debugFlag);
 }
 
 #if EDGES_VISIBLE == 1
 void edgesColor(inout vec3 c, inout float a, in Plot plot) {
     if (!bDrawEdges) return;
 
-    float step = plot.edgeStep;
-
     #if TRANSPARENCY == 1
-        a = mix(1., 0., step);
+        a = mix(1., 0., plot.edgeStep);
     #else
-        // vec3 bgColor = !plot.debugFlag ? fBaseColor : vec3(1.,0.,0.);
-        c = mix(fBaseColor, c, step);
+        c = mix(fBaseColor, c, plot.edgeStep);
     #endif
 }
 #endif
@@ -1404,7 +1397,6 @@ void colorOutput(in vec3 c, in float a, in Plot plot) {
         voroIndexBuffer2Color = uintBitsToFloat(plot.indices2 + 1u);
     #endif
     outputColor = vec4(c, a);
-//    outputColor = vec4(vec3(plot.bulgeFactor), a);
     if (bVoroEdgeBufferOutput) {
         #ifdef VORO_EDGE_BUFFER_COLOR
             VORO_EDGE_BUFFER_COLOR;

@@ -1,14 +1,15 @@
-import { getGPUTier } from 'detect-gpu'
 import { mergeConfigs } from '√'
 import baseConfig from '../config'
 import presets from '../presets'
 
-import { down, matchMediaQuery } from '../../utils/mq'
-
 import type { THEME } from '../../consts'
 import type { StoreState } from '../../store'
-import { DEVICE_CLASS, type VOROFORCE_MODE, VOROFORCE_PRESET } from '../consts'
-import type { VoroforceInstance } from '../types'
+import {
+  DEFAULT_VOROFORCE_PRESET,
+  type VOROFORCE_MODE,
+  VOROFORCE_PRESET,
+} from '../consts'
+import type { VoroforceCell, VoroforceInstance } from '../types'
 import type { Film } from './films'
 import type { ConfigUniform } from './uniforms'
 
@@ -21,13 +22,14 @@ export type CustomLink = {
 
 export type UserConfig = {
   cells?: number
-  noPostEffects?: boolean
-  forceHigherQuality?: boolean
   devTools?: boolean
   customLinks?: CustomLink[]
   favorites?: {
     [key: Film['tmdbId']]: {
+      cellId: VoroforceCell['id']
       title: Film['title']
+      year: Film['year']
+      tagline: Film['tagline']
       tmdbId: Film['tmdbId']
       imdbId?: Film['imdbId']
       poster?: Film['poster']
@@ -56,69 +58,24 @@ const handleCustomLinkParam = (
   } catch (e) {}
 }
 
-export const getConfig = async (state: StoreState) => {
-  const {
-    userConfig,
-    preset: initialPreset,
-    cellLimit: initialCellLimit,
-    deviceClass: initialDeviceClass,
-    estimatedDeviceClass: initialEstimatedDeviceClass,
-    setEstimatedDeviceClass,
-    setDeviceClass,
-    ua,
-    mode,
-  } = state
+export const getVoroforceConfig = (state: StoreState) => {
+  const { userConfig, preset: initialPreset, cellLimit, mode } = state
   const urlParams = new URLSearchParams(window.location.search)
   const presetOverrideParam = urlParams.get('preset') as VOROFORCE_PRESET
   const cellsOverrideParam = urlParams.get('cells')
   const customLinkBase64Param = urlParams.get('customLinkBase64')
 
-  const device = ua.getDevice()
-
   let preset = initialPreset
-  const deviceClass = initialDeviceClass
-  let estimatedDeviceClass = initialEstimatedDeviceClass
-
-  if (!preset && !deviceClass && !estimatedDeviceClass) {
-    const isMobile = device.is('mobile')
-    const isTablet = device.is('tablet')
-    const isSmallScreen = matchMediaQuery(down('md')).matches
-    if (isMobile) {
-      estimatedDeviceClass = DEVICE_CLASS.mobile
-    } else if (isSmallScreen || isTablet) {
-      estimatedDeviceClass = DEVICE_CLASS.low
-    } else {
-      const gpuTier = await getGPUTier()
-      console.log('gpuTier', gpuTier)
-      switch (gpuTier.tier) {
-        case 3:
-          estimatedDeviceClass = DEVICE_CLASS.high
-          break
-        case 2:
-          estimatedDeviceClass = DEVICE_CLASS.mid
-          break
-        default:
-          estimatedDeviceClass = DEVICE_CLASS.low
-      }
-    }
-
-    if (isSmallScreen) setDeviceClass(estimatedDeviceClass)
-    setEstimatedDeviceClass(estimatedDeviceClass)
-  }
-
   if (presetOverrideParam && VOROFORCE_PRESET[presetOverrideParam]) {
     preset = presetOverrideParam
   }
 
-  let config = baseConfig
-  if (preset) {
-    config = mergeConfigs(
-      config,
-      (presets as unknown as Record<VOROFORCE_PRESET, typeof baseConfig>)[
-        preset
-      ],
-    )
-  }
+  if (!preset) preset = DEFAULT_VOROFORCE_PRESET
+
+  let config = mergeConfigs(
+    baseConfig,
+    (presets as unknown as Record<VOROFORCE_PRESET, typeof baseConfig>)[preset],
+  )
   if (config.modes?.[mode]) {
     config = mergeConfigs(config, config.modes?.[mode])
   }
@@ -129,7 +86,7 @@ export const getConfig = async (state: StoreState) => {
 
   config.cells = cellsOverrideParam
     ? Number.parseInt(cellsOverrideParam)
-    : (initialCellLimit ?? config.cells)
+    : (cellLimit ?? config.cells)
 
   if ('devTools' in userConfig) {
     config.devTools.enabled = !!userConfig.devTools
@@ -175,7 +132,7 @@ const processVoroforceStageConfigUniforms = (
   )
 }
 
-const getVoroforceConfigUniforms = (
+export const getVoroforceConfigUniforms = (
   config: VoroforceInstance['config'],
   mode: VOROFORCE_MODE,
   theme: THEME,
@@ -205,13 +162,5 @@ const getVoroforceConfigUniforms = (
       theme,
     ),
     transitioning,
-  }
-}
-
-export const getVoroforceConfigProps = async (state: StoreState) => {
-  const config = await getConfig(state)
-  return {
-    config,
-    configUniforms: getVoroforceConfigUniforms(config, state.mode, state.theme),
   }
 }

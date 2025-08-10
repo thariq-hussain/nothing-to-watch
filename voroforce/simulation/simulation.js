@@ -33,7 +33,7 @@ export default class Simulation extends BaseSimulation {
   handleForceStepConfigParametersUpdated() {
     this.forceStep.updateParameters(
       this.globalConfig.simulation?.steps?.force?.parameters ?? {},
-      { forcetransition: true },
+      { forceTransition: true },
     )
   }
 }

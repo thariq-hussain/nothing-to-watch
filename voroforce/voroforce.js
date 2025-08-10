@@ -10,7 +10,7 @@ import Controls from './controls'
 import { defaultConfig } from './default-config'
 import Display from './display'
 import { MultiThreadedSimulation, Simulation } from './simulation'
-import { isTouchDevice, mergeConfigs } from './utils'
+import { isTouchDevice, mergeConfigs, setStyles } from './utils'
 import { CustomEventTarget } from './utils/custom-event-target'
 import { initVisibilityEventHandlers } from './utils/visibility'
 
@@ -120,7 +120,6 @@ export class Voroforce extends CustomEventTarget {
 
   initData() {
     this.sharedData = initSharedData(this.config)
-    // this.sharedPointer = initSharedPointer(this.config)
     this.sharedCellData = initSharedCellData(
       this.config.cells ?? 512,
       this.config,
@@ -135,6 +134,15 @@ export class Voroforce extends CustomEventTarget {
 
   initDOM() {
     this.canvas = this.container.getElementsByTagName('canvas')[0]
+    if (!this.canvas) {
+      this.canvas = document.createElement('canvas')
+      setStyles(this.canvas, {
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+      })
+      this.container.appendChild(this.canvas)
+    }
   }
 
   handleLattice() {
@@ -156,7 +164,6 @@ export class Voroforce extends CustomEventTarget {
       loader: this.loader,
       controls: this.controls,
       ...this.sharedData,
-      // ...this.sharedPointer,
       ...this.sharedCellData,
       ...this.sharedLoadedMediaVersionLayersData,
     })
@@ -291,15 +298,10 @@ export class Voroforce extends CustomEventTarget {
     if (this.tickerMode === 'manual') this.ticker.next()
   }
 
-  displayUpdates = 0
   updateDisplay() {
     if (this.simulationWarmedUp) {
       this.display.update()
-      if (this.displayUpdates < 1) {
-        this.displayUpdates++
-      } else {
-        this.displayWarmedUp = true
-      }
+      this.displayWarmedUp = true
     }
     if (this.tickerMode === 'manual') this.ticker.next()
   }

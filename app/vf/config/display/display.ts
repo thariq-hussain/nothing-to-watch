@@ -1,11 +1,6 @@
 import { THEME } from '../../../consts'
 import { VOROFORCE_MODE } from '../../consts'
-// import mainFrag from './main.frag'
-// import mainFrag from './main2.frag'
-// import mainFrag from './main22.frag'
-// import mainFrag from './main3.frag'
 import mainFrag from './main.frag'
-// import mainFrag from './main4.frag'
 
 export default {
   scene: {
@@ -16,7 +11,6 @@ export default {
       fragmentShader: mainFrag,
       uniforms: {
         iForcedMaxNeighborLevel: { value: 0 },
-        bPixelSearch: { value: true },
         fPixelSearchRadiusMod: {
           transition: true,
           modes: {

@@ -19,6 +19,13 @@ export class PointerFrozenChangeEvent extends Event {
   }
 }
 
+export class PointerPinnedChangeEvent extends Event {
+  constructor(data) {
+    super('pointerPinnedChange')
+    Object.assign(this, data)
+  }
+}
+
 export class CellFocusedEvent extends Event {
   constructor(cell, cells) {
     super('focused')

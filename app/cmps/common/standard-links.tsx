@@ -1,7 +1,7 @@
+import config from '../../config'
 import { cn } from '../../utils/tw'
 import type { Film } from '../../vf'
 import { Button } from '../ui/button'
-import config from '../../config'
 
 export const StdLinks = ({
   film,

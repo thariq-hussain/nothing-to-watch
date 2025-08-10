@@ -36,7 +36,7 @@ export const Navbar = () => {
     '!size-6 [&_svg]:!size-4 lg:!size-8 lg:[&_svg]:!size-5 pointer-events-auto rounded-full cursor-pointer'
 
   return (
-    <div className='pointer-events-none fixed inset-x-0 bottom-0 z-10 flex w-full flex-row items-center justify-between gap-1 p-3 lg:top-0 lg:bottom-auto lg:z-60 lg:justify-end lg:px-9 lg:py-9'>
+    <div className='pointer-events-none fixed inset-x-0 bottom-0 z-10 flex w-full flex-row items-center justify-between gap-1 p-3 md:top-0 md:bottom-auto md:z-60 md:justify-end md:px-9 md:py-9'>
       <Button
         variant='ghost'
         size='icon'
@@ -91,8 +91,8 @@ export const Navbar = () => {
       </div>
 
       <ThemeToggle
-        className={cn(buttonClassnames, 'hidden lg:inline-flex', {
-          'lg:hidden': !canChangeTheme,
+        className={cn(buttonClassnames, 'hidden md:inline-flex', {
+          'md:hidden': !canChangeTheme,
         })}
         onPointerDown={(event) => {
           event.preventDefault()
@@ -107,7 +107,7 @@ export const Navbar = () => {
           event.preventDefault()
           event.stopPropagation()
         }}
-        className={cn(buttonClassnames, 'hidden lg:inline-flex')}
+        className={cn(buttonClassnames, 'hidden md:inline-flex')}
       >
         <a
           href={config.sourceCodeUrl}

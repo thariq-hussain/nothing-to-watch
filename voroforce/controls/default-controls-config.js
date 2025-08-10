@@ -1,16 +1,19 @@
 export const defaultControlsConfig = {
+  debug: false,
   autoFocusCenter: {
-    enabled: 'touch', // true, false or 'touch'
+    enabled: true, // true, false or 'touch'
     random: false,
+    baseRandomOffsetPercentage: 0.1,
   },
-
-  raw: false,
   maxSpeed: 10,
-  // Minimum speed to maintain when close to target (prevents snapping)
-  minSpeed: 2,
+  // maxSpeedPinned: 5,
   ease: 0.15, // smoothing factor
-
-  capValues: true,
+  // easePinned: 0.05,
+  zoom: {
+    enabled: true,
+    min: 1,
+    max: 1.5,
+  },
   freezeOnShake: {
     enabled: true,
   },

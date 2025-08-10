@@ -32,7 +32,12 @@ export const AnimateDimensionsChange: React.FC<
   const [width, setWidth] = useState<number | 'auto'>('auto')
 
   useEffect(() => {
-    if (!enabled || !containerRef.current) return
+    if (!containerRef.current) return
+    if (!enabled) {
+      setHeight('auto')
+      setWidth('auto')
+      return
+    }
     const resizeObserver = new ResizeObserver((entries) => {
       if (axis === 'height' || axis === 'both') {
         setHeight(entries[0].contentRect.height)

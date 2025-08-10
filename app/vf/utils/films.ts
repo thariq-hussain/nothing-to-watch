@@ -1,4 +1,4 @@
-import type { VoroforceCell } from './cells'
+import type { VoroforceCell } from '../types'
 
 export type FilmData = Record<string, string | number>
 export type FilmBatch = FilmData[]

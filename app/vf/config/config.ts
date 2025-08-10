@@ -1,10 +1,10 @@
+import { VOROFORCE_MODE } from '../consts'
+import type { VoroforceInstance } from '../types'
 import controls, { controlModeConfigs } from './controls'
 import display from './display'
 import { baseLatticeConfig, introModeLatticeConfig } from './lattice'
 import media from './media'
 import simulation from './simulation'
-import { VOROFORCE_MODE } from '../consts'
-import type { VoroforceInstance } from '../types'
 import { introForceSimulationStepConfig } from './simulation/force/intro-force'
 
 export const modeConfigs: {
@@ -46,7 +46,6 @@ export default {
   },
   handleVisibilityChange: {
     enabled: true,
-    // enabled: false,
     hiddenDelay: 5000,
   },
   lattice: baseLatticeConfig,

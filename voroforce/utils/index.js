@@ -1,5 +1,6 @@
 export * from './array-buffer'
 export * from './device'
+export * from './logger'
 export * from './math'
 export * from './merge-configs'
 export * from './styles'

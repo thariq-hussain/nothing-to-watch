@@ -43,6 +43,7 @@ export const omniForce = () => {
     slowPointerMod = 0,
     easedIdlePointerMod = 1,
     easedActivePointerMod = 0,
+    pointerZoomScale = 1,
     prevCenterX,
     prevCenterY,
     centerX,
@@ -54,6 +55,7 @@ export const omniForce = () => {
     // centerLerp = defaultLerpFactor,
     latticeCenterX,
     latticeCenterY,
+    latticeScale = 1,
     centerLerp = 1,
     primaryCell,
     primaryCellIndex,
@@ -119,6 +121,7 @@ export const omniForce = () => {
       primaryCellWeightPushFactorEnabled = false,
       smoothPrimaryCell = false,
       handlePointerSpeedScale = true,
+      handlePointerZoomScale = true,
       breathing: {
         enabled: breathing = false,
         cycleDuration: breathingCycleDuration = 6000,
@@ -252,7 +255,7 @@ export const omniForce = () => {
         // pushStrength = _pushStrength,
         pushStrength = _pushStrength * 0.5,
         radius: pushRadius = getPushRadius(dimensions),
-        pushRadius2 = pushRadius * pushRadius,
+        pushRadiusSquared = pushRadius * pushRadius,
         radiusLimit: pushRadiusLimit = true,
         xFactor: configPushXMod = 1,
         yFactor: configPushYMod = 1,
@@ -305,6 +308,7 @@ export const omniForce = () => {
     targetCenterY = undefined
     primaryCell = undefined
     primaryCellIndex = undefined
+    latticeScale = originLatticeScale
 
     if (typeof latticeCenterX === 'undefined') {
       latticeCenterX = originLatticeX
@@ -342,15 +346,19 @@ export const omniForce = () => {
       forceSetup(alpha)
       latticeForcePass(alpha) // lattice pass must run in isolation (for reasons)
       mainForcePass(alpha)
+      updateSharedData()
+    }
 
+    function updateSharedData() {
       sharedData.centerForceX = centerX
       sharedData.centerForceY = centerY
-      sharedData.centerForceStrengthMod = lerp(
-        sharedData.centerForceStrengthMod,
-        min(basePushDistMod / 1.125, 1),
-        // centerLerp,
-        defaultLerpFactor * 4,
-      )
+      // sharedData.centerForceStrengthMod = lerp(
+      //   sharedData.centerForceStrengthMod,
+      //   min(basePushDistMod / 1.125, 1), // todo
+      //   // centerLerp,
+      //   defaultLerpFactor * 4,
+      // )
+      sharedData.centerForceStrengthMod = basePushDistMod / 1.125
     }
 
     function handlePrimaryCellChange(alpha) {
@@ -445,6 +453,26 @@ export const omniForce = () => {
         complementPointerSpeedScale = 1 - pointerSpeedScale
       }
 
+      if (handlePointerZoomScale) {
+        pointerZoomScale = minLerp(
+          pointerZoomScale,
+          pointer.zoom ?? 1,
+          defaultLerpFactor * 4,
+        )
+
+        latticeScale = originLatticeScale * pointerZoomScale
+      }
+
+      // media loading logic for primary cell, needs to run before the other cells
+      if (requestMediaVersions) {
+        if (pointerSpeedScale < mediaVMaxSpeedLimit) {
+          primaryCell.targetMediaVersion = max(
+            primaryCell.targetMediaVersion,
+            maxTargetMediaVersion,
+          )
+        }
+      }
+
       slowIdlePrimaryCellMod = minLerp(
         slowIdlePrimaryCellMod,
         1,
@@ -467,7 +495,6 @@ export const omniForce = () => {
 
       // todo tmp?
       if (smoothPrimaryCell && idlePrimaryCellMod < 1) {
-        // console.log('idlePrimaryCellMod', idlePrimaryCellMod)
         primaryCellX = lerp(prevPrimaryCellX, primaryCellX, idlePrimaryCellMod)
         primaryCellY = lerp(prevPrimaryCellY, primaryCellY, idlePrimaryCellMod)
       }
@@ -524,6 +551,14 @@ export const omniForce = () => {
 
       prevCenterX = centerX
       prevCenterY = centerY
+
+      // todo handles large jumps, keep an eye on it
+      const targetCenterDistScale =
+        squaredDist(centerX, centerY, targetCenterX, targetCenterY) /
+        (pushRadiusSquared * 0.00025)
+      if (targetCenterDistScale > 1) {
+        centerLerp = min(centerLerp * targetCenterDistScale, 1)
+      }
 
       centerX = minLerp(centerX, targetCenterX, centerLerp)
       centerY = minLerp(centerY, targetCenterY, centerLerp)
@@ -627,7 +662,10 @@ export const omniForce = () => {
         originStrength * alpha * (1 - (1 - breathingPushMod) * 3)
 
       basePushDistMod =
-        breathingPushMod * pushSpeedFactor * primaryCellWeightPushFactor
+        breathingPushMod *
+        pushSpeedFactor *
+        primaryCellWeightPushFactor *
+        pointerZoomScale
       commonPushDistMod = basePushDistMod * pushStrength * alpha
       commonPushXMod = configPushXMod * breathingPushMod
       commonPushYMod = configPushYMod * (1 - (1 - sqrt(breathingPushMod)))
@@ -639,18 +677,16 @@ export const omniForce = () => {
 
         // origin force
         cell.vx +=
-          ((originLatticeScale === 1
+          ((latticeScale === 1
             ? cell.localIx
-            : (cell.localIx - latticeCenterX) * originLatticeScale +
-              latticeCenterX) -
+            : (cell.localIx - latticeCenterX) * latticeScale + latticeCenterX) -
             cell.localX) *
           originXFactor *
           commonOriginMod
         cell.vy +=
-          ((originLatticeScale === 1
+          ((latticeScale === 1
             ? cell.localIy
-            : (cell.localIy - latticeCenterY) * originLatticeScale +
-              latticeCenterY) -
+            : (cell.localIy - latticeCenterY) * latticeScale + latticeCenterY) -
             cell.localY) *
           originYFactor *
           commonOriginMod
@@ -662,7 +698,7 @@ export const omniForce = () => {
 
           l = x * x + y * y
 
-          if (l < pushRadius2) {
+          if (0 < l && l < pushRadiusSquared) {
             l = sqrt(l)
             l = (pushRadius - l) / l
             l *= commonPushDistMod
@@ -683,13 +719,6 @@ export const omniForce = () => {
                   cell.colLevelAdjacency,
                   cell.rowLevelAdjacency,
                 )
-              } else {
-                if (pointerSpeedScale < mediaVMaxSpeedLimit) {
-                  primaryCell.targetMediaVersion = max(
-                    primaryCell.targetMediaVersion,
-                    maxTargetMediaVersion,
-                  )
-                }
               }
             }
 

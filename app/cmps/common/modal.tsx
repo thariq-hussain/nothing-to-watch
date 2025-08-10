@@ -2,11 +2,13 @@ import React, {
   Fragment,
   type PropsWithChildren,
   type ReactNode,
+  useEffect,
   useState,
 } from 'react'
 import { type DialogProps, Drawer as DrawerPrimitive } from 'vaul'
 
 import { useMediaQuery } from '../../hooks/use-media-query'
+import { useShallowState } from '../../store'
 import { orientation } from '../../utils/mq'
 import { cn } from '../../utils/tw'
 import {
@@ -50,7 +52,7 @@ const ModalContent = React.forwardRef<
   <DrawerPrimitive.Content
     ref={ref}
     className={cn(
-      'not-landscape:-inset-x-px pointer-events-none fixed not-landscape:bottom-0 z-30 not-landscape:h-auto focus-visible:outline-none not-landscape:md:inset-x-0 md:px-3 md:py-3 lg:px-6 lg:py-6 landscape:top-0 landscape:right-0 landscape:h-full landscape:max-h-[36rem] landscape:min-w-130 landscape:max-w-210 landscape:lg:h-auto landscape:lg:max-h-full landscape:lg:w-2/5',
+      'not-landscape:-inset-x-px pointer-events-none fixed not-landscape:bottom-0 z-30 not-landscape:h-auto p-1.5 focus-visible:outline-none not-landscape:md:inset-x-0 md:px-3 md:py-3 lg:px-6 lg:py-6 landscape:top-0 landscape:right-0 landscape:h-full landscape:min-w-100 landscape:max-w-210 landscape:lg:h-auto landscape:lg:max-h-full landscape:lg:w-2/5 landscape:lg:min-w-130 landscape:md:min-w-120',
       {
         'landscape:right-auto landscape:left-0': direction === 'left',
         'not-landscape:top-0 not-landscape:bottom-auto': direction === 'top',
@@ -65,7 +67,6 @@ const ModalContent = React.forwardRef<
 
 const ModalContentInner = ({
   className = '',
-  direction,
   children,
 }: PropsWithChildren<{
   className?: string
@@ -73,11 +74,7 @@ const ModalContentInner = ({
 }>) => (
   <div
     className={cn(
-      'pointer-events-auto relative not-landscape:w-full cursor-grab overflow-hidden not-landscape:rounded-b-3xl bg-background/70 transition-colors duration-500 max-lg:border md:rounded-xl not-landscape:md:rounded-b-xl landscape:h-full landscape:rounded-xl landscape:lg:h-full landscape:lg:max-h-[calc(100vh-var(--spacing)*6*2)]',
-      {
-        'not-landscape:rounded-t-3xl not-landscape:rounded-b-none':
-          direction === 'bottom',
-      },
+      'pointer-events-auto relative not-landscape:w-full cursor-grab overflow-hidden rounded-2xl bg-background/70 transition-colors duration-500 max-lg:border md:rounded-xl landscape:h-full landscape:lg:h-full landscape:lg:max-h-[calc(100vh-var(--spacing)*6*2)]',
       className,
     )}
   >
@@ -126,6 +123,7 @@ export const Modal = ({
   overlay,
   portal = true,
   handle = true,
+  disableVoroforceKeyboardControls = false,
 }: {
   rootProps?: React.ComponentProps<typeof DrawerPrimitive.Root>
   contentProps?: React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
@@ -141,14 +139,32 @@ export const Modal = ({
   overlay?: boolean
   portal?: boolean
   handle?: boolean
+  disableVoroforceKeyboardControls?: boolean
 }) => {
   const landscape = useMediaQuery(orientation('landscape'))
-
   const [isDragging, setIsDragging] = useState(false)
-
   const direction = rootProps?.direction ?? (landscape ? 'right' : 'bottom')
 
+  const { voroforceControls } = useShallowState((state) => ({
+    voroforceControls: state.voroforce?.controls,
+  }))
+
   const OptionalDrawerPortal = portal ? DrawerPortal : Fragment
+
+  useEffect(() => {
+    if (
+      !disableVoroforceKeyboardControls ||
+      !voroforceControls ||
+      !rootProps?.open
+    )
+      return
+
+    voroforceControls.removeKeyboardEventListeners()
+
+    return () => {
+      voroforceControls.initKeyboardEventListeners()
+    }
+  }, [disableVoroforceKeyboardControls, voroforceControls, rootProps?.open])
 
   return (
     <Drawer

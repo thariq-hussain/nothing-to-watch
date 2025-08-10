@@ -1,12 +1,16 @@
 import { store } from '@/store'
 import { baseLatticeConfig } from '../config'
-import { type VoroforceCell, updateUniformsByMode } from '../utils'
+import { updateUniformsByMode } from '../utils'
 
 import { VOROFORCE_MODE } from '../consts'
+import type { VoroforceCell } from '../types'
 import { updateControlsByMode } from './controls'
 
 export const revealVoroforceContainer = () => {
-  store.getState().container.classList.remove('opacity-0')
+  // store.getState().container.classList.remove('opacity-0')
+  store.setState({
+    voroforceMediaPreloaded: true,
+  })
 }
 
 let afterModeChangeTimeout: NodeJS.Timeout
@@ -14,7 +18,7 @@ let afterModeChangeTimeout: NodeJS.Timeout
 const handleModeChange = (mode: VOROFORCE_MODE): void => {
   const {
     setMode,
-    voroforce: { simulation, controls },
+    voroforce,
     configUniforms: {
       main: mainUniforms,
       post: postUniforms,
@@ -25,6 +29,10 @@ const handleModeChange = (mode: VOROFORCE_MODE): void => {
       controls: controlsConfig,
     },
   } = store.getState()
+
+  if (!voroforce?.simulation || !voroforce?.controls) return
+
+  const { simulation, controls } = voroforce
 
   setMode(mode)
 
@@ -64,9 +72,13 @@ const handleModeChange = (mode: VOROFORCE_MODE): void => {
 const handleIntro = () => {
   const { voroforce, setPlayedIntro } = store.getState()
 
+  if (!voroforce?.controls || !voroforce?.dimensions) return
+
   const { controls, dimensions } = voroforce
 
   setTimeout(() => {
+    if (!voroforce) return
+
     voroforce.config.lattice = {
       ...baseLatticeConfig,
       rows: voroforce.config.lattice.rows,
@@ -95,6 +107,8 @@ const handleIntro = () => {
 export const handleMode = () => {
   const { mode: initialMode, voroforce, config } = store.getState()
 
+  if (!voroforce?.loader || !voroforce?.ticker) return
+
   const { loader, ticker } = voroforce
 
   if (initialMode === VOROFORCE_MODE.intro) {
@@ -117,13 +131,15 @@ export const handleMode = () => {
     }
   }
 
-  voroforce.controls.listen('selected', (async ({
-    cell,
-  }: { cell: VoroforceCell }) => {
-    const mode = store.getState().mode
-    if (mode === VOROFORCE_MODE.intro) return
-    const newMode = cell ? VOROFORCE_MODE.select : VOROFORCE_MODE.preview
-    if (newMode === mode) return
-    handleModeChange(newMode)
-  }) as unknown as EventListener)
+  if (voroforce.controls) {
+    voroforce.controls.listen('selected', (async ({
+      cell,
+    }: { cell: VoroforceCell }) => {
+      const mode = store.getState().mode
+      if (mode === VOROFORCE_MODE.intro) return
+      const newMode = cell ? VOROFORCE_MODE.select : VOROFORCE_MODE.preview
+      if (newMode === mode) return
+      handleModeChange(newMode)
+    }) as unknown as EventListener)
+  }
 }

@@ -2,11 +2,11 @@ import { Settings2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { isDefined } from '../../../utils/misc'
 import { cn } from '../../../utils/tw'
-import type { VOROFORCE_PRESET } from '../../../vf'
-import { type DEVICE_CLASS, PRESET_ITEMS } from '../../../vf/consts.ts'
+import { VOROFORCE_PRESET } from '../../../vf'
+import { DEVICE_CLASS, PRESET_ITEMS } from '../../../vf/consts'
+import { Badge } from '../../ui/badge'
 import { DeviceClassWarningMessage } from '../device-class/device-class-warning-message'
 import { Selector, type SelectorItems } from '../selector'
-import { Badge } from '../../ui/badge'
 
 type NoArray<T> = T extends Array<unknown> ? never : T
 
@@ -80,7 +80,13 @@ export function PresetSelector({
   deviceClass?: DEVICE_CLASS
 }) {
   const presetItems: SelectorItems = useMemo(() => {
-    return PRESET_ITEMS.map((presetItem) => {
+    return PRESET_ITEMS.filter((presetItem) => {
+      return !(
+        deviceClass !== DEVICE_CLASS.mobile &&
+        !Array.isArray(presetItem) &&
+        presetItem.id === VOROFORCE_PRESET.mobile
+      )
+    }).map((presetItem) => {
       return Array.isArray(presetItem)
         ? presetItem.map((subPresetItem) =>
             processPresetItem(subPresetItem, deviceClass),
@@ -101,7 +107,7 @@ export function PresetSelector({
         {/*</p>*/}
       </div>
       <Selector
-        itemClassName='text-white light:bg-foreground'
+        itemClassName='text-white light:bg-foreground max-lg:landscape:py-1'
         itemBgClassName='z-1'
         defaultValue={value}
         onValueChange={(value) => {

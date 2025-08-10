@@ -10,7 +10,18 @@
       "quoteStyle": "single",
       "jsxQuoteStyle": "single",
       "semicolons": "asNeeded"
-    }
+    },
+    "globals": [
+      "vi",
+      "describe",
+      "it",
+      "test",
+      "expect",
+      "beforeEach",
+      "beforeAll",
+      "afterEach",
+      "afterAll"
+    ]
   },
   "organizeImports": {
     "enabled": true
@@ -62,6 +73,6 @@
   },
   "files": {
     "include": ["*.ts", "*.tsx", "*.js", "*.jsx"],
-    "ignore": ["_ref/**/*", "node_modules"]
+    "ignore": ["_ref/**/*", "node_modules", "coverage"]
   }
 }

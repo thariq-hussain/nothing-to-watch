@@ -13,7 +13,7 @@ import {
   DEVICE_CLASS,
   PRESET_ITEMS,
   type PresetItem,
-} from '../../../vf/consts.ts'
+} from '../../../vf/consts'
 import { Button, type ButtonProps } from '../../ui/button'
 import { AnimateDimensionsChange } from '../animate-dimensions-change'
 import { FadeTransition } from '../fade-transition'
@@ -67,10 +67,15 @@ export function CoreSettingsWidget({
           : VOROFORCE_PRESET.minimal
         : isDefined(deviceClass)
           ? (
-              PRESET_ITEMS.filter((p) => !Array.isArray(p)) as PresetItem[]
+              PRESET_ITEMS.filter(
+                (p) =>
+                  !Array.isArray(p) &&
+                  (p.id !== VOROFORCE_PRESET.mobile ||
+                    deviceClass === DEVICE_CLASS.mobile),
+              ) as PresetItem[]
             ).find((p) =>
               isDefined(p.recommendedDeviceClass)
-                ? p.recommendedDeviceClass < deviceClass
+                ? p.recommendedDeviceClass <= deviceClass
                 : true,
             )?.id
           : undefined),

@@ -3,6 +3,8 @@ import { GithubIcon } from 'lucide-react'
 import { store, useShallowState } from '@/store'
 import type { PropsWithChildren } from 'react'
 import config from '../../../config'
+import { cn } from '../../../utils/tw'
+import { Hotkeys } from '../../common/hotkeys'
 import { Modal } from '../../common/modal'
 import {
   Accordion,
@@ -98,6 +100,11 @@ const items = [
         </p>
       </>
     ),
+  },
+  {
+    title: 'Controls',
+    content: <Hotkeys />,
+    className: 'hidden mouse:block',
   },
   {
     title: 'Technical TL;DR',
@@ -258,13 +265,13 @@ export const About = () => {
         <Accordion
           type='multiple'
           className='w-full p-6 pb-18 md:pr-10 lg:pt-12 lg:pb-24'
-          defaultValue={['1', '2']}
+          defaultValue={['1', '2', '3']}
         >
-          {items.map(({ title, content }, index) => (
+          {items.map(({ title, content, className }, index) => (
             <AccordionItem
               key={title}
               value={`${index}`}
-              className='w-full cursor-auto'
+              className={cn('w-full cursor-auto', className)}
             >
               <AccordionTrigger className='w-full cursor-pointer font-bold text-lg uppercase leading-none underline-offset-3 [&>svg]:size-6'>
                 {title}

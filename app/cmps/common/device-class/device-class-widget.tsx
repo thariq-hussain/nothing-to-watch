@@ -1,11 +1,12 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 
 import { useMediaQuery } from '../../../hooks/use-media-query'
 import { useShallowState } from '../../../store'
 import { isDefined } from '../../../utils/misc'
 import { down } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
-import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts.ts'
+import { type DEVICE_CLASS, DEVICE_CLASS_ITEMS } from '../../../vf/consts'
+import { estimateDeviceClass } from '../../../vf/utils/device-class'
 import { Button, type ButtonProps } from '../../ui/button'
 import { DeviceClassSelector } from './device-class-selector'
 
@@ -20,12 +21,19 @@ export function DeviceClassWidget({
   submitLabel?: string | ReactNode
   submitProps?: ButtonProps
 }) {
-  const { estimatedDeviceClass, setStoreDeviceClass, storeDeviceClass } =
-    useShallowState((state) => ({
-      setStoreDeviceClass: state.setDeviceClass,
-      estimatedDeviceClass: state.estimatedDeviceClass,
-      storeDeviceClass: state.deviceClass,
-    }))
+  const {
+    storeDeviceClass,
+    setStoreDeviceClass,
+    estimatedDeviceClass,
+    setEstimatedDeviceClass,
+    voroforce,
+  } = useShallowState((state) => ({
+    storeDeviceClass: state.deviceClass,
+    setStoreDeviceClass: state.setDeviceClass,
+    estimatedDeviceClass: state.estimatedDeviceClass,
+    setEstimatedDeviceClass: state.setEstimatedDeviceClass,
+    voroforce: state.voroforce,
+  }))
 
   const isSmallScreen = useMediaQuery(down('md'))
 
@@ -38,6 +46,31 @@ export function DeviceClassWidget({
         ? estimatedDeviceClass
         : undefined),
   )
+
+  useEffect(() => {
+    if (!storeDeviceClass) {
+      if (estimatedDeviceClass) {
+        setSelectedDeviceClass(estimatedDeviceClass)
+      } else {
+        if (!voroforce) {
+          estimateDeviceClass().then((estimatedDeviceClass) => {
+            if (isSmallScreen) {
+              setStoreDeviceClass(estimatedDeviceClass)
+            }
+            setEstimatedDeviceClass(estimatedDeviceClass)
+            setSelectedDeviceClass(estimatedDeviceClass)
+          })
+        }
+      }
+    }
+  }, [
+    storeDeviceClass,
+    estimatedDeviceClass,
+    setEstimatedDeviceClass,
+    setStoreDeviceClass,
+    voroforce,
+    isSmallScreen,
+  ])
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>
@@ -53,13 +86,13 @@ export function DeviceClassWidget({
           const deviceClass = isDefined(selectedDeviceClass)
             ? selectedDeviceClass
             : estimatedDeviceClass
-          if (deviceClass) {
+          if (typeof deviceClass === 'number' && deviceClass >= 0) {
             setStoreDeviceClass(deviceClass)
             onSubmit?.()
           }
         }}
         size='lg'
-        disabled={!isSmallScreen && !selectedDeviceClass}
+        disabled={!isSmallScreen && !isDefined(selectedDeviceClass)}
         {...submitProps}
         className={cn('w-full cursor-pointer text-lg', submitProps?.className)}
       >

@@ -171,8 +171,7 @@ void main(){
     float d, t = 0.;
     vec3 p;
 
-    //    t = 0.5; // TODO
-    t = cfDist;// TODO
+    t = cfDist; // TODO
 
     float fIterationsMod = 1.;
     float iterations = BASE_RM_ITERATIONS * fIterationsMod * rmMod;
@@ -266,8 +265,5 @@ void main(){
 
 
     outputColor = vec4(c, 1.);
-    //    outputColor = vec4(vec3((effectiveIterations / BASE_RM_ITERATIONS)), 1.);
-    //    outputColor = vec4(vec3(rmMod), 1.);
-    //            outputColor = mix(outputColor, texture(uMainOutputTexture, vUv), 0.5);
     voroIndexBufferColor = fetchIndices(uv);
 }

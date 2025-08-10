@@ -14,6 +14,9 @@ export enum VOROFORCE_PRESET {
   chaos = 'chaos',
 }
 
+export const DEFAULT_VOROFORCE_PRESET: VOROFORCE_PRESET =
+  VOROFORCE_PRESET.minimal
+
 export enum DEVICE_CLASS {
   mobile = 0,
   low = 1,
@@ -35,9 +38,14 @@ export type PresetItems = Array<PresetItem | Array<PresetItem>>
 
 export const PRESET_ITEMS: PresetItems = [
   {
+    id: VOROFORCE_PRESET.mobile,
+    name: 'Mobile',
+  },
+  {
     id: VOROFORCE_PRESET.minimal,
     name: 'Minimal',
     videoSrc: '/tmp.webm',
+    recommendedDeviceClass: DEVICE_CLASS.low,
   },
   {
     id: VOROFORCE_PRESET.depth,
@@ -78,6 +86,7 @@ export const CELL_LIMIT_ITEMS = [
   {
     value: CELL_LIMIT.xs,
     label: '10,000',
+    recommendedDeviceClass: DEVICE_CLASS.low,
   },
   {
     value: CELL_LIMIT.sm,
@@ -98,6 +107,10 @@ export const CELL_LIMIT_ITEMS = [
 ]
 
 export const DEVICE_CLASS_ITEMS = [
+  {
+    id: DEVICE_CLASS.mobile,
+    name: '📱Mobile',
+  },
   {
     id: DEVICE_CLASS.low,
     name: '🥔 Potato',

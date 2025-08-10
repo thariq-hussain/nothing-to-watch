@@ -1,10 +1,8 @@
-import { useEffect, useReducer } from 'react'
-import { useMediaQuery } from '../../../hooks/use-media-query'
+import { useEffect, useReducer, useState } from 'react'
 import { useShallowState } from '../../../store'
 import { isDefined } from '../../../utils/misc'
-import { down } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
-import { VOROFORCE_MODE, safeInitVoroforce } from '../../../vf'
+import { VOROFORCE_MODE } from '../../../vf'
 import { OBSCURE_VISUAL_DEFECTS } from '../../../vf/consts'
 import { CoreSettingsWidget } from '../../common/core-settings/core-settings-widget'
 import { DeviceClassWidget } from '../../common/device-class/device-class-widget'
@@ -17,7 +15,8 @@ export const Intro = () => {
     hasDeviceClass: isDefined(state.deviceClass),
   }))
 
-  const isSmallScreen = useMediaQuery(down('md'))
+  const [initialPreset] = useState(preset)
+
   const visible = useIntroVisible()
 
   return (
@@ -25,7 +24,7 @@ export const Intro = () => {
       className={cn(
         'fixed inset-x-0 top-0 z-60 flex h-dvh w-full justify-center bg-background px-12 duration-700',
         {
-          '!duration-150': visible,
+          '!duration-0': visible,
         },
       )}
       visible={visible}
@@ -38,13 +37,13 @@ export const Intro = () => {
         <div
           className={cn('h-1/3', {
             'max-lg:landscape:hidden [@media(min-aspect-ratio:2.5)]:hidden':
-              !preset,
+              !initialPreset,
           })}
         />
         <div
           className={cn('flex h-1/3 flex-col items-center justify-center', {
             'max-lg:landscape:h-1/2 max-lg:landscape:justify-start max-lg:landscape:pt-12 [@media(min-aspect-ratio:2.5)]:h-1/2 [@media(min-aspect-ratio:2.5)]:justify-start [@media(min-aspect-ratio:2.5)]:pt-12':
-              !preset,
+              !initialPreset,
           })}
         >
           <h1 className='font-black text-4xl leading-none md:text-5xl md:leading-none'>
@@ -63,14 +62,14 @@ export const Intro = () => {
           className={cn(
             'relative flex h-1/3 flex-col items-stretch justify-end gap-4 pb-12',
             {
-              'max-lg:landscape:h-1/2 [@media(min-aspect-ratio:2.5)]:h-1/2':
-                !preset,
+              'max-lg:landscape:h-1/2 max-lg:landscape:pb-6 [@media(min-aspect-ratio:2.5)]:h-1/2':
+                !initialPreset,
             },
           )}
         >
           <FadeTransition
-            visible={!isSmallScreen && !hasDeviceClass}
-            className='absolute inset-x-0 bottom-12 w-full duration-1000'
+            visible={!hasDeviceClass}
+            className='absolute inset-x-0 bottom-12 w-full duration-1000 max-md:hidden max-lg:landscape:bottom-6'
             transitionOptions={{
               timeout: 500,
             }}
@@ -79,19 +78,14 @@ export const Intro = () => {
             <MoviesDatasetLicenseInfo />
           </FadeTransition>
           <FadeTransition
-            visible={(hasDeviceClass || isSmallScreen) && !preset}
-            className='absolute inset-x-0 bottom-12 w-full duration-1000'
+            visible={hasDeviceClass && !preset}
+            className='absolute inset-x-0 bottom-12 w-full duration-1000 max-lg:landscape:bottom-6'
             transitionOptions={{
               timeout: 500,
             }}
           >
             <SmallScreenWarning />
             <CoreSettingsWidget
-              onSubmit={() => {
-                setTimeout(() => {
-                  void safeInitVoroforce()
-                }, 700)
-              }}
               submitLabel='Continue'
               submitVisibility='always'
             />
@@ -114,16 +108,17 @@ const DEFAULT_REVEAL_SCREEN_DELAY = 1200
 const DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY = 600
 let hideScreen = OBSCURE_VISUAL_DEFECTS
 function useIntroVisible() {
-  const { introRequired, revealScreenDelay } = useShallowState((state) => ({
-    introRequired: !state.playedIntro || !state.preset,
-    isPreviewMode: state.mode === VOROFORCE_MODE.preview,
-    revealScreenDelay: state.config?.revealScreenDelay
-      ? (state.config.revealScreenDelay.modes?.[state.mode] ??
-        state.config.revealScreenDelay.default)
-      : state.mode === VOROFORCE_MODE.preview
-        ? DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY
-        : DEFAULT_REVEAL_SCREEN_DELAY,
-  }))
+  const { introRequired, voroforceMediaPreloaded, revealScreenDelay } =
+    useShallowState((state) => ({
+      introRequired: !state.playedIntro || !state.preset,
+      voroforceMediaPreloaded: state.voroforceMediaPreloaded,
+      revealScreenDelay: state.config?.revealScreenDelay
+        ? (state.config.revealScreenDelay.modes?.[state.mode] ??
+          state.config.revealScreenDelay.default)
+        : state.mode === VOROFORCE_MODE.preview
+          ? DEFAULT_PREVIEW_MODE_REVEAL_SCREEN_DELAY
+          : DEFAULT_REVEAL_SCREEN_DELAY,
+    }))
 
   if (OBSCURE_VISUAL_DEFECTS) {
     const [, forceUpdate] = useReducer((x) => x + 1, 0)
@@ -153,5 +148,5 @@ function useIntroVisible() {
     }, [revealScreenDelay])
   }
 
-  return introRequired || hideScreen
+  return introRequired || hideScreen || !voroforceMediaPreloaded
 }

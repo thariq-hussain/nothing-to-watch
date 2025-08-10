@@ -2,11 +2,7 @@ import { Grid3x3Icon } from 'lucide-react'
 import { useMemo } from 'react'
 import { isDefined } from '../../../utils/misc'
 import { cn } from '../../../utils/tw'
-import {
-  CELL_LIMIT,
-  CELL_LIMIT_ITEMS,
-  DEVICE_CLASS,
-} from '../../../vf/consts.ts'
+import { CELL_LIMIT, CELL_LIMIT_ITEMS, DEVICE_CLASS } from '../../../vf/consts'
 import { DeviceClassWarningMessage } from '../device-class/device-class-warning-message'
 import { Selector, type SelectorItems } from '../selector'
 
