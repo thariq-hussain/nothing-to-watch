@@ -23,7 +23,7 @@ export const controlModeConfigs: {
 }
 
 const defaultControlsConfig = {
-  debug: true,
+  debug: false,
   autoFocusCenter: {
     enabled: true,
     random: true,
