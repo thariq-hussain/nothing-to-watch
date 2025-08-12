@@ -12,7 +12,9 @@ import './styles.css'
 initTelemetry()
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (!config.disableUI) {
+  const urlParams = new URLSearchParams(window.location.search)
+  const disableUIOverrideParam = urlParams.get('disableUI')
+  if (!config.disableUI && !disableUIOverrideParam) {
     // biome-ignore lint/style/noNonNullAssertion: exists
     createRoot(document.getElementById('root')!).render(
       <StrictMode>
