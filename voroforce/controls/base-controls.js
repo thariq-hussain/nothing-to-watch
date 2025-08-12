@@ -148,18 +148,6 @@ export default class BaseControls extends CustomEventTarget {
     }
   }
 
-  onPointerDown(e) {
-    if (this.isTouching) return
-    this.pointer.down = true
-    this.logger?.debug('onPointerDown')
-  }
-
-  onPointerUp(e) {
-    if (this.isTouching) return
-    this.pointer.down = false
-    this.logger?.debug('onPointerUp')
-  }
-
   updateRawPositionFromEvent(e) {
     this.rawPositionIdle = false
     if (this.rawPositionIdleTimeout) {
@@ -177,10 +165,32 @@ export default class BaseControls extends CustomEventTarget {
     })
   }
 
+  onPointerDown(e) {
+    if (this.isTouching) return
+    this.pointer.down = true
+    this.pointer.canDrag = true
+    this.pointer.downStartX = e.clientX || e.x
+    this.pointer.downStartY = e.clientY || e.y
+    this.logger?.debug('onPointerDown')
+  }
+
+  onPointerUp(e) {
+    if (this.isTouching) return
+    this.pointer.down = false
+    this.pointer.canDrag = false
+    this.logger?.debug('onPointerUp')
+  }
+
   onPointerMove(e) {
     this.updateRawPositionFromEvent(e)
-    if (this.pointer.down) {
-      this.pointer.downMoved = true
+    if (this.pointer.canDrag && !this.pointer.dragging) {
+      const currentX = e.clientX || e.x
+      const currentY = e.clientY || e.y
+      const deltaX = currentX - this.pointer.downStartX
+      const deltaY = currentY - this.pointer.downStartY
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+      if (distance > 20) this.pointer.dragging = true
     }
   }
 
@@ -211,12 +221,11 @@ export default class BaseControls extends CustomEventTarget {
 
   handlePointerOut() {
     this.reset()
-    // this.rawPosition = undefined
   }
 
   onPointerClick(e) {
-    if (this.pointer.downMoved) {
-      this.pointer.downMoved = false
+    if (this.pointer.dragging) {
+      this.pointer.dragging = false
       return
     }
     this.updateRawPositionFromEvent(e)

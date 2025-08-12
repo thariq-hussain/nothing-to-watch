@@ -34,9 +34,10 @@ export const microSentryTelemetry = {
     return Boolean(state.enabled)
   },
   captureError(error: unknown, _ctx?: unknown) {
-    if (!state.client || !state.enabled) return
+    if (!state.enabled) return
 
-    state.client.report(error as Error)
+    state.client?.report(error as Error)
+    if (import.meta.env.DEV) console.error('[telemetry] captureError', error)
   },
 }
 

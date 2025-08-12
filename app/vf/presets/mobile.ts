@@ -17,7 +17,7 @@ export const controlModeConfigs: {
     zoom: {
       enabled: true,
       min: 1,
-      max: 1.01,
+      max: 1.4,
     },
   },
 }
@@ -40,7 +40,7 @@ const defaultControlsConfig = {
   zoom: {
     enabled: true,
     min: 1,
-    max: 1.5,
+    max: 1.2,
   },
 }
 

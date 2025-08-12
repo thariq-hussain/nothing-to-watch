@@ -16,7 +16,7 @@ export default defineConfig({
       '**/dist/**',
       '**/cypress/**',
       '**/.{idea,git,cache,output,temp}/**',
-      '**/tests/**', // Exclude Playwright tests
+      '**/playwright-tests/**', // Exclude Playwright tests
       '**/test-results/**',
       '**/playwright-report/**',
     ],
@@ -29,7 +29,7 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/coverage/**',
-        'tests/**', // Playwright tests
+        'playwright-tests/**', // Playwright tests
         'voroforce/**', // Skip WebGL engine for now
       ],
     },

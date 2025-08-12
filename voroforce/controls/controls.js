@@ -8,7 +8,7 @@ import { getCell, getDirectionalNeighborCellIndex } from './utils/cell'
 import { DebugMarker } from './utils/debug-marker'
 import { DetachGestureHandler } from './utils/detach-gesture-handler'
 
-const { pow, sqrt, max } = Math
+const { pow, sqrt } = Math
 
 const getAverageSpeedTotal = (array) =>
   array.reduce((a, b) => a + b.total, 0) / array.length
@@ -126,11 +126,6 @@ export default class Controls extends BaseControls {
         x: this.position.x,
         y: this.position.y,
         speedScale: this.avgSpeedTotal / this.options.maxSpeed,
-        // speedScale:
-        //   this.avgSpeedTotal /
-        //   (this.pinnedPosition
-        //     ? this.options.maxSpeedPinned
-        //     : this.options.maxSpeed),
       })
     }
 
@@ -278,45 +273,58 @@ export default class Controls extends BaseControls {
   }
 
   handleCursor() {
+    let cursor
     if (this.isTouching) {
-      this.setCursor('default')
-    } else if (this.pointer.downMoved) {
-      this.setCursor('grabbing')
+      cursor = 'default'
+    } else if (this.pointer.dragging) {
+      cursor = 'grabbing'
     } else if (this.isPinned() && this.hasSelection()) {
       if (this.rawIsPinned()) {
-        this.setCursor('zoom-out')
+        cursor = 'zoom-out'
       } else {
-        this.setCursor('pointer')
+        cursor = 'pointer'
       }
     } else {
       if (!this.isDetached()) {
         if (this.hasSelection()) {
-          // if (this.rawIsSelected()) {
           if (this.focusedIsSelected()) {
-            this.setCursor('zoom-out')
+            cursor = 'zoom-out'
           } else {
-            this.setCursor('pointer')
+            cursor = 'pointer'
           }
         } else {
           if (this.avgSpeedTotal < this.options.interactionMaxSpeed) {
-            this.setCursor('pointer')
+            cursor = 'pointer'
           } else {
-            this.setCursor('default')
+            cursor = 'default'
           }
         }
       } else {
         if (this.hasSelection()) {
-          this.setCursor('pointer')
+          cursor = 'pointer'
           if (this.rawIsSelected()) {
-            this.setCursor('zoom-out')
+            cursor = 'zoom-out'
           } else {
-            this.setCursor('pointer')
+            cursor = 'pointer'
           }
         } else {
-          this.setCursor('default')
+          cursor = 'default'
         }
       }
     }
+
+    if (cursor) this.setCursor(cursor)
+  }
+
+  onPointerDown(e) {
+    if (this.isTouching) return
+    this.pointer.down = true
+    if (this.rawIsFocused()) {
+      this.pointer.canDrag = true
+      this.pointer.downStartX = e.clientX || e.x
+      this.pointer.downStartY = e.clientY || e.y
+    }
+    this.logger?.debug('onPointerDown')
   }
 
   onPointerMove(e) {
@@ -326,6 +334,8 @@ export default class Controls extends BaseControls {
 
     if (this.isTouching) {
       this.attach()
+    } else if (this.pointer.down && !this.pointer.canDrag) {
+      this.pinPointer(this.rawPosition)
     } else if (this.isPinned()) {
       if (this.hasSelection()) {
         if (!this.rawIsFocused()) {
@@ -338,21 +348,29 @@ export default class Controls extends BaseControls {
   }
 
   handlePointerOut() {
-    this.pointer.downMoved = false
+    this.pointer.dragging = false
     this.pointer.down = false
-    if (!this.isDetached()) this.pinPointer()
+    this.pointer.canDrag = false
+    if (!this.isDetached()) {
+      if (this.hasSelection()) {
+        this.pinPointer()
+      } else {
+        this.freezePointer()
+      }
+    }
   }
 
   onPointerClick(e) {
     if (this.isPinching) return
-    if (this.pointer.downMoved) {
-      this.pointer.downMoved = false
+    if (this.pointer.dragging) {
+      this.pointer.dragging = false
       return
     }
     this.logger?.debug('onPointerClick')
     this.updateRawPositionFromEvent(e)
 
     this.getCellIndices(this.rawPosition, (index, indices) => {
+      if (!this.rawPosition) return
       Object.assign(this.rawPosition, {
         index,
         indices,
@@ -387,10 +405,6 @@ export default class Controls extends BaseControls {
 
   unfreezePointer() {
     if (!this.frozenPosition) return
-    // TODO TMP
-    if (Number.isNaN(this.frozenPosition.x)) {
-      throw new Error('frozen position is NaN')
-    }
     if (!this.lastPosition) this.lastPosition = {}
     Object.assign(this.lastPosition, this.frozenPosition)
     this.frozenPosition = null
@@ -524,6 +538,23 @@ export default class Controls extends BaseControls {
     }
   }
 
+  onTouchStart(e) {
+    this.logger?.debug('onTouchStart')
+    this.isTouching = true
+
+    if (e.touches.length === 1) {
+      // Single touch - let pointer events handle it
+      return
+    }
+
+    // Multi-touch gestures
+    if (e.touches.length === 2) {
+      this.handlePinchGesture(e.touches)
+    }
+
+    e.preventDefault() // Prevent pointer events for multi-touch
+  }
+
   onTouchMove(e) {
     if (e.touches.length === 1) {
       // Single touch - let pointer events handle it
@@ -611,14 +642,14 @@ export default class Controls extends BaseControls {
     super.initEventListeners()
     this.initWheelEventListeners()
     this.initKeyboardEventListeners()
-    this.initOrientationEventListeners()
+    // this.initOrientationEventListeners()
   }
 
   removeEventListeners() {
     super.removeEventListeners()
     this.removeWheelEventListeners()
     this.removeKeyboardEventListeners()
-    this.removeOrientationEventListeners()
+    // this.removeOrientationEventListeners()
   }
 
   initWheelEventListeners() {
@@ -646,19 +677,7 @@ export default class Controls extends BaseControls {
   }
 
   onDeviceOrientation(e) {
-    // if (this.isTouching) return
-    // if (!this.rawPosition) this.rawPosition = {}
-    // if (this.isDetached()) {
-    //   this.attach()
-    //   Object.assign(this.rawPosition, {
-    //     x: this.pointer.x,
-    //     y: this.pointer.y,
-    //     index: this.pointer.index,
-    //     indices: this.pointer.indices,
-    //   })
-    // }
-    //
-    // Object.assign(this.rawPosition, { x: newX, y: newY })
+    // TODO
   }
 
   initOrientationEventListeners() {

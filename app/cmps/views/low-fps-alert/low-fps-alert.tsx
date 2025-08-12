@@ -5,10 +5,11 @@ import { useMediaQuery } from '../../../hooks/use-media-query'
 import { useShallowState } from '../../../store'
 import { orientation, up } from '../../../utils/mq'
 import { cn } from '../../../utils/tw'
-import { VOROFORCE_PRESET } from '../../../vf'
+import { CELL_LIMIT, VOROFORCE_PRESET } from '../../../vf'
 import { DEVICE_CLASS, VOROFORCE_MODE } from '../../../vf/consts'
 import { CoreSettingsWidget } from '../../common/core-settings/core-settings-widget'
 import { Modal } from '../../common/modal'
+import { Button } from '../../ui/button'
 
 export const LowFpsAlert = () => {
   const landscape = useMediaQuery(orientation('landscape'))
@@ -19,6 +20,7 @@ export const LowFpsAlert = () => {
     preset,
     ticker,
     mode,
+    deviceClass,
     estimatedDeviceClass,
     setEstimatedDeviceClass,
     setAboutOpen,
@@ -29,6 +31,7 @@ export const LowFpsAlert = () => {
     preset: state.preset,
     ticker: state.voroforce?.ticker,
     mode: state.mode,
+    deviceClass: state.deviceClass,
     estimatedDeviceClass: state.estimatedDeviceClass,
     setEstimatedDeviceClass: state.setEstimatedDeviceClass,
     setAboutOpen: state.setAboutOpen,
@@ -38,7 +41,13 @@ export const LowFpsAlert = () => {
 
   const canLowerQuality = preset
     ? [VOROFORCE_PRESET.contours, VOROFORCE_PRESET.depth].includes(preset) ||
-      (cellLimit && cellLimit > 10000)
+      (deviceClass === DEVICE_CLASS.mobile &&
+        preset !== VOROFORCE_PRESET.mobile) ||
+      (cellLimit &&
+        cellLimit >
+          (deviceClass === DEVICE_CLASS.mobile
+            ? CELL_LIMIT.xxs
+            : CELL_LIMIT.xs))
     : false
   const warnLimit = !canLowerQuality ? 1 : 2
 
@@ -70,7 +79,6 @@ export const LowFpsAlert = () => {
         setEstimatedDeviceClass(DEVICE_CLASS.mid)
         break
       case DEVICE_CLASS.mid:
-      case DEVICE_CLASS.low:
         setEstimatedDeviceClass(DEVICE_CLASS.low)
         break
     }
@@ -118,13 +126,19 @@ export const LowFpsAlert = () => {
         onClose: close,
       }}
       contentProps={{
-        className: cn({
-          'landscape:!top-auto landscape:!bottom-0': alignContentToBottom,
-        }),
+        className: cn(
+          'max-md:landscape:min-w-auto max-md:landscape:max-w-1/2',
+          {
+            'landscape:!top-auto landscape:!bottom-0': alignContentToBottom,
+          },
+        ),
+      }}
+      innerContentProps={{
+        className: 'max-md:!bg-background/90',
       }}
       overlay={true}
     >
-      <div className='p-4 md:p-6 lg:p-9'>
+      <div className='flex flex-col p-4 md:p-6 lg:p-9 max-md:landscape:h-full max-md:landscape:justify-between'>
         <div className='flex flex-col gap-2 pt-4'>
           <div className='flex items-center gap-2 font-semibold text-xl text-zinc-900 dark:text-white'>
             <TriangleAlert className='h-5 w-5 text-amber-500 ' />
@@ -137,21 +151,26 @@ export const LowFpsAlert = () => {
             </span>
             <span
               className={cn('max-md:hidden', {
-                hidden: preset === VOROFORCE_PRESET.minimal,
+                hidden: canLowerQuality,
               })}
             >
-              Switch to a faster preset?
+              Lower the settings?
             </span>
             <span
               className={cn('max-md:hidden', {
-                hidden: preset !== VOROFORCE_PRESET.minimal,
+                hidden: !canLowerQuality,
               })}
             >
-              You're already using the fastest preset.
+              You're already using the lowest settings.
             </span>
           </p>
         </div>
         <CoreSettingsWidget onSubmit={() => window.location.reload()} />
+        <div className='flex w-full flex-row justify-end gap-3 pt-4 md:gap-6 md:pt-6'>
+          <Button variant='outline' onClick={() => setIsOpen(false)}>
+            Close
+          </Button>
+        </div>
       </div>
     </Modal>
   )

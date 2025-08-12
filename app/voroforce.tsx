@@ -1,18 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { store } from './store'
 import { initVoroforce } from './vf'
 
 export function Voroforce() {
   const [error, setError] = useState<Error | null>(null)
-  const isIniting = useRef(false)
 
   useEffect(() => {
-    const tryInit = async () => {
+    const tryInit = () => {
       try {
-        if (isIniting.current) return
-        isIniting.current = true
-        await initVoroforce()
-        isIniting.current = false
+        initVoroforce()
       } catch (e) {
         setError(e as Error)
       }

@@ -44,13 +44,13 @@ export const PRESET_ITEMS: PresetItems = [
   {
     id: VOROFORCE_PRESET.minimal,
     name: 'Minimal',
-    videoSrc: '/tmp.webm',
+    // videoSrc: '/tmp.webm',
     recommendedDeviceClass: DEVICE_CLASS.low,
   },
   {
     id: VOROFORCE_PRESET.depth,
     name: 'Depth',
-    videoSrc: '/tmp.webm',
+    // videoSrc: '/tmp.webm',
     recommendedDeviceClass: DEVICE_CLASS.high,
   },
   [
