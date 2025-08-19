@@ -167,7 +167,7 @@ export const LowFpsAlert = () => {
         </div>
         <CoreSettingsWidget onSubmit={() => window.location.reload()} />
         <div className='flex w-full flex-row justify-end gap-3 pt-4 md:gap-6 md:pt-6'>
-          <Button variant='outline' onClick={() => setIsOpen(false)}>
+          <Button variant='outline' onClick={close}>
             Close
           </Button>
         </div>
