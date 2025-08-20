@@ -90,6 +90,7 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   getCellIndices(position, cb) {
+    if (this.isResizing) return
     if (Number.isNaN(position.x) || Number.isNaN(position.y)) return
     this.display.getPositionCellIndices(position).then((indices) => {
       if (this.isResizing) return
@@ -262,6 +263,7 @@ export default class BaseControls extends CustomEventTarget {
   }
 
   initEventListeners() {
+    this.logger?.debug('initEventListeners')
     // Store bound function references
     this.boundOnBlur = this.onBlur.bind(this)
     this.boundOnPointerOut = this.onPointerOut.bind(this)
@@ -323,7 +325,9 @@ export default class BaseControls extends CustomEventTarget {
 
   endResize(dimensions) {
     this.logger?.debug('endResize')
+    this.isResizing = false
     if (!this.cells.focused || this.outOfBounds(this.cells.focused)) {
+      this.focusCell(undefined)
       if (autoFocusCenterEnabled(this.config)) {
         this.assignPointer(this.getAutoFocusCenter())
       }
@@ -334,7 +338,6 @@ export default class BaseControls extends CustomEventTarget {
       y: this.cells.focused.y,
     })
     this.dispatchEvent(new CellFocusedEvent(this.cells.focused, this.cells))
-    this.isResizing = false
   }
 
   boundsPadding = 10

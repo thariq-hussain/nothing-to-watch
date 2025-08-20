@@ -1,5 +1,9 @@
-export const getCellIndex = (cellOrCellIndex) =>
-  typeof cellOrCellIndex === 'number' ? cellOrCellIndex : cellOrCellIndex.index
+export const getCellIndex = (cellOrCellIndex) => {
+  if (cellOrCellIndex === null || cellOrCellIndex === undefined) return
+  return typeof cellOrCellIndex === 'number'
+    ? cellOrCellIndex
+    : cellOrCellIndex.index
+}
 
 export const getCell = (cellOrCellIndex, cells) => {
   if (cellOrCellIndex === null || cellOrCellIndex === undefined) return

@@ -32,9 +32,11 @@ export class ManualTicker extends CustomEventTarget {
   stop() {
     this.running = false
     this.pauseStart = performance.now()
+    this.nextRequests = 0
   }
 
   kill() {
+    this.stop()
     this.killed = true
   }
 
@@ -63,7 +65,6 @@ export class ManualTicker extends CustomEventTarget {
     if (!this.running) return
     this.nextRequests++
     if (this.nextRequests !== 2) return
-    // this.fpsGraph?.end()
     requestAnimationFrame(this.tick)
   }
 
