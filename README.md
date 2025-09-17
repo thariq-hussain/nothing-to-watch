@@ -164,6 +164,11 @@ VITE_MEDIA_VERSION_0_LAYERS=1
 VITE_MEDIA_VERSION_1_LAYERS=1
 VITE_MEDIA_VERSION_2_LAYERS=1
 VITE_EXPERIMENTAL_MEDIA_VERSION_3_ENABLED=1
+# Optional: media preload behavior (v0 | first | false)
+VITE_MEDIA_PRELOAD=false
+# Optional: Jellyseerr integration
+VITE_JELLYSEERR_URL=https://your-jellyseerr.example.com
+VITE_JELLYSEERR_API_KEY=your_api_key
 ```
 
 ### Performance Tuning
