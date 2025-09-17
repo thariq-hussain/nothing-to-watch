@@ -73,7 +73,11 @@ export const jellyseerr = {
       const res = await fetch(`${JELLYSEERR_URL}/api/v1/request`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ mediaType: 'movie', tmdbId }),
+        body: JSON.stringify({
+          mediaType: 'movie',
+          mediaId: tmdbId, // This might be 'mediaId' instead of 'tmdbId'
+          seasons: 'all' // Sometimes required even for movies
+        }),
       })
       return res.ok
     } catch {
