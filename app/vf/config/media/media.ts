@@ -1,7 +1,14 @@
 const mediaConfig = {
   enabled: true,
   baseUrl: import.meta.env.VITE_TEXTURES_BASE_URL ?? '/media',
-  preload: 'first', // 'v0', 'first' or false
+  preload:
+    (import.meta.env.VITE_MEDIA_PRELOAD as 'v0' | 'first' | 'false' | undefined) ===
+    'v0'
+      ? 'v0'
+      : (import.meta.env
+          .VITE_MEDIA_PRELOAD as 'v0' | 'first' | 'false' | undefined) === 'first'
+        ? 'first'
+        : false, // default to false for perf
   compressionFormat: 'dds', // or 'ktx'
   versions: [
     {
