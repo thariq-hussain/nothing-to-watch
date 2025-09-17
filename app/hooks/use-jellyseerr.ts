@@ -8,7 +8,12 @@ export const useJellyseerr = (tmdbId?: number) => {
   const [label, setLabel] = useState<string>('')
 
   const refresh = useCallback(async () => {
-    if (!tmdbId || !jellyseerr.isConfigured) return
+    if (!tmdbId || !jellyseerr.isConfigured) {
+      if (import.meta.env.DEV) {
+        console.log('[Jellyseerr] Skipping refresh:', { tmdbId, configured: jellyseerr.isConfigured })
+      }
+      return
+    }
     setLoading(true)
     const res = await jellyseerr.getMovieAvailability(tmdbId)
     setAvailable(res.available)

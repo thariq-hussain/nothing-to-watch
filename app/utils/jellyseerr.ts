@@ -17,6 +17,15 @@ const env = (import.meta as unknown as {
 const JELLYSEERR_URL = env?.VITE_JELLYSEERR_URL
 const JELLYSEERR_API_KEY = env?.VITE_JELLYSEERR_API_KEY
 
+// Debug logging to help identify env var issues
+if (import.meta.env.DEV) {
+  console.log('[Jellyseerr] Env check:', {
+    hasUrl: Boolean(JELLYSEERR_URL),
+    hasKey: Boolean(JELLYSEERR_API_KEY),
+    url: JELLYSEERR_URL ? `${JELLYSEERR_URL.substring(0, 20)}...` : 'undefined',
+  })
+}
+
 const hasConfig = Boolean(JELLYSEERR_URL && JELLYSEERR_API_KEY)
 
 const headers: HeadersInit = JELLYSEERR_API_KEY

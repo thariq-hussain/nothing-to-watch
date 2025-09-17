@@ -7,8 +7,6 @@ import { cn } from '../../../../../utils/tw'
 import type { Film } from '../../../../../vf'
 import { AnimateDimensionsChange } from '../../../../common/animate-dimensions-change'
 import { Badge } from '../../../../ui/badge'
-import { Button } from '../../../../ui/button'
-import { useJellyseerr } from '../../../../../hooks/use-jellyseerr'
 import { FilmRatingGauge } from '../../shared/film-rating-gauge'
 
 export const FilmView = ({
@@ -122,7 +120,6 @@ export const FilmView = ({
                         </Badge>
                       ))}
                     </div>
-                    <JellyseerrActions tmdbId={film.tmdbId} />
                   </div>
                 </div>
               </div>
@@ -138,30 +135,5 @@ export const FilmView = ({
         </div>
       </div>
     </AnimateDimensionsChange>
-  )
-}
-
-const JellyseerrActions = ({ tmdbId }: { tmdbId: number }) => {
-  const { configured, loading, available, requested, label, request } =
-    useJellyseerr(tmdbId)
-
-  if (!configured) return null
-
-  return (
-    <div className='flex flex-row items-center gap-2 pt-1'>
-      <Badge className='whitespace-nowrap text-[0.6rem] leading-none md:text-xs'>
-        {label}
-      </Badge>
-      {!available && (
-        <Button
-          size='sm'
-          variant='outline'
-          disabled={loading || requested}
-          onClick={() => void request()}
-        >
-          {requested ? 'Requested' : loading ? 'Requesting…' : 'Request movie'}
-        </Button>
-      )}
-    </div>
   )
 }
