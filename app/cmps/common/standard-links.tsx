@@ -53,6 +53,26 @@ export const StdLinks = ({
           </a>
         </Button>
       )}
+      {configured && available && (
+        <Button
+          asChild
+          variant='outline'
+          className={cn(
+            'rounded-lg border-foreground md:backdrop-blur-lg',
+            buttonClassName,
+          )}
+        >
+          <a
+            href={`https://jelly.thariqhussain.com/web/index.html#!/search?q=${encodeURIComponent(
+              film.title,
+            )}`}
+            target='_blank'
+            rel='noreferrer'
+          >
+            Watch now
+          </a>
+        </Button>
+      )}
       {configured && !available && (
         <Button
           variant='outline'
