@@ -76,7 +76,8 @@ export const jellyseerr = {
         body: JSON.stringify({
           mediaType: 'movie',
           mediaId: tmdbId,
-          is4k: false
+          is4k: false,
+          userId: 1
         }),
       })
       return res.ok
