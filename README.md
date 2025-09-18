@@ -17,6 +17,7 @@ An experimental WebGL gallery that visualizes tens of thousands of film posters 
 
 - **Interactive WebGL Visualization**: Real-time rendering of tens of thousands of film posters
 - **Custom Voroforce Engine**: Purpose-built force simulation and rendering system with multi-threading support
+- **Jellyseerr Integration**: Request movies and view availability directly within the application.
 - **Responsive Design**: Adapts to desktop, tablet, and mobile devices
 - **Performance Optimized**: GPU-accelerated rendering with efficient memory management
 - **Film Discovery**: Explore movies through visual relationships and clustering
